@@ -1,0 +1,54 @@
+apply plugin: 'com.android.library'
+apply plugin: 'maven-publish'
+
+def packageVersion = '0.1'
+
+android {
+    compileSdkVersion 24
+    buildToolsVersion '24.0.0'
+
+    defaultConfig {
+        minSdkVersion 21
+        targetSdkVersion 24
+        versionCode 1
+        versionName '1.0'
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+    compile 'com.google.brillo:brillo-sdk:0.2'
+    testCompile 'junit:junit:4.12'
+}
+
+task sourceJar(type: Jar) {
+    classifier = 'sources'
+    from android.sourceSets.main.java.sourceFiles
+}
+
+publishing {
+    assert project.hasProperty('BRILLO_REPOSITORY'): \
+       "Property BRILLO_REPOSITORY not set.\n" +
+            "Please, set your ~/.gradle/init.gradle as instructed in go/brillo-gradle-setup"
+    publications {
+        mavenJava(MavenPublication) {
+            groupId 'com.google.brillo.driver.grove'
+            artifactId 'speaker'
+            version packageVersion
+            artifacts = configurations.archives.artifacts
+            artifact sourceJar
+        }
+    }
+    repositories {
+        maven {
+            url BRILLO_REPOSITORY
+            credentials(AwsCredentials) {
+                accessKey AWS_ACCESS_KEY
+                secretKey AWS_SECRET_KEY
+            }
+        }
+    }
+}
