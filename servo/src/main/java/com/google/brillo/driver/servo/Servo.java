@@ -8,6 +8,7 @@ import android.util.Log;
 
 import java.io.Closeable;
 
+@SuppressWarnings("WeakerAccess")
 public class Servo implements Closeable {
     private static final String TAG = Servo.class.getSimpleName();
 
@@ -29,7 +30,6 @@ public class Servo implements Closeable {
 
     public Servo(PeripheralManagerService pioService) {
         mPioService = pioService;
-
         mPulseDurationMin = DEFAULT_MIN_PULSE_DURATION_MS;
         mPulseDurationMax = DEFAULT_MAX_PULSE_DURATION_MS;
         mAngleMin = DEFAULT_MIN_ANGLE_DEG;
@@ -47,11 +47,10 @@ public class Servo implements Closeable {
     }
 
     public void close() throws IllegalStateException {
-        if (mPwm == null) {
-            throw new IllegalStateException("pwm device not opened");
+        if (mPwm != null) {
+            mPwm.close();
+            mPwm = null;
         }
-        mPwm.close();
-        mPwm = null;
     }
 
     /**

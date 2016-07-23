@@ -20,7 +20,7 @@ android {
 }
 
 dependencies {
-    compile 'com.google.brillo:brillo-sdk:0.2'
+    compile 'com.google.brillo:brillo-sdk:0.3'
     testCompile 'junit:junit:4.12'
 }
 
