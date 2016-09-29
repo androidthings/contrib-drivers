@@ -1,1 +1,1 @@
-include ':servo', 'grove:lcdrgb', 'grove:speaker', 'grove:accelerometer'
+include ':servo', ':button', 'grove:lcdrgb', 'grove:speaker', 'grove:accelerometer'
