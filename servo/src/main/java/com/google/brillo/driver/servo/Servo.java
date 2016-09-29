@@ -1,8 +1,7 @@
 package com.google.brillo.driver.servo;
 
-import android.os.RemoteException;
-import android.pio.PeripheralManagerService;
-import android.pio.Pwm;
+import android.hardware.pio.PeripheralManagerService;
+import android.hardware.pio.Pwm;
 import android.system.ErrnoException;
 import android.util.Log;
 
@@ -36,11 +35,11 @@ public class Servo implements Closeable {
         mAngleMax = DEFAULT_MAX_ANGLE_DEG;
     }
 
-    public void open(String pin) throws RemoteException, ErrnoException {
+    public void open(String pin) throws ErrnoException {
         open(pin, DEFAULT_FREQUENCY_HZ);
     }
 
-    public void open(String pin, double frequencyHz) throws RemoteException, ErrnoException {
+    public void open(String pin, double frequencyHz) throws ErrnoException {
         mPwm = mPioService.openPwm(pin);
         mPwm.setPwmFrequencyHz(frequencyHz);
         mPeriod = 1000.0 / frequencyHz;
@@ -59,7 +58,7 @@ public class Servo implements Closeable {
      * @param angleDeg Angle in degree, between {@link #DEFAULT_MIN_ANGLE_DEG}
      *                 and {@link #DEFAULT_MAX_ANGLE_DEG}.
      */
-    public void set(double angleDeg) throws RemoteException, ErrnoException  {
+    public void set(double angleDeg) throws ErrnoException  {
         if (mPwm == null) {
             throw new IllegalStateException("pwm device not opened");
         }
@@ -84,7 +83,7 @@ public class Servo implements Closeable {
         mPwm.setPwmDutyCycle(dutyCycle);
     }
 
-    public void enable() throws RemoteException, ErrnoException {
+    public void enable() throws ErrnoException {
         if (mPwm == null) {
             throw new IllegalStateException("pwm device not opened");
         }
@@ -92,7 +91,7 @@ public class Servo implements Closeable {
         mEnabled = true;
     }
 
-    public void disable() throws RemoteException, ErrnoException {
+    public void disable() throws ErrnoException {
         if (mPwm == null) {
             throw new IllegalStateException("pwm device not opened");
         }

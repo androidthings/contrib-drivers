@@ -1,8 +1,7 @@
 package com.google.brillo.driver.grove.speaker;
 
-import android.os.RemoteException;
-import android.pio.PeripheralManagerService;
-import android.pio.Pwm;
+import android.hardware.pio.PeripheralManagerService;
+import android.hardware.pio.Pwm;
 import android.system.ErrnoException;
 
 import java.io.Closeable;
@@ -29,7 +28,7 @@ public class Speaker implements Closeable {
         addNote("B", 493.8833013);
     }
 
-    public void open(String pin) throws RemoteException, ErrnoException {
+    public void open(String pin) throws ErrnoException {
         PeripheralManagerService pioService = new PeripheralManagerService();
         mPwm = pioService.openPwm(pin);
         mPwm.setPwmDutyCycle(50.0); // square wave.
@@ -43,14 +42,14 @@ public class Speaker implements Closeable {
     }
 
     public void play(String note, long durationMs)
-            throws RemoteException, ErrnoException, IllegalStateException, InterruptedException {
+            throws ErrnoException, IllegalStateException, InterruptedException {
         play(note);
         Thread.sleep(durationMs);
         stop();
     }
 
     public void play(String note)
-            throws RemoteException, ErrnoException, IllegalStateException {
+            throws ErrnoException, IllegalStateException {
         if (mPwm == null) {
             throw new IllegalStateException("pwm device not opened");
         }
@@ -65,7 +64,7 @@ public class Speaker implements Closeable {
         mNotes.put(note, freq);
     }
 
-    public void stop() throws RemoteException, ErrnoException, IllegalStateException {
+    public void stop() throws ErrnoException, IllegalStateException {
         if (mPwm == null) {
             throw new IllegalStateException("pwm device not opened");
         }

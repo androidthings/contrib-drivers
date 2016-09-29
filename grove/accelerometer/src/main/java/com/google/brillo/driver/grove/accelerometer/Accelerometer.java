@@ -1,8 +1,7 @@
 package com.google.brillo.driver.grove.accelerometer;
 
-import android.os.RemoteException;
-import android.pio.I2cDevice;
-import android.pio.PeripheralManagerService;
+import android.hardware.pio.I2cDevice;
+import android.hardware.pio.PeripheralManagerService;
 import android.system.ErrnoException;
 
 import java.io.Closeable;
@@ -42,7 +41,7 @@ public class Accelerometer implements Closeable {
         ACTIVE // i2c on, output on
     }
 
-    public void open(String bus) throws RemoteException, ErrnoException {
+    public void open(String bus) throws ErrnoException {
         PeripheralManagerService pioService = new PeripheralManagerService();
         mDevice = pioService.openI2cDevice(bus, ADDRESS);
     }
@@ -54,21 +53,21 @@ public class Accelerometer implements Closeable {
         }
     }
 
-    public void setMode(Mode mode) throws RemoteException, ErrnoException, IllegalStateException {
+    public void setMode(Mode mode) throws ErrnoException, IllegalStateException {
         if (mDevice == null) {
             throw new IllegalStateException("i2c device not opened");
         }
         mDevice.writeRegByte(Register.MODE.ordinal(), mode.ordinal());
     }
 
-    public void setSamplingRate(SamplingRate rate) throws RemoteException, ErrnoException, IllegalStateException {
+    public void setSamplingRate(SamplingRate rate) throws ErrnoException, IllegalStateException {
         if (mDevice == null) {
             throw new IllegalStateException("i2c device not opened");
         }
         mDevice.writeRegByte(Register.SAMPLING_RATE.ordinal(), rate.ordinal());
     }
 
-    public byte[] readSample() throws RemoteException, ErrnoException, IllegalStateException {
+    public byte[] readSample() throws ErrnoException, IllegalStateException {
         if (mDevice == null) {
             throw new IllegalStateException("i2c device not opened");
         }
