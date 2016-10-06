@@ -2,6 +2,7 @@ package com.google.brillo.driver.button;
 
 import android.hardware.pio.Gpio;
 import android.hardware.pio.GpioCallback;
+import android.hardware.pio.PeripheralManagerService;
 import android.hardware.userdriver.InputDriver;
 import android.hardware.userdriver.InputDriverEvent;
 import android.system.ErrnoException;
@@ -37,12 +38,28 @@ public class Button implements Closeable {
     }
 
     /**
-     * Create a new Button driver.
+     * Create a new Button driver for the givin GPIO pin name.
+     * @param pin Gpio where the button is attached.
+     * @param logicLevel Logic level when the button is considered pressed.
+     * @throws ErrnoException
+     */
+    public Button(String pin, LogicState logicLevel) throws ErrnoException {
+        PeripheralManagerService pioService = new PeripheralManagerService();
+        Gpio buttonGpio = pioService.openGpio(pin);
+        connect(buttonGpio, logicLevel);
+    }
+
+    /**
+     * Create a new Button driver for the given Gpio connection.
      * @param buttonGpio Gpio where the button is attached.
      * @param logicLevel Logic level when the button is considered pressed.
      * @throws ErrnoException
      */
     public Button(Gpio buttonGpio, LogicState logicLevel) throws ErrnoException {
+       connect(buttonGpio, logicLevel);
+    }
+
+    private void connect(Gpio buttonGpio, LogicState logicLevel) throws ErrnoException {
         mButtonGpio = buttonGpio;
         mButtonGpio.setDirection(Gpio.DIRECTION_IN);
         mButtonGpio.setEdgeTriggerType(Gpio.EDGE_BOTH);
