@@ -6,6 +6,7 @@ import android.system.ErrnoException;
 
 import java.io.Closeable;
 
+@SuppressWarnings({"unused", "WeakerAccess"})
 public class Accelerometer implements Closeable {
     private static final int ADDRESS = 0x4c;
 

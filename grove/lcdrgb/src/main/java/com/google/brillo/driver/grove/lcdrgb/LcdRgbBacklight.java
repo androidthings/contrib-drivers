@@ -7,6 +7,7 @@ import android.system.ErrnoException;
 
 import java.io.Closeable;
 
+@SuppressWarnings({"unused", "WeakerAccess"})
 public class LcdRgbBacklight implements Closeable {
     private static final int RGB_ADDRESS = 0xc4 >> 1;
     private static final int LCD_ADDRESS = 0x7c >> 1;

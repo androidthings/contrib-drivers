@@ -4,14 +4,13 @@ import android.hardware.pio.I2cDevice;
 import android.hardware.pio.PeripheralManagerService;
 import android.hardware.userdriver.sensors.TemperatureSensorDriver;
 import android.system.ErrnoException;
-import android.util.Log;
 
 import java.io.Closeable;
-import java.util.UUID;
 
 /**
  * Driver for the BMP/BME 280 temperature sensor.
  */
+@SuppressWarnings({"unused", "WeakerAccess"})
 public class Bmx280 implements Closeable {
     private static final String TAG = Bmx280.class.getSimpleName();
     /**

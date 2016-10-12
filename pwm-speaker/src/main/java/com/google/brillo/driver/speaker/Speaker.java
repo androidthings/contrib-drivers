@@ -1,4 +1,4 @@
-package com.google.brillo.driver.grove.speaker;
+package com.google.brillo.driver.speaker;
 
 import android.hardware.pio.PeripheralManagerService;
 import android.hardware.pio.Pwm;
@@ -8,6 +8,7 @@ import java.io.Closeable;
 import java.util.HashMap;
 import java.util.Map;
 
+@SuppressWarnings({"unused", "WeakerAccess"})
 public class Speaker implements Closeable {
     private boolean mPlaying = false;
     private Pwm mPwm;

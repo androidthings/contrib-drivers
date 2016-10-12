@@ -7,7 +7,7 @@ import android.util.Log;
 
 import java.io.Closeable;
 
-@SuppressWarnings("WeakerAccess")
+@SuppressWarnings({"unused", "WeakerAccess"})
 public class Servo implements Closeable {
     private static final String TAG = Servo.class.getSimpleName();
 

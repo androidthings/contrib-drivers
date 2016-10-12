@@ -32,6 +32,7 @@ import java.io.Closeable;
  *   https://cpldcpu.wordpress.com/2014/11/30/understanding-the-apa102-superled
  */
 
+@SuppressWarnings({"unused", "WeakerAccess"})
 public class Apa102 implements Closeable {
     private static final String TAG = "Apa102";
 

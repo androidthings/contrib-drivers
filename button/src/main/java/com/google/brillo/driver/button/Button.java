@@ -15,7 +15,7 @@ import java.util.Map;
 /**
  * Driver for GPIO based buttons with pull-up or pull-down resistors.
  */
-@SuppressWarnings("WeakerAccess")
+@SuppressWarnings({"unused", "WeakerAccess"})
 public class Button implements Closeable {
     private static final String TAG = Button.class.getSimpleName();
 
