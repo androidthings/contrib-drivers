@@ -30,10 +30,18 @@ public class Button implements Closeable {
     private OnButtonEventListener mListener;
 
     /**
-     * Interface definition for a callback to be invoked when Button event occur.
+     * Interface definition for a callback to be invoked when a Button event occurs.
      */
     public interface OnButtonEventListener {
-        boolean onButtonEvent(boolean pressed);
+        /**
+         * Called when a Button event occurs
+         *
+         * @param button the Button for which the event occurred
+         * @param pressed true if the Button is now pressed
+         * @return true to continue receiving events from the Button. Returning false will stop
+         * <b>all</b> future events from this Button.
+         */
+        boolean onButtonEvent(Button button, boolean pressed);
     }
 
     /**
@@ -55,11 +63,11 @@ public class Button implements Closeable {
                 try {
                     boolean state = gpio.getValue();
                     if (logicLevel == LogicState.PRESSED_WHEN_HIGH) {
-                        return mListener.onButtonEvent(state);
+                        return mListener.onButtonEvent(Button.this, state);
 
                     }
                     if (logicLevel == LogicState.PRESSED_WHEN_LOW) {
-                        return mListener.onButtonEvent(!state);
+                        return mListener.onButtonEvent(Button.this, !state);
                     }
                 } catch (ErrnoException e) {
                     Log.e(TAG, "pio error: ", e);
@@ -68,6 +76,13 @@ public class Button implements Closeable {
             }
         };
         mButtonGpio.registerGpioCallback(mInterruptCallback);
+    }
+
+    /**
+     * @return the underlying {@link Gpio} device
+     */
+    public Gpio getGpio() {
+        return mButtonGpio;
     }
 
     /**
@@ -104,7 +119,7 @@ public class Button implements Closeable {
             InputDriver inputDriver = InputDriver.builder(supportedKey).build();
             button.setOnButtonEventListener(new OnButtonEventListener() {
                 @Override
-                public boolean onButtonEvent(boolean pressed) {
+                public boolean onButtonEvent(Button b, boolean pressed) {
                     int keyState = pressed ? BUTTON_PRESSED : BUTTON_RELEASED;
                     inputDriver.emit(new InputDriverEvent[]{
                             new InputDriverEvent(EV_KEY, key, keyState),
