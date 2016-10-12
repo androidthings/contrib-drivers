@@ -1,1 +1,1 @@
-include ':servo', ':button', ':bmx280', 'grove:lcdrgb', 'grove:speaker', 'grove:accelerometer'
+include ':servo', ':button', ':bmx280', 'grove:lcdrgb', 'grove:speaker', 'grove:accelerometer', ':ledstrip-apa102'
