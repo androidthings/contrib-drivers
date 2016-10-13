@@ -52,8 +52,6 @@ public class Bmx280 implements Closeable {
     private static final int BMP280_OVERSAMPLING_PRESSURE_SKIP = 0b00000000;
     private static final int BMP280_OVERSAMPLING_TEMP_1X = 0b00100000;
 
-
-
     private I2cDevice mDevice;
     private int mChipId;
     private int[] mCalibrationData = new int[3];
@@ -90,9 +88,9 @@ public class Bmx280 implements Closeable {
         // Power mode: Normal
         // Temperature resolution: 16bit
         // Pressure resolution: skip
-        mDevice.writeRegByte(BMP280_REG_CTRL, BMP280_POWER_MODE_NORMAL
+        mDevice.writeRegByte(BMP280_REG_CTRL, (byte)(BMP280_POWER_MODE_NORMAL
                 | BMP280_OVERSAMPLING_TEMP_1X
-                | BMP280_OVERSAMPLING_PRESSURE_SKIP);
+                | BMP280_OVERSAMPLING_PRESSURE_SKIP));
     }
 
     /**
@@ -116,6 +114,7 @@ public class Bmx280 implements Closeable {
     }
 
 
+    private byte[] mBuffer = new byte[3];
     /**
      * Read a temperate sample (20bit precision).
      * @return
@@ -124,11 +123,11 @@ public class Bmx280 implements Closeable {
         if (mDevice == null) {
             throw new IllegalStateException("I2C device is closed");
         }
-        byte[] regBytes = mDevice.readRegBuffer(BMP280_REG_TEMP, 3);
+        mDevice.readRegBuffer(BMP280_REG_TEMP, mBuffer, 3);
         // msb[7:0] lsb[7:0] xlsb[7:4]
-        int msb = regBytes[0] & 0xff;
-        int lsb = regBytes[1] & 0xff;
-        int xlsb = regBytes[2] & 0xf0;
+        int msb = mBuffer[0] & 0xff;
+        int lsb = mBuffer[1] & 0xff;
+        int xlsb = mBuffer[2] & 0xf0;
         // Convert to 20bit integer
         int rawTemp = (msb << 16 | lsb << 8 | xlsb) >> 4;
         // Compensate temperature using calibration data.
