@@ -1,6 +1,7 @@
 include ':servo'
 include ':button'
 include ':bmx280'
+include ':ht16k33'
 include ':pwm-speaker'
 include ':ledstrip-apa102'
 include 'grove:lcdrgb'
