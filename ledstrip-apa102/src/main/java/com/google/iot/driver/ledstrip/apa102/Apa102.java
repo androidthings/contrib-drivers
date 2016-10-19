@@ -133,7 +133,7 @@ public class Apa102 implements Closeable {
         // Add the RGB LED end bits
         System.arraycopy(APA_END_DATA, 0, ledData, ledData.length - 4, 4);
 
-        mDevice.writeBuffer(ledData);
+        mDevice.write(ledData, ledData.length);
     }
 
     /**
