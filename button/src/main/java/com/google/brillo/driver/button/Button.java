@@ -125,15 +125,25 @@ public class Button implements Closeable {
     }
 
     static class ButtonInputDriver {
+        private static final String DRIVER_NAME = "Button";
+        private static final int DRIVER_VERSION = 1;
         private static final int EV_SYN = 0;
         private static final int EV_KEY = 1;
         private static final int BUTTON_RELEASED = 0;
         private static final int BUTTON_PRESSED = 1;
         private static Integer[] SUPPORTED_EVENT_TYPE = {EV_SYN, EV_KEY};
+        // temporary uvent constant until they get added to the framework.
+        private static final int UI_SET_EVBIT = 1074025828;
+        private static final int UI_SET_KEYBIT = 1074025829;
         static InputDriver build(Button button, int key) {
             Map<Integer, Integer[]> supportedKey = new HashMap<>();
-            supportedKey.put(key, SUPPORTED_EVENT_TYPE);
-            InputDriver inputDriver = InputDriver.builder(supportedKey).build();
+            supportedKey.put(UI_SET_EVBIT, SUPPORTED_EVENT_TYPE);
+            Integer[] keys = {key};
+            supportedKey.put(UI_SET_KEYBIT, keys);
+            InputDriver inputDriver = InputDriver.builder(supportedKey)
+                    .name(DRIVER_NAME)
+                    .version(DRIVER_VERSION)
+                    .build();
             button.setOnButtonEventListener(new OnButtonEventListener() {
                 @Override
                 public boolean onButtonEvent(Button b, boolean pressed) {
