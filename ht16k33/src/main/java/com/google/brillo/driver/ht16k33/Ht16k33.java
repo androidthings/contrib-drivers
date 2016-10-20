@@ -19,9 +19,11 @@ public class Ht16k33 implements Closeable {
     public static final int I2C_ADDRESS = 0x70;
 
     private static final int HT16K33_CMD_SYSTEM_SETUP = 0x20;
-    private static final int HT16K33_OSCILLATOR_ON = 0b00000001;
+    private static final int HT16K33_OSCILLATOR_ON = 0b0001;
+    private static final int HT16K33_OSCILLATOR_OFF = 0b0000;
     private static final int HT16K33_CMD_DISPLAYSETUP = 0x80;
-    private static final int HT16K33_DISPLAY_ON = 0b00000001;
+    private static final int HT16K33_DISPLAY_ON = 0b0001;
+    private static final int HT16K33_DISPLAY_OFF = 0b0000;
     private static final int HT16K33_CMD_BRIGHTNESS = 0xE0;
     static final int HT16K33_BRIGHTNESS_MAX = 0b00001111;
 
@@ -62,9 +64,11 @@ public class Ht16k33 implements Closeable {
      * Enable oscillator and LED display.
      * @throws ErrnoException
      */
-    public void enable() throws ErrnoException {
-        mDevice.write(new byte[]{HT16K33_CMD_SYSTEM_SETUP|HT16K33_OSCILLATOR_ON}, 1);
-        mDevice.write(new byte[]{(byte)(HT16K33_CMD_DISPLAYSETUP|HT16K33_DISPLAY_ON)}, 1);
+    public void setEnabled(boolean enabled) throws ErrnoException {
+        int oscillator_flag = enabled ? HT16K33_OSCILLATOR_ON : HT16K33_OSCILLATOR_OFF;
+        mDevice.write(new byte[]{(byte) (HT16K33_CMD_SYSTEM_SETUP|oscillator_flag)}, 1);
+        int display_flag = enabled ? HT16K33_DISPLAY_ON : HT16K33_DISPLAY_OFF;
+        mDevice.write(new byte[]{(byte) (HT16K33_CMD_DISPLAYSETUP|display_flag)}, 1);
     }
 
     /**

@@ -54,7 +54,10 @@ public class AlphanumericDisplay extends Ht16k33 {
      * @param n number value
      */
     public void display(double n) throws ErrnoException {
-        display(Double.toString(n));
+        // pad with leading space until we get 5 chars
+        // since double always get formatted with a dot
+        // and the dot doesn't consume any space on the display.
+        display(String.format("%5s", n));
     }
 
 
@@ -63,7 +66,8 @@ public class AlphanumericDisplay extends Ht16k33 {
      * @param n number value
      */
     public void display(int n) throws ErrnoException {
-        display(Integer.toString(n));
+        // pad with leading space until we get 4 chars
+        display(String.format("%4s", n));
     }
 
     /**
@@ -72,9 +76,10 @@ public class AlphanumericDisplay extends Ht16k33 {
      */
     public void display(String s) throws ErrnoException {
         mBuffer.clear();
+        mBuffer.mark();
         short n = 0;
         for (char c : s.toCharArray()) {
-            // truncate string over character buffer limit.
+            // truncate string to the size of the display
             if (mBuffer.position() == mBuffer.limit()) {
                 break;
             }
@@ -92,7 +97,7 @@ public class AlphanumericDisplay extends Ht16k33 {
         }
         mBuffer.flip();
         // write display memory.
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < mBuffer.limit()/2; i++) {
             writeColumn(i, mBuffer.getShort());
         }
     }
