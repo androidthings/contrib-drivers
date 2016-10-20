@@ -37,11 +37,16 @@ public class LcdRgbBacklight implements Closeable {
     private I2cDevice mRgbDevice;
     private I2cDevice mLcdDevice;
 
-    public void open(String bus) throws ErrnoException {
+
+    public LcdRgbBacklight(String bus) throws ErrnoException {
         PeripheralManagerService pioService = new PeripheralManagerService();
         mRgbDevice = pioService.openI2cDevice(bus, RGB_ADDRESS);
         mLcdDevice = pioService.openI2cDevice(bus, LCD_ADDRESS);
-        init();
+        // enable display
+        mLcdDevice.write(COMMAND_DISPLAY_ON, COMMAND_DISPLAY_ON.length);
+        mLcdDevice.write(COMMAND_ENTRY_MODE, COMMAND_ENTRY_MODE.length);
+        mRgbDevice.writeRegByte(REG_MODE_1, (byte)ENABLE_BACKLIGHT);
+        mRgbDevice.writeRegByte(REG_OUTPUT, (byte)ENABLE_PWM);
     }
 
     public void close() {
@@ -55,19 +60,12 @@ public class LcdRgbBacklight implements Closeable {
         }
     }
 
-    private void init() throws ErrnoException {
-        mLcdDevice.write(COMMAND_DISPLAY_ON);
-        mLcdDevice.write(COMMAND_ENTRY_MODE);
-        mRgbDevice.writeRegByte(REG_MODE_1, ENABLE_BACKLIGHT);
-        mRgbDevice.writeRegByte(REG_OUTPUT, ENABLE_PWM);
-    }
-
     public void clear() throws ErrnoException, IllegalStateException {
         if (mLcdDevice == null) {
             throw new IllegalStateException("i2c device not opened");
         }
-        mLcdDevice.write(COMMAND_CLEAR);
-        mLcdDevice.write(COMMAND_HOME);
+        mLcdDevice.write(COMMAND_CLEAR, COMMAND_CLEAR.length);
+        mLcdDevice.write(COMMAND_HOME, COMMAND_HOME.length);
     }
 
     public void setBackground(int color) throws ErrnoException, IllegalStateException {
@@ -83,10 +81,10 @@ public class LcdRgbBacklight implements Closeable {
         if (mLcdDevice == null) {
             throw new IllegalStateException("i2c device not opened");
         }
-        mLcdDevice.write(COMMAND_HOME);
+        mLcdDevice.write(COMMAND_HOME, COMMAND_HOME.length);
         for (byte c : message.getBytes()) {
             byte[] text = {(byte) WRITE_CHAR, c};
-            mLcdDevice.write(text);
+            mLcdDevice.write(text, text.length);
         }
     }
 
