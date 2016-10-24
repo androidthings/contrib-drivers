@@ -5,71 +5,68 @@ import android.hardware.pio.Pwm;
 import android.system.ErrnoException;
 
 import java.io.Closeable;
-import java.util.HashMap;
-import java.util.Map;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
 public class Speaker implements Closeable {
-    private boolean mPlaying = false;
+
     private Pwm mPwm;
-    private final Map<String, Double> mNotes = new HashMap<>();
 
-    public Speaker() {
-        addNote("C", 261.6255653);
-        addNote("C#", 277.182631);
-        addNote("D", 293.6647679);
-        addNote("D#",  311.1269837);
-        addNote("E",  329.6275569);
-        addNote("F",  349.2282314);
-        addNote("F#",  369.9944227);
-        addNote("G",  391.995436);
-        addNote("G#",  415.3046976);
-        addNote("A",  440);
-        addNote("A#",  466.1637615);
-        addNote("B", 493.8833013);
+    /**
+     * Create a Speaker from a {@link Pwm} device
+     */
+    public Speaker(Pwm device) throws ErrnoException {
+        connect(device);
     }
 
-    public void open(String pin) throws ErrnoException {
+    /**
+     * Create a Speaker connected to the given Pwm pin name
+     */
+    public Speaker(String pin) throws ErrnoException {
         PeripheralManagerService pioService = new PeripheralManagerService();
-        mPwm = pioService.openPwm(pin);
-        mPwm.setPwmDutyCycle(50.0); // square wave.
+        connect(pioService.openPwm(pin));
     }
 
-    public void close() throws IllegalStateException {
+    private void connect(Pwm device) throws ErrnoException {
+        mPwm = device;
+        mPwm.setPwmDutyCycle(50.0); // square wave
+    }
+
+    @Override
+    public void close() {
+        if (mPwm != null) {
+            try {
+                mPwm.close();
+            } finally {
+                mPwm = null;
+            }
+        }
+    }
+
+    /**
+     * Play the specified frequency. Play continues until {@link #stop()} is called.
+     *
+     * @param frequency the frequency to play in Hz
+     * @throws ErrnoException
+     * @throws IllegalStateException if the device is closed
+     */
+    public void play(double frequency) throws ErrnoException, IllegalStateException {
         if (mPwm == null) {
             throw new IllegalStateException("pwm device not opened");
         }
-        mPwm.close();
+        mPwm.setPwmFrequencyHz(frequency);
+        mPwm.enable();
     }
 
-    public void play(String note, long durationMs)
-            throws ErrnoException, IllegalStateException, InterruptedException {
-        play(note);
-        Thread.sleep(durationMs);
-        stop();
-    }
-
-    public void play(String note)
-            throws ErrnoException, IllegalStateException {
-        if (mPwm == null) {
-            throw new IllegalStateException("pwm device not opened");
-        }
-        if (!mPlaying) {
-            mPwm.enable();
-            mPlaying = true;
-        }
-        mPwm.setPwmFrequencyHz(mNotes.get(note));
-    }
-
-    public void addNote(String note, double freq) {
-        mNotes.put(note, freq);
-    }
-
+    /**
+     * Stop a currently playing frequency
+     *
+     * @throws ErrnoException
+     * @throws IllegalStateException if the device is closed
+     */
     public void stop() throws ErrnoException, IllegalStateException {
         if (mPwm == null) {
             throw new IllegalStateException("pwm device not opened");
         }
         mPwm.disable();
-        mPlaying = false;
     }
 }
