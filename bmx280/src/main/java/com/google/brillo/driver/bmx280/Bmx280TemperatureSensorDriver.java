@@ -12,9 +12,9 @@ class Bmx280TemperatureSensorDriver {
     // documented at https://source.android.com/devices/sensors/hal-interface.html#sensor_t
     private static final String DRIVER_NAME = "BMP280/BME280";
     private static final String DRIVER_VENDOR = "Bosch";
-    private static final float DRIVER_MAX_RANGE = Bmx280.MAX_TEMP_C - Bmx280.MIN_TEMP_C;
-    private static final float DRIVER_RESOLUTION = DRIVER_MAX_RANGE / 0x100000; // 20bit signed
-    private static final float DRIVER_POWER = Bmx280.MAX_TEMP_POWER_UA / 1000.f;
+    private static final float DRIVER_MAX_RANGE = Bmx280.MAX_TEMP_C;
+    private static final float DRIVER_RESOLUTION = 0.005f;
+    private static final float DRIVER_POWER = Bmx280.MAX_POWER_CONSUMPTION_TEMP_UA / 1000.f;
     private static final int DRIVER_MIN_DELAY_US = Math.round(1000000.f/Bmx280.MAX_FREQ_HZ);
     private static final int DRIVER_MAX_DELAY_US = Math.round(1000000.f/Bmx280.MIN_FREQ_HZ);
     private static final int DRIVER_VERSION = 1;
@@ -29,8 +29,8 @@ class Bmx280TemperatureSensorDriver {
             public float read() {
                 try {
                     return driver.readTemperature();
-                } catch (ErrnoException |IllegalStateException e) {
-                    Log.e(TAG, "error reading bmx280 sensor data:", e);
+                } catch (ErrnoException | IllegalStateException e) {
+                    Log.e(TAG, "error reading bmx280 sensor data: ", e);
                     return Float.NaN;
                 }
             }

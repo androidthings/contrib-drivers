@@ -1,11 +1,11 @@
 apply plugin: 'com.android.library'
 apply plugin: 'maven-publish'
 
-def packageVersion = '0.3'
+def packageVersion = '0.4'
 
 android {
     compileSdkVersion 24
-    buildToolsVersion '24.0.2'
+    buildToolsVersion '24.0.3'
 
     defaultConfig {
         minSdkVersion 24
@@ -21,6 +21,8 @@ android {
 
 dependencies {
     compile 'com.google.brillo:iot-sdk:0.6'
+    compile 'com.android.support:support-annotations:24.2.0'
+    testCompile 'junit:junit:4.12'
 }
 
 task sourceJar(type: Jar) {
@@ -29,8 +31,8 @@ task sourceJar(type: Jar) {
 }
 
 publishing {
-    assert project.hasProperty('BRILLO_REPOSITORY'): \
-       "Property BRILLO_REPOSITORY not set.\n" +
+    assert project.hasProperty('BRILLO_REPOSITORY'):  \
+        "Property BRILLO_REPOSITORY not set.\n" +
             "Please, set your ~/.gradle/init.gradle as instructed in go/brillo-gradle-setup"
     publications {
         mavenJava(MavenPublication) {
