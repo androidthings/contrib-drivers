@@ -4,14 +4,15 @@ import android.hardware.pio.Gpio;
 import android.hardware.pio.GpioCallback;
 import android.hardware.pio.PeripheralManagerService;
 import android.hardware.userdriver.InputDriver;
+import android.os.Handler;
+import android.support.annotation.VisibleForTesting;
 import android.util.Log;
 import android.view.InputDevice;
+import android.view.ViewConfiguration;
 import android.view.KeyEvent;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Driver for GPIO based buttons with pull-up or pull-down resistors.
@@ -28,8 +29,11 @@ public class Button implements Closeable {
         PRESSED_WHEN_LOW
     }
     private Gpio mButtonGpio;
-    private GpioCallback mInterruptCallback;
     private OnButtonEventListener mListener;
+
+    private Handler mDebounceHandler;
+    private CheckDebounce mPendingCheckDebounce;
+    private long mDebounceDelay = ViewConfiguration.getTapTimeout();
 
     /**
      * Interface definition for a callback to be invoked when a Button event occurs.
@@ -40,14 +44,12 @@ public class Button implements Closeable {
          *
          * @param button the Button for which the event occurred
          * @param pressed true if the Button is now pressed
-         * @return true to continue receiving events from the Button. Returning false will stop
-         * <b>all</b> future events from this Button.
          */
-        boolean onButtonEvent(Button button, boolean pressed);
+        void onButtonEvent(Button button, boolean pressed);
     }
 
     /**
-     * Create a new Button driver for the givin GPIO pin name.
+     * Create a new Button driver for the given GPIO pin name.
      * @param pin Gpio where the button is attached.
      * @param logicLevel Logic level when the button is considered pressed.
      * @throws IOException
@@ -58,21 +60,16 @@ public class Button implements Closeable {
         try {
             connect(buttonGpio, logicLevel);
         } catch (IOException|RuntimeException e) {
-            try {
-                close();
-            } catch (IOException|RuntimeException ignored) {
-            }
+            close();
             throw e;
         }
     }
 
     /**
-     * Create a new Button driver for the given Gpio connection.
-     * @param buttonGpio Gpio where the button is attached.
-     * @param logicLevel Logic level when the button is considered pressed.
-     * @throws IOException
+     * Constructor invoked from unit tests.
      */
-    public Button(Gpio buttonGpio, LogicState logicLevel) throws IOException {
+    @VisibleForTesting
+    /*package*/ Button(Gpio buttonGpio, LogicState logicLevel) throws IOException {
        connect(buttonGpio, logicLevel);
     }
 
@@ -80,43 +77,70 @@ public class Button implements Closeable {
         mButtonGpio = buttonGpio;
         mButtonGpio.setDirection(Gpio.DIRECTION_IN);
         mButtonGpio.setEdgeTriggerType(Gpio.EDGE_BOTH);
-        mInterruptCallback = new GpioCallback() {
-            @Override
-            public boolean onGpioEdge(Gpio gpio) {
-                if (mListener == null) {
-                    return true;
-                }
-                try {
-                    boolean state = gpio.getValue();
-                    if (logicLevel == LogicState.PRESSED_WHEN_HIGH) {
-                        return mListener.onButtonEvent(Button.this, state);
-
-                    }
-                    if (logicLevel == LogicState.PRESSED_WHEN_LOW) {
-                        return mListener.onButtonEvent(Button.this, !state);
-                    }
-                } catch (IOException e) {
-                    Log.e(TAG, "pio error: ", e);
-                }
-                return true;
-            }
-        };
+        // Configure so pressed is always true
+        mButtonGpio.setActiveType(logicLevel == LogicState.PRESSED_WHEN_LOW ?
+                Gpio.ACTIVE_LOW : Gpio.ACTIVE_HIGH);
         mButtonGpio.registerGpioCallback(mInterruptCallback);
+
+        mDebounceHandler = new Handler();
     }
 
     /**
-     * @return the underlying {@link Gpio} device
+     * Local callback to monitor GPIO edge events.
      */
-    public Gpio getGpio() {
-        return mButtonGpio;
-    }
+    private GpioCallback mInterruptCallback = new GpioCallback() {
+        @Override
+        public boolean onGpioEdge(Gpio gpio) {
+            try {
+                boolean currentState = gpio.getValue();
+
+                if (mDebounceDelay == 0) {
+                    // Trigger event immediately
+                    performButtonEvent(currentState);
+                } else {
+                    // Pass trigger state forward if a check was pending
+                    boolean trigger = (mPendingCheckDebounce == null) ?
+                            currentState : mPendingCheckDebounce.getTriggerState();
+                    // Clear any pending checks
+                    removeDebounceCallback();
+                    // Set a new pending check
+                    mPendingCheckDebounce = new CheckDebounce(trigger);
+                    mDebounceHandler.postDelayed(mPendingCheckDebounce, mDebounceDelay);
+                }
+            } catch (IOException e) {
+                Log.e(TAG, "Error reading button state", e);
+            }
+
+            return true;
+        }
+    };
 
     /**
-     * Set the listener to be called when a button event occured.
+     * Set the listener to be called when a button event occurred.
+     *
      * @param listener button event listener to be invoked.
      */
     public void setOnButtonEventListener(OnButtonEventListener listener) {
         mListener = listener;
+    }
+
+    /**
+     * Set the time delay after an edge trigger that the button
+     * must remain stable before generating an event. Debounce
+     * is enabled by default for 100ms.
+     *
+     * Setting this value to zero disables debounce and triggers
+     * events on all edges immediately.
+     *
+     * @param delay Delay, in milliseconds, or 0 to disable.
+     */
+    public void setDebounceDelay(long delay) {
+        if (delay < 0) {
+            throw new IllegalArgumentException("Debounce delay must be positive.");
+        }
+        // Clear any pending events
+        removeDebounceCallback();
+        mDebounceDelay = delay;
     }
 
     /**
@@ -125,10 +149,11 @@ public class Button implements Closeable {
      */
     @Override
     public void close() throws IOException {
+        removeDebounceCallback();
+        mListener = null;
+
         if (mButtonGpio != null) {
-            mListener = null;
             mButtonGpio.unregisterGpioCallback(mInterruptCallback);
-            mInterruptCallback = null;
             try {
                 mButtonGpio.close();
             } finally {
@@ -137,11 +162,60 @@ public class Button implements Closeable {
         }
     }
 
+    /**
+     * Invoke button event callback
+     */
+    private void performButtonEvent(boolean state) {
+        if (mListener != null) {
+            mListener.onButtonEvent(this, state);
+        }
+    }
+
+    /**
+     * Clear pending debouce check
+     */
+    private void removeDebounceCallback() {
+        if (mPendingCheckDebounce != null) {
+            mDebounceHandler.removeCallbacks(mPendingCheckDebounce);
+            mPendingCheckDebounce = null;
+        }
+    }
+
+    /**
+     * Pending check to delay input events from the initial
+     * trigger edge.
+     */
+    private final class CheckDebounce implements Runnable {
+        private boolean mTriggerState;
+
+        public CheckDebounce(boolean triggerState) {
+            mTriggerState = triggerState;
+        }
+
+        public boolean getTriggerState() {
+            return mTriggerState;
+        }
+
+        @Override
+        public void run() {
+            if (mButtonGpio != null) {
+                try {
+                    // Final check that state hasn't changed
+                    if (mButtonGpio.getValue() == mTriggerState) {
+                        performButtonEvent(mTriggerState);
+                    }
+                    removeDebounceCallback();
+                } catch (IOException e) {
+                    Log.e(TAG, "Unable to read button value", e);
+                }
+            }
+        }
+    }
+
     static class ButtonInputDriver {
         private static final String DRIVER_NAME = "Button";
         private static final int DRIVER_VERSION = 1;
         static InputDriver build(Button button, int keyCode) {
-            Map<Integer, Integer[]> supportedKey = new HashMap<>();
             InputDriver inputDriver = InputDriver.builder(InputDevice.SOURCE_CLASS_BUTTON)
                     .name(DRIVER_NAME)
                     .version(DRIVER_VERSION)
@@ -149,12 +223,11 @@ public class Button implements Closeable {
                     .build();
             button.setOnButtonEventListener(new OnButtonEventListener() {
                 @Override
-                public boolean onButtonEvent(Button b, boolean pressed) {
+                public void onButtonEvent(Button b, boolean pressed) {
                     int keyAction = pressed ? KeyEvent.ACTION_DOWN : KeyEvent.ACTION_UP;
                     inputDriver.emit(new KeyEvent[]{
                             new KeyEvent(keyAction, keyCode)
                     });
-                    return true;
                 }
             });
             return inputDriver;
