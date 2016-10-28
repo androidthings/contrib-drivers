@@ -2,6 +2,7 @@ package com.google.brillo.driver.bmx280;
 
 import android.hardware.pio.I2cDevice;
 import android.hardware.pio.PeripheralManagerService;
+import android.support.annotation.IntDef;
 import android.support.annotation.VisibleForTesting;
 
 import java.io.IOException;
@@ -62,6 +63,28 @@ public class Bmx280 implements AutoCloseable {
      */
     public static final float MIN_FREQ_HZ = 23.1f;
 
+    /**
+     * Power mode.
+     */
+    @IntDef({MODE_SLEEP, MODE_FORCED, MODE_NORMAL})
+    public @interface Mode {}
+
+    public static final int MODE_SLEEP = 0;
+    public static final int MODE_FORCED = 1;
+    public static final int MODE_NORMAL = 2;
+
+    /**
+     * Oversampling multiplier.
+     */
+    @IntDef({OVERSAMPLING_SKIPPED, OVERSAMPLING_1X})
+    public @interface Oversampling {}
+    public static final int OVERSAMPLING_SKIPPED = 0;
+    public static final int OVERSAMPLING_1X = 1;
+    public static final int OVERSAMPLING_2X = 2;
+    public static final int OVERSAMPLING_4X = 3;
+    public static final int OVERSAMPLING_8X = 4;
+    public static final int OVERSAMPLING_16X = 5;
+
     // Registers
     private static final int BMP280_REG_TEMP_CALIB_1 = 0x88;
     private static final int BMP280_REG_TEMP_CALIB_2 = 0x8A;
@@ -83,16 +106,23 @@ public class Bmx280 implements AutoCloseable {
     private static final int BMP280_REG_PRESS = 0xF7;
     private static final int BMP280_REG_TEMP = 0xFA;
 
-    // Control values
+    private static final int BMP280_POWER_MODE_MASK = 0b00000011;
+    private static final int BMP280_POWER_MODE_SLEEP = 0b00000000;
     private static final int BMP280_POWER_MODE_NORMAL = 0b00000011;
-    private static final int BMP280_OVERSAMPLING_PRESSURE_1x = 0b00000100;
-    private static final int BMP280_OVERSAMPLING_TEMP_1X = 0b00100000;
+    private static final int BMP280_OVERSAMPLING_PRESSURE_MASK = 0b00011100;
+    private static final int BMP280_OVERSAMPLING_PRESSURE_BITSHIFT = 2;
+    private static final int BMP280_OVERSAMPLING_TEMPERATURE_MASK = 0b11100000;
+    private static final int BMP280_OVERSAMPLING_TEMPERATURE_BITSHIFT = 5;
 
     private I2cDevice mDevice;
     private final int[] mTempCalibrationData = new int[3];
     private final int[] mPressureCalibrationData = new int[9];
     private final byte[] mBuffer = new byte[3]; // for reading sensor values
+    private boolean mEnabled = false;
     private int mChipId;
+    private int mMode;
+    private int mPressureOversampling;
+    private int mTemperatureOversampling;
 
     /**
      * Create a new BMP/BME280 sensor driver connected on the given bus.
@@ -112,6 +142,7 @@ public class Bmx280 implements AutoCloseable {
             throw e;
         }
     }
+
     /**
      * Create a new BMP/BME280 sensor driver connected to the given I2c device.
      * @param device I2C device of the sensor.
@@ -123,6 +154,7 @@ public class Bmx280 implements AutoCloseable {
 
     private void connect(I2cDevice device) throws IOException {
         mDevice = device;
+
         mChipId = mDevice.readRegByte(BMP280_REG_ID);
 
         // Read temperature calibration data (3 words). First value is unsigned.
@@ -139,14 +171,58 @@ public class Bmx280 implements AutoCloseable {
         mPressureCalibrationData[6] = (short) mDevice.readRegWord(BMP280_REG_PRESS_CALIB_7);
         mPressureCalibrationData[7] = (short) mDevice.readRegWord(BMP280_REG_PRESS_CALIB_8);
         mPressureCalibrationData[8] = (short) mDevice.readRegWord(BMP280_REG_PRESS_CALIB_9);
+    }
 
-        // Configure Sensor
-        // Power mode: Normal
-        // Temperature oversampling: 1x (16bit resolution)
-        // Pressure oversampling: 1x (16bit resolution)
-        mDevice.writeRegByte(BMP280_REG_CTRL, (byte) (BMP280_POWER_MODE_NORMAL
-                | BMP280_OVERSAMPLING_TEMP_1X
-                | BMP280_OVERSAMPLING_PRESSURE_1x));
+
+
+    /**
+     * Set the power mode of the sensor.
+     * @param mode power mode.
+     * @throws IOException
+     */
+    public void setMode(@Mode int mode) throws IOException {
+        int regCtrl = mDevice.readRegByte(BMP280_REG_CTRL) & 0xff;
+        if (mode == MODE_SLEEP) {
+            regCtrl &= ~BMP280_POWER_MODE_MASK;
+        } else {
+            regCtrl |= BMP280_POWER_MODE_NORMAL;
+        }
+        mDevice.writeRegByte(BMP280_REG_CTRL, (byte)(regCtrl));
+        mMode = mode;
+    }
+
+    /**
+     * Set oversampling multiplier for the temperature measurement.
+     * @param oversampling temperature oversampling multiplier.
+     * @throws IOException
+     */
+    public void setTemperatureOversampling(@Oversampling int oversampling) throws IOException {
+        int regCtrl = mDevice.readRegByte(BMP280_REG_CTRL) & 0xff;
+        if (oversampling == OVERSAMPLING_SKIPPED) {
+            regCtrl &= ~BMP280_OVERSAMPLING_TEMPERATURE_MASK;
+        } else {
+            regCtrl |= 1 << BMP280_OVERSAMPLING_TEMPERATURE_BITSHIFT;
+        }
+        mDevice.writeRegByte(BMP280_REG_CTRL, (byte)(regCtrl));
+        mTemperatureOversampling = oversampling;
+    }
+
+    /**
+     * Set oversampling multiplier for the pressure measurement.
+     * @param oversampling pressure oversampling multiplier.
+     * @throws IOException
+     */
+    public void setPressureOversampling(@Oversampling int oversampling) throws IOException {
+        int regCtrl = mDevice.readRegByte(BMP280_REG_CTRL) & 0xff;
+        if (oversampling == OVERSAMPLING_SKIPPED) {
+            regCtrl &= ~BMP280_OVERSAMPLING_PRESSURE_MASK;
+            mEnabled = false;
+        } else {
+            regCtrl |= 1 << BMP280_OVERSAMPLING_PRESSURE_BITSHIFT;
+            mEnabled = true;
+        }
+        mDevice.writeRegByte(BMP280_REG_CTRL, (byte)(regCtrl));
+        mPressureOversampling = oversampling;
     }
 
     /**
@@ -176,17 +252,11 @@ public class Bmx280 implements AutoCloseable {
      * @return the current temperature in degrees Celsius
      */
     public float readTemperature() throws IOException, IllegalStateException {
-        return readAndCompensateTemperature()[0];
-    }
-
-    /**
-     * @return a 2-element array. The first element is the temperature reading in degrees
-     * Celsius; the second element is a fine temperature value that is needed for pressure and
-     * humidity compensation formulas.
-     */
-    private float[] readAndCompensateTemperature() throws IOException, IllegalStateException {
+        if (mTemperatureOversampling == OVERSAMPLING_SKIPPED) {
+            throw new IllegalStateException("temperature oversampling is skipped");
+        }
         int rawTemp = readSample(BMP280_REG_TEMP);
-        return compensateTemperature(rawTemp, mTempCalibrationData);
+        return compensateTemperature(rawTemp, mTempCalibrationData)[0];
     }
 
     /**
@@ -198,7 +268,8 @@ public class Bmx280 implements AutoCloseable {
      * @throws IOException
      */
     public float readPressure() throws IOException, IllegalStateException {
-        return readTemperatureAndPressure()[1];
+        float[] values = readTemperatureAndPressure();
+        return values[1];
     }
 
     /**
@@ -209,9 +280,16 @@ public class Bmx280 implements AutoCloseable {
      * @throws IOException
      */
     public float[] readTemperatureAndPressure() throws IOException, IllegalStateException {
+        if (mTemperatureOversampling == OVERSAMPLING_SKIPPED) {
+            throw new IllegalStateException("temperature oversampling is skipped");
+        }
+        if (mPressureOversampling == OVERSAMPLING_SKIPPED) {
+            throw new IllegalStateException("pressure oversampling is skipped");
+        }
         // The pressure compensation formula requires the fine temperature reading, so we always
         // read temperature first.
-        float[] temperatures = readAndCompensateTemperature();
+        int rawTemp = readSample(BMP280_REG_TEMP);
+        float[] temperatures = compensateTemperature(rawTemp, mTempCalibrationData);
         int rawPressure = readSample(BMP280_REG_PRESS);
         float pressure = compensatePressure(rawPressure, temperatures[1], mPressureCalibrationData);
         return new float[]{temperatures[0], pressure};

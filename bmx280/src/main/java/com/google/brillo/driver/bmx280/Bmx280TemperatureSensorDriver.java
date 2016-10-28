@@ -80,6 +80,17 @@ public class Bmx280TemperatureSensorDriver implements AutoCloseable {
                 DRIVER_MAX_RANGE, DRIVER_RESOLUTION, DRIVER_POWER,
                 DRIVER_MIN_DELAY_US, DRIVER_REQUIRED_PERMISSION, DRIVER_MAX_DELAY_US,
                 UUID.randomUUID()) {
+
+            @Override
+            public void enable(boolean enable) {
+                try {
+                    driver.setMode(Bmx280.MODE_NORMAL);
+                    driver.setTemperatureOversampling(Bmx280.OVERSAMPLING_1X);
+                } catch (IOException e) {
+                    Log.e(TAG, "error enabling bmx280 sensor: ", e);
+                }
+            }
+
             @Override
             public float read() {
                 try {
