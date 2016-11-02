@@ -11,36 +11,42 @@ import java.io.Closeable;
 public class Servo implements Closeable {
     private static final String TAG = Servo.class.getSimpleName();
 
+    public static final double DEFAULT_FREQUENCY_HZ = 50;
+
     private static final double DEFAULT_MIN_PULSE_DURATION_MS = 1.0;
     private static final double DEFAULT_MAX_PULSE_DURATION_MS = 2.0;
     private static final double DEFAULT_MIN_ANGLE_DEG = 0.0;
     private static final double DEFAULT_MAX_ANGLE_DEG = 180.0;
-    private static final double DEFAULT_FREQUENCY_HZ = 50;
-
-    private final PeripheralManagerService mPioService;
 
     private Pwm mPwm;
     private boolean mEnabled = false;
-    private double mPulseDurationMin; // milliseconds
-    private double mPulseDurationMax; // milliseconds
-    private double mAngleMin; // degrees
-    private double mAngleMax; // degrees
+    private double mPulseDurationMin = DEFAULT_MIN_PULSE_DURATION_MS; // milliseconds
+    private double mPulseDurationMax = DEFAULT_MAX_PULSE_DURATION_MS; // milliseconds
+    private double mAngleMin = DEFAULT_MIN_ANGLE_DEG; // degrees
+    private double mAngleMax = DEFAULT_MAX_ANGLE_DEG; // degrees
     private double mPeriod; // milliseconds
 
-    public Servo(PeripheralManagerService pioService) {
-        mPioService = pioService;
-        mPulseDurationMin = DEFAULT_MIN_PULSE_DURATION_MS;
-        mPulseDurationMax = DEFAULT_MAX_PULSE_DURATION_MS;
-        mAngleMin = DEFAULT_MIN_ANGLE_DEG;
-        mAngleMax = DEFAULT_MAX_ANGLE_DEG;
+    public Servo(String pin) throws ErrnoException {
+        this(pin, DEFAULT_FREQUENCY_HZ);
     }
 
-    public void open(String pin) throws ErrnoException {
-        open(pin, DEFAULT_FREQUENCY_HZ);
+    public Servo(String pin, double frequencyHz) throws ErrnoException {
+        PeripheralManagerService pioService = new PeripheralManagerService();
+        Pwm device = pioService.openPwm(pin);
+        try {
+            connect(device, frequencyHz);
+        } catch (ErrnoException|RuntimeException e) {
+            close();
+            throw e;
+        }
     }
 
-    public void open(String pin, double frequencyHz) throws ErrnoException {
-        mPwm = mPioService.openPwm(pin);
+    public Servo(Pwm device, double frequencyHz) throws ErrnoException {
+        connect(device, frequencyHz);
+    }
+
+    private void connect(Pwm device, double frequencyHz) throws ErrnoException {
+        mPwm = device;
         mPwm.setPwmFrequencyHz(frequencyHz);
         mPeriod = 1000.0 / frequencyHz;
     }

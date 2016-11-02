@@ -77,7 +77,12 @@ public class Apa102 implements Closeable {
         mLedMode = ledMode;
         PeripheralManagerService pioService = new PeripheralManagerService();
         mDevice = pioService.openSpiDevice(spiBusPort);
-        configure(mDevice);
+        try {
+            configure(mDevice);
+        } catch (ErrnoException|RuntimeException e) {
+            close();
+            throw e;
+        }
     }
 
     /**
