@@ -54,7 +54,12 @@ public class Button implements Closeable {
     public Button(String pin, LogicState logicLevel) throws ErrnoException {
         PeripheralManagerService pioService = new PeripheralManagerService();
         Gpio buttonGpio = pioService.openGpio(pin);
-        connect(buttonGpio, logicLevel);
+        try {
+            connect(buttonGpio, logicLevel);
+        } catch (ErrnoException|RuntimeException e) {
+            close();
+            throw e;
+        }
     }
 
     /**

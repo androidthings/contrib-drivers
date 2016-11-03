@@ -72,7 +72,12 @@ public class Mma7660Fc implements Closeable {
     public Mma7660Fc(String bus) throws ErrnoException {
         PeripheralManagerService pioService = new PeripheralManagerService();
         I2cDevice device = pioService.openI2cDevice(bus, I2C_ADDRESS);
-        connect(device);
+        try {
+            connect(device);
+        } catch (ErrnoException|RuntimeException e) {
+            close();
+            throw e;
+        }
     }
 
     /**

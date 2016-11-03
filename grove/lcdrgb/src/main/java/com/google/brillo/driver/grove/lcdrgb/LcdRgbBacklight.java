@@ -27,12 +27,12 @@ public class LcdRgbBacklight implements Closeable {
     private static final int RETURN_HOME = 0x02;
     private static final int WRITE_CHAR = 0x40;
 
-    private  static final byte[] COMMAND_DISPLAY_ON =
-            {(byte) SEND_COMMAND, (byte)(DISPLAY_CONTROL | DISPLAY_ON)};
-    private  static final byte[] COMMAND_ENTRY_MODE =
-            {(byte) SEND_COMMAND, (byte)(ENTRY_MODE_SET | ENTRY_LEFT)};
-    private  static final byte[] COMMAND_CLEAR = {(byte) SEND_COMMAND, (byte) CLEAR_DISPLAY};
-    private  static final byte[] COMMAND_HOME = {(byte) SEND_COMMAND, (byte) RETURN_HOME};
+    private static final byte[] COMMAND_DISPLAY_ON =
+            {(byte) SEND_COMMAND, (byte) (DISPLAY_CONTROL | DISPLAY_ON)};
+    private static final byte[] COMMAND_ENTRY_MODE =
+            {(byte) SEND_COMMAND, (byte) (ENTRY_MODE_SET | ENTRY_LEFT)};
+    private static final byte[] COMMAND_CLEAR = {(byte) SEND_COMMAND, (byte) CLEAR_DISPLAY};
+    private static final byte[] COMMAND_HOME = {(byte) SEND_COMMAND, (byte) RETURN_HOME};
 
     private I2cDevice mRgbDevice;
     private I2cDevice mLcdDevice;
@@ -40,13 +40,17 @@ public class LcdRgbBacklight implements Closeable {
 
     public LcdRgbBacklight(String bus) throws ErrnoException {
         PeripheralManagerService pioService = new PeripheralManagerService();
-        mRgbDevice = pioService.openI2cDevice(bus, RGB_ADDRESS);
-        mLcdDevice = pioService.openI2cDevice(bus, LCD_ADDRESS);
-        // enable display
-        mLcdDevice.write(COMMAND_DISPLAY_ON, COMMAND_DISPLAY_ON.length);
-        mLcdDevice.write(COMMAND_ENTRY_MODE, COMMAND_ENTRY_MODE.length);
-        mRgbDevice.writeRegByte(REG_MODE_1, (byte)ENABLE_BACKLIGHT);
-        mRgbDevice.writeRegByte(REG_OUTPUT, (byte)ENABLE_PWM);
+        try {
+            mRgbDevice = pioService.openI2cDevice(bus, RGB_ADDRESS);
+            mLcdDevice = pioService.openI2cDevice(bus,LCD_ADDRESS);
+            mRgbDevice.writeRegByte(REG_MODE_1, (byte) ENABLE_BACKLIGHT);
+            mRgbDevice.writeRegByte(REG_OUTPUT, (byte) ENABLE_PWM);
+            mLcdDevice.write(COMMAND_DISPLAY_ON,COMMAND_DISPLAY_ON.length);
+            mLcdDevice.write(COMMAND_ENTRY_MODE,COMMAND_ENTRY_MODE.length);
+        } catch (ErrnoException|RuntimeException e) {
+            close();
+            throw e;
+        }
     }
 
     public void close() {

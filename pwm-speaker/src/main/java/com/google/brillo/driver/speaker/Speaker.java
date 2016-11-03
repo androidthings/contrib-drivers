@@ -23,7 +23,13 @@ public class Speaker implements Closeable {
      */
     public Speaker(String pin) throws ErrnoException {
         PeripheralManagerService pioService = new PeripheralManagerService();
-        connect(pioService.openPwm(pin));
+        Pwm device = pioService.openPwm(pin);
+        try {
+            connect(device);
+        } catch (ErrnoException|RuntimeException e) {
+            close();
+            throw e;
+        }
     }
 
     private void connect(Pwm device) throws ErrnoException {
