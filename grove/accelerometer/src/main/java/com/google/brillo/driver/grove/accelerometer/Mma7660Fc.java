@@ -3,10 +3,10 @@ package com.google.brillo.driver.grove.accelerometer;
 import android.hardware.pio.I2cDevice;
 import android.hardware.pio.PeripheralManagerService;
 import android.hardware.userdriver.sensors.AccelerometerDriver;
-import android.system.ErrnoException;
 import android.support.annotation.IntDef;
 
 import java.io.Closeable;
+import java.io.IOException;
 
 /**
  * Driver for the MMA7660FC 1.5g accelerometer.
@@ -67,15 +67,18 @@ public class Mma7660Fc implements Closeable {
     /**
      * Create a new MMA7660FC driver connected to the given I2C bus.
      * @param bus
-     * @throws ErrnoException
+     * @throws IOException
      */
-    public Mma7660Fc(String bus) throws ErrnoException {
+    public Mma7660Fc(String bus) throws IOException {
         PeripheralManagerService pioService = new PeripheralManagerService();
         I2cDevice device = pioService.openI2cDevice(bus, I2C_ADDRESS);
         try {
             connect(device);
-        } catch (ErrnoException|RuntimeException e) {
-            close();
+        } catch (IOException|RuntimeException e) {
+            try {
+                close();
+            } catch (IOException|RuntimeException ignored) {
+            }
             throw e;
         }
     }
@@ -83,13 +86,13 @@ public class Mma7660Fc implements Closeable {
     /**
      * Create a new MMA7660FC driver connected to the given I2C device.
      * @param device
-     * @throws ErrnoException
+     * @throws IOException
      */
-    public Mma7660Fc(I2cDevice device) throws ErrnoException {
+    public Mma7660Fc(I2cDevice device) throws IOException {
         connect(device);
     }
 
-    private void connect(I2cDevice device) throws ErrnoException {
+    private void connect(I2cDevice device) throws IOException {
         if (mDevice != null) {
             throw new IllegalStateException("device already connected");
         }
@@ -101,20 +104,23 @@ public class Mma7660Fc implements Closeable {
      * Close the driver and the underlying device.
      */
     @Override
-    public void close() {
+    public void close() throws IOException {
         if (mDevice != null) {
-            mDevice.close();
-            mDevice = null;
+            try {
+                mDevice.close();
+            } finally {
+                mDevice = null;
+            }
         }
     }
 
     /**
      * Set current power mode.
      * @param mode
-     * @throws ErrnoException
+     * @throws IOException
      * @throws IllegalStateException
      */
-    public void setMode(@Mode int mode) throws ErrnoException, IllegalStateException {
+    public void setMode(@Mode int mode) throws IOException, IllegalStateException {
         if (mDevice == null) {
             throw new IllegalStateException("device not connected");
         }
@@ -124,9 +130,11 @@ public class Mma7660Fc implements Closeable {
     /**
      * Get current power mode.
      * @return
+     * @throws IOException
+     * @throws IllegalStateException
      */
     @SuppressWarnings("ResourceType")
-    public @Mode int getMode() throws ErrnoException, IllegalStateException {
+    public @Mode int getMode() throws IOException, IllegalStateException {
         if (mDevice == null) {
             throw new IllegalStateException("device not connected");
         }
@@ -136,10 +144,10 @@ public class Mma7660Fc implements Closeable {
     /**
      * Set current sampling rate
      * @param rate
-     * @throws ErrnoException
+     * @throws IOException
      * @throws IllegalStateException
      */
-    public void setSamplingRate(@SamplingRate int rate) throws ErrnoException, IllegalStateException {
+    public void setSamplingRate(@SamplingRate int rate) throws IOException, IllegalStateException {
         if (mDevice == null) {
             throw new IllegalStateException("device not connected");
         }
@@ -149,9 +157,11 @@ public class Mma7660Fc implements Closeable {
     /**
      * Get current sampling rate.
      * @return
+     * @throws IOException
+     * @throws IllegalStateException
      */
     @SuppressWarnings("ResourceType")
-    public @SamplingRate int getSamplingRate() throws ErrnoException, IllegalStateException {
+    public @SamplingRate int getSamplingRate() throws IOException, IllegalStateException {
         if (mDevice == null) {
             throw new IllegalStateException("device not connected");
         }
@@ -161,10 +171,10 @@ public class Mma7660Fc implements Closeable {
     /**
      * Read an accelerometer sample.
      * @return acceleration over xyz axis in G.
-     * @throws ErrnoException
+     * @throws IOException
      * @throws IllegalStateException
      */
-    public float[] readSample() throws ErrnoException, IllegalStateException {
+    public float[] readSample() throws IOException, IllegalStateException {
         if (mDevice == null) {
             throw new IllegalStateException("device not connected");
         }

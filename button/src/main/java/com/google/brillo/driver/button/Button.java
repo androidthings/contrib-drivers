@@ -4,11 +4,12 @@ import android.hardware.pio.Gpio;
 import android.hardware.pio.GpioCallback;
 import android.hardware.pio.PeripheralManagerService;
 import android.hardware.userdriver.InputDriver;
-import android.hardware.userdriver.InputDriverEvent;
-import android.system.ErrnoException;
 import android.util.Log;
+import android.view.InputDevice;
+import android.view.KeyEvent;
 
 import java.io.Closeable;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -49,15 +50,18 @@ public class Button implements Closeable {
      * Create a new Button driver for the givin GPIO pin name.
      * @param pin Gpio where the button is attached.
      * @param logicLevel Logic level when the button is considered pressed.
-     * @throws ErrnoException
+     * @throws IOException
      */
-    public Button(String pin, LogicState logicLevel) throws ErrnoException {
+    public Button(String pin, LogicState logicLevel) throws IOException {
         PeripheralManagerService pioService = new PeripheralManagerService();
         Gpio buttonGpio = pioService.openGpio(pin);
         try {
             connect(buttonGpio, logicLevel);
-        } catch (ErrnoException|RuntimeException e) {
-            close();
+        } catch (IOException|RuntimeException e) {
+            try {
+                close();
+            } catch (IOException|RuntimeException ignored) {
+            }
             throw e;
         }
     }
@@ -66,13 +70,13 @@ public class Button implements Closeable {
      * Create a new Button driver for the given Gpio connection.
      * @param buttonGpio Gpio where the button is attached.
      * @param logicLevel Logic level when the button is considered pressed.
-     * @throws ErrnoException
+     * @throws IOException
      */
-    public Button(Gpio buttonGpio, LogicState logicLevel) throws ErrnoException {
+    public Button(Gpio buttonGpio, LogicState logicLevel) throws IOException {
        connect(buttonGpio, logicLevel);
     }
 
-    private void connect(Gpio buttonGpio, LogicState logicLevel) throws ErrnoException {
+    private void connect(Gpio buttonGpio, LogicState logicLevel) throws IOException {
         mButtonGpio = buttonGpio;
         mButtonGpio.setDirection(Gpio.DIRECTION_IN);
         mButtonGpio.setEdgeTriggerType(Gpio.EDGE_BOTH);
@@ -91,7 +95,7 @@ public class Button implements Closeable {
                     if (logicLevel == LogicState.PRESSED_WHEN_LOW) {
                         return mListener.onButtonEvent(Button.this, !state);
                     }
-                } catch (ErrnoException e) {
+                } catch (IOException e) {
                     Log.e(TAG, "pio error: ", e);
                 }
                 return true;
@@ -117,45 +121,38 @@ public class Button implements Closeable {
 
     /**
      * Close the driver and the underlying device.
+     * @throws IOException
      */
     @Override
-    public void close() {
+    public void close() throws IOException {
         if (mButtonGpio != null) {
             mListener = null;
             mButtonGpio.unregisterGpioCallback(mInterruptCallback);
             mInterruptCallback = null;
-            mButtonGpio.close();
-            mButtonGpio = null;
+            try {
+                mButtonGpio.close();
+            } finally {
+                mButtonGpio = null;
+            }
         }
     }
 
     static class ButtonInputDriver {
         private static final String DRIVER_NAME = "Button";
         private static final int DRIVER_VERSION = 1;
-        private static final int EV_SYN = 0;
-        private static final int EV_KEY = 1;
-        private static final int BUTTON_RELEASED = 0;
-        private static final int BUTTON_PRESSED = 1;
-        private static Integer[] SUPPORTED_EVENT_TYPE = {EV_SYN, EV_KEY};
-        // temporary uvent constant until they get added to the framework.
-        private static final int UI_SET_EVBIT = 1074025828;
-        private static final int UI_SET_KEYBIT = 1074025829;
-        static InputDriver build(Button button, int key) {
+        static InputDriver build(Button button, int keyCode) {
             Map<Integer, Integer[]> supportedKey = new HashMap<>();
-            supportedKey.put(UI_SET_EVBIT, SUPPORTED_EVENT_TYPE);
-            Integer[] keys = {key};
-            supportedKey.put(UI_SET_KEYBIT, keys);
-            InputDriver inputDriver = InputDriver.builder(supportedKey)
+            InputDriver inputDriver = InputDriver.builder(InputDevice.SOURCE_CLASS_BUTTON)
                     .name(DRIVER_NAME)
                     .version(DRIVER_VERSION)
+                    .keys(new int[]{keyCode})
                     .build();
             button.setOnButtonEventListener(new OnButtonEventListener() {
                 @Override
                 public boolean onButtonEvent(Button b, boolean pressed) {
-                    int keyState = pressed ? BUTTON_PRESSED : BUTTON_RELEASED;
-                    inputDriver.emit(new InputDriverEvent[]{
-                            new InputDriverEvent(EV_KEY, key, keyState),
-                            new InputDriverEvent(EV_SYN, 0, 0)
+                    int keyAction = pressed ? KeyEvent.ACTION_DOWN : KeyEvent.ACTION_UP;
+                    inputDriver.emit(new KeyEvent[]{
+                            new KeyEvent(keyAction, keyCode)
                     });
                     return true;
                 }

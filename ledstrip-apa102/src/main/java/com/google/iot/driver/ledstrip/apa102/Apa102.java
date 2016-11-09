@@ -18,10 +18,10 @@ package com.google.iot.driver.ledstrip.apa102;
 import android.graphics.Color;
 import android.hardware.pio.PeripheralManagerService;
 import android.hardware.pio.SpiDevice;
-import android.system.ErrnoException;
 import android.util.Log;
 
 import java.io.Closeable;
+import java.io.IOException;
 
 /**
  * Device driver for APA102 / Dotstar RGB LEDs using 2-wire SPI.
@@ -73,14 +73,17 @@ public class Apa102 implements Closeable {
      * @param spiBusPort Name of the SPI bus
      * @param ledMode The {@link Mode} indicating the red/green/blue byte ordering for the device.
      */
-    public Apa102(String spiBusPort, Mode ledMode) throws ErrnoException {
+    public Apa102(String spiBusPort, Mode ledMode) throws IOException {
         mLedMode = ledMode;
         PeripheralManagerService pioService = new PeripheralManagerService();
         mDevice = pioService.openSpiDevice(spiBusPort);
         try {
             configure(mDevice);
-        } catch (ErrnoException|RuntimeException e) {
-            close();
+        } catch (IOException|RuntimeException e) {
+            try {
+                close();
+            } catch (IOException|RuntimeException ignored) {
+            }
             throw e;
         }
     }
@@ -91,13 +94,13 @@ public class Apa102 implements Closeable {
      * @param device {@link SpiDevice} where the LED strip is attached to.
      * @param ledMode The {@link Mode} indicating the red/green/blue byte ordering for the device.
      */
-    public Apa102(SpiDevice device, Mode ledMode) throws ErrnoException {
+    public Apa102(SpiDevice device, Mode ledMode) throws IOException {
         mLedMode = ledMode;
         mDevice = device;
         configure(mDevice);
     }
 
-    private void configure(SpiDevice device) throws ErrnoException {
+    private void configure(SpiDevice device) throws IOException {
         Log.d(TAG, "Configuring SpiDevice for Apa102");
         // Note: You may need to set bit justification for your board.
         // mDevice.setBitJustification(SPI_BITJUST);
@@ -120,9 +123,9 @@ public class Apa102 implements Closeable {
     /**
      * Writes the current RGB Led data to the peripheral bus.
      * @param colors An array of integers corresponding to a {@link Color}.
-     * @throws ErrnoException
+     * @throws IOException
      */
-    public void write(int[] colors) throws ErrnoException {
+    public void write(int[] colors) throws IOException {
         byte[] ledData = new byte[(APA102_PACKET_LENGTH * (2 + colors.length))];
 
         // Add the RGB LED start bits (0 ... 0)
@@ -145,10 +148,13 @@ public class Apa102 implements Closeable {
      * Releases the SPI interface and related resources.
      */
     @Override
-    public void close() {
+    public void close() throws IOException {
         if (mDevice != null) {
-            mDevice.close();
-            mDevice = null;
+            try {
+                mDevice.close();
+            } finally {
+                mDevice = null;
+            }
         }
     }
 

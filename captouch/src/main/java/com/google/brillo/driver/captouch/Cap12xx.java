@@ -9,9 +9,9 @@ import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.IntDef;
 import android.support.annotation.VisibleForTesting;
-import android.system.ErrnoException;
 import android.util.Log;
 
+import java.io.IOException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
@@ -136,12 +136,12 @@ public class Cap12xx implements AutoCloseable {
      * @param alertName optional GPIO pin name connected to the controller's
      *                  alert interrupt signal. Can be null.
      * @param chip identifier for the connected controller device chip.
-     * @throws ErrnoException
+     * @throws IOException
      */
     public Cap12xx(Context context,
                    String i2cName,
                    String alertName,
-                   Configuration chip) throws ErrnoException {
+                   Configuration chip) throws IOException {
         this(context, i2cName, alertName, chip, null);
     }
 
@@ -154,21 +154,24 @@ public class Cap12xx implements AutoCloseable {
      *                  alert interrupt signal. Can be null.
      * @param chip identifier for the connected controller device chip.
      * @param handler optional {@link Handler} for software polling and callback events.
-     * @throws ErrnoException
+     * @throws IOException
      */
     public Cap12xx(Context context,
                    String i2cName,
                    String alertName,
                    Configuration chip,
-                   Handler handler) throws ErrnoException {
+                   Handler handler) throws IOException {
         try {
             PeripheralManagerService manager = new PeripheralManagerService();
             I2cDevice device = manager.openI2cDevice(i2cName, I2C_ADDRESS);
             Gpio alertPin = manager.openGpio(alertName);
             init(device, alertPin, chip, handler);
-        } catch (ErrnoException | RuntimeException e) {
+        } catch (IOException|RuntimeException e) {
             // Close the peripherals if an init error occurs
-            close();
+            try {
+                close();
+            } catch (IOException|RuntimeException ignored) {
+            }
             throw e;
         }
     }
@@ -179,7 +182,7 @@ public class Cap12xx implements AutoCloseable {
     @VisibleForTesting
     /*package*/ Cap12xx(I2cDevice i2cDevice,
                         Gpio alertPin,
-                        Configuration chip) throws ErrnoException {
+                        Configuration chip) throws IOException {
         init(i2cDevice, alertPin, chip, null);
     }
 
@@ -187,7 +190,7 @@ public class Cap12xx implements AutoCloseable {
      * Initialize peripheral defaults from the constructor.
      */
     private void init(I2cDevice i2cDevice, Gpio alertPin, Configuration chip, Handler handler)
-            throws ErrnoException {
+            throws IOException {
         if (i2cDevice == null) {
             throw new IllegalArgumentException("Must provide I2C device");
         }
@@ -244,9 +247,9 @@ public class Cap12xx implements AutoCloseable {
      * @param rate one of {@link #REPEAT_NORMAL}, {@link #REPEAT_SLOW},
      *             {@link #REPEAT_FAST}, or {@link #REPEAT_DISABLE}.
      *
-     * @throws ErrnoException
+     * @throws IOException
      */
-    public void setRepeatRate(@RepeatRate int rate) throws ErrnoException {
+    public void setRepeatRate(@RepeatRate int rate) throws IOException {
         if (rate == REPEAT_DISABLE) {
             setRepeatEnabled(false); // Disable all repeats
         } else {
@@ -270,9 +273,9 @@ public class Cap12xx implements AutoCloseable {
      * @param sensitivity one of {@link #SENSITIVITY_NORMAL},
      *                    {@link #SENSITIVITY_LOW}, or {@link #SENSITIVITY_HIGH}.
      *
-     * @throws ErrnoException
+     * @throws IOException
      */
-    public void setSensitivity(@Sensitivity int sensitivity) throws ErrnoException {
+    public void setSensitivity(@Sensitivity int sensitivity) throws IOException {
         byte value = mDevice.readRegByte(REG_SENSE_CFG);
         value = BitwiseUtil.applyBitRange(value, sensitivity, 0x70); // DELTA_SENSE bits
         mDevice.writeRegByte(REG_SENSE_CFG, value);
@@ -285,9 +288,9 @@ public class Cap12xx implements AutoCloseable {
      *
      * @param count Maximum number of inputs allowed to generate events.
      *
-     * @throws ErrnoException
+     * @throws IOException
      */
-    public void setMultitouchInputMax(int count) throws ErrnoException {
+    public void setMultitouchInputMax(int count) throws IOException {
         if (count < 1 || count > mChipConfiguration.maxTouch) {
             throw new IllegalArgumentException("Multitouch count must be between 1 and "
                     + mChipConfiguration.maxTouch);
@@ -308,9 +311,9 @@ public class Cap12xx implements AutoCloseable {
     /**
      * Return whether the interrupt bit on the controller is currently active.
      *
-     * @throws ErrnoException
+     * @throws IOException
      */
-    public boolean readInterruptFlag() throws ErrnoException {
+    public boolean readInterruptFlag() throws IOException {
         byte value = mDevice.readRegByte(REG_MAIN_CONTROL);
         return BitwiseUtil.isBitSet(value, 0); // INT bit
     }
@@ -318,9 +321,9 @@ public class Cap12xx implements AutoCloseable {
     /**
      * Clear the active interrupt bit on the controller.
      *
-     * @throws ErrnoException
+     * @throws IOException
      */
-    public void clearInterruptFlag() throws ErrnoException {
+    public void clearInterruptFlag() throws IOException {
         byte value = mDevice.readRegByte(REG_MAIN_CONTROL);
         value = BitwiseUtil.clearBit(value, 0); // Clear the INT bit
         mDevice.writeRegByte(REG_MAIN_CONTROL, value);
@@ -332,9 +335,9 @@ public class Cap12xx implements AutoCloseable {
      * @param channel Input channel to read.
      * @return true if channel is sensing active touch, false otherwise.
      *
-     * @throws ErrnoException
+     * @throws IOException
      */
-    public boolean readInputChannel(int channel) throws ErrnoException {
+    public boolean readInputChannel(int channel) throws IOException {
         if (channel < 0 || channel >= mChipConfiguration.channelCount) {
             throw new IllegalArgumentException("Input channel must be between 0 and "
                     + (mChipConfiguration.channelCount-1));
@@ -363,28 +366,34 @@ public class Cap12xx implements AutoCloseable {
      * Close this device and any underlying resources associated with the connection.
      */
     @Override
-    public void close() {
+    public void close() throws IOException {
         // Cancel software polling
         mInputHandler.removeCallbacks(mPollingCallback);
 
         if (mDevice != null) {
-            mDevice.close();
-            mDevice = null;
+            try {
+                mDevice.close();
+            } finally {
+                mDevice = null;
+            }
         }
 
         if (mAlertPin != null) {
             mAlertPin.unregisterGpioCallback(mAlertPinCallback);
-            mAlertPin.close();
-            mAlertPin = null;
+            try {
+                mAlertPin.close();
+            } finally {
+                mAlertPin = null;
+            }
         }
     }
 
     /**
      * Write bitmask of input channels that should be enabled.
      * @param enable true to enable all inputs, false to disable them.
-     * @throws ErrnoException
+     * @throws IOException
      */
-    public void setInputsEnabled(boolean enable) throws ErrnoException {
+    public void setInputsEnabled(boolean enable) throws IOException {
         if (enable) {
             mDevice.writeRegByte(REG_INPUT_EN, (byte) 0xFF); // All channels ON
         } else {
@@ -395,9 +404,9 @@ public class Cap12xx implements AutoCloseable {
     /**
      * Write bitmask of input channels that should generate interrupts.
      * @param enable true to enable all interrupts, false to disable them.
-     * @throws ErrnoException
+     * @throws IOException
      */
-    public void setInterruptsEnabled(boolean enable) throws ErrnoException {
+    public void setInterruptsEnabled(boolean enable) throws IOException {
         if (enable) {
             mDevice.writeRegByte(REG_INTERRUPT_EN, (byte) 0xFF); // All channels ON
         } else {
@@ -408,9 +417,9 @@ public class Cap12xx implements AutoCloseable {
     /**
      * Write bitmask of input channels to generate repeat interrupts on hold.
      * @param enable true to enable repeat on all channels, false to disable it.
-     * @throws ErrnoException
+     * @throws IOException
      */
-    public void setRepeatEnabled(boolean enable) throws ErrnoException {
+    public void setRepeatEnabled(boolean enable) throws IOException {
         if (enable) {
             mDevice.writeRegByte(REG_REPEAT_EN, (byte) 0xFF); // All channels ON
         } else {
@@ -424,9 +433,9 @@ public class Cap12xx implements AutoCloseable {
      *
      * @return Bitmask containing the status of all channels.
      *
-     * @throws ErrnoException
+     * @throws IOException
      */
-    private byte readInputStatus() throws ErrnoException {
+    private byte readInputStatus() throws IOException {
         byte statusFlags = mDevice.readRegByte(REG_INPUT_STATUS);
         byte[] deltas = new byte[mChipConfiguration.channelCount];
         byte[] thresholds = new byte[mChipConfiguration.channelCount];
@@ -501,7 +510,7 @@ public class Cap12xx implements AutoCloseable {
                 // Clear interrupt
                 clearInterruptFlag();
             }
-        } catch (ErrnoException e) {
+        } catch (IOException e) {
             Log.w(TAG, "Unable to process interrupt event", e);
         }
     }

@@ -2,10 +2,10 @@ package com.google.brillo.driver.servo;
 
 import android.hardware.pio.PeripheralManagerService;
 import android.hardware.pio.Pwm;
-import android.system.ErrnoException;
 import android.util.Log;
 
 import java.io.Closeable;
+import java.io.IOException;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
 public class Servo implements Closeable {
@@ -26,35 +26,41 @@ public class Servo implements Closeable {
     private double mAngleMax = DEFAULT_MAX_ANGLE_DEG; // degrees
     private double mPeriod; // milliseconds
 
-    public Servo(String pin) throws ErrnoException {
+    public Servo(String pin) throws IOException {
         this(pin, DEFAULT_FREQUENCY_HZ);
     }
 
-    public Servo(String pin, double frequencyHz) throws ErrnoException {
+    public Servo(String pin, double frequencyHz) throws IOException {
         PeripheralManagerService pioService = new PeripheralManagerService();
         Pwm device = pioService.openPwm(pin);
         try {
             connect(device, frequencyHz);
-        } catch (ErrnoException|RuntimeException e) {
-            close();
+        } catch (IOException|RuntimeException e) {
+            try {
+                close();
+            } catch (IOException|RuntimeException ignored) {
+            }
             throw e;
         }
     }
 
-    public Servo(Pwm device, double frequencyHz) throws ErrnoException {
+    public Servo(Pwm device, double frequencyHz) throws IOException {
         connect(device, frequencyHz);
     }
 
-    private void connect(Pwm device, double frequencyHz) throws ErrnoException {
+    private void connect(Pwm device, double frequencyHz) throws IOException {
         mPwm = device;
         mPwm.setPwmFrequencyHz(frequencyHz);
         mPeriod = 1000.0 / frequencyHz;
     }
 
-    public void close() throws IllegalStateException {
+    public void close() throws IOException {
         if (mPwm != null) {
-            mPwm.close();
-            mPwm = null;
+            try {
+                mPwm.close();
+            } finally {
+                mPwm = null;
+            }
         }
     }
 
@@ -64,7 +70,7 @@ public class Servo implements Closeable {
      * @param angleDeg Angle in degree, between {@link #DEFAULT_MIN_ANGLE_DEG}
      *                 and {@link #DEFAULT_MAX_ANGLE_DEG}.
      */
-    public void set(double angleDeg) throws ErrnoException  {
+    public void set(double angleDeg) throws IOException  {
         if (mPwm == null) {
             throw new IllegalStateException("pwm device not opened");
         }
@@ -89,7 +95,7 @@ public class Servo implements Closeable {
         mPwm.setPwmDutyCycle(dutyCycle);
     }
 
-    public void enable() throws ErrnoException {
+    public void enable() throws IOException {
         if (mPwm == null) {
             throw new IllegalStateException("pwm device not opened");
         }
@@ -97,7 +103,7 @@ public class Servo implements Closeable {
         mEnabled = true;
     }
 
-    public void disable() throws ErrnoException {
+    public void disable() throws IOException {
         if (mPwm == null) {
             throw new IllegalStateException("pwm device not opened");
         }

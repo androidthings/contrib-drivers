@@ -2,9 +2,9 @@ package com.google.brillo.driver.ht16k33;
 
 import android.hardware.pio.I2cDevice;
 import android.hardware.pio.PeripheralManagerService;
-import android.system.ErrnoException;
 
 import java.io.Closeable;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import android.util.Log;
@@ -33,7 +33,7 @@ public class Ht16k33 implements Closeable {
      * Create a new driver for a HT16K33 peripheral connected on the given I2C bus.
      * @param bus
      */
-    public Ht16k33(String bus) throws ErrnoException {
+    public Ht16k33(String bus) throws IOException {
         PeripheralManagerService pioService = new PeripheralManagerService();
         I2cDevice device = pioService.openI2cDevice(bus, I2C_ADDRESS);
         connect(device);
@@ -56,15 +56,19 @@ public class Ht16k33 implements Closeable {
      * Close the device and the underlying device.
      */
     @Override
-    public void close() {
-        mDevice.close();
+    public void close() throws IOException {
+        try {
+            mDevice.close();
+        } finally {
+            mDevice = null;
+        }
     }
 
     /**
      * Enable oscillator and LED display.
-     * @throws ErrnoException
+     * @throws IOException
      */
-    public void setEnabled(boolean enabled) throws ErrnoException {
+    public void setEnabled(boolean enabled) throws IOException {
         int oscillator_flag = enabled ? HT16K33_OSCILLATOR_ON : HT16K33_OSCILLATOR_OFF;
         mDevice.write(new byte[]{(byte) (HT16K33_CMD_SYSTEM_SETUP|oscillator_flag)}, 1);
         int display_flag = enabled ? HT16K33_DISPLAY_ON : HT16K33_DISPLAY_OFF;
@@ -75,7 +79,7 @@ public class Ht16k33 implements Closeable {
      * Set LED display brightness.
      * @param value brigthness value between 0 and 16
      */
-    public void setBrightness(int value) throws ErrnoException {
+    public void setBrightness(int value) throws IOException {
         if (value < 0 || value > HT16K33_BRIGHTNESS_MAX) {
             throw new IllegalArgumentException("brightness must be between 0 and " +
                     HT16K33_BRIGHTNESS_MAX);
@@ -87,7 +91,7 @@ public class Ht16k33 implements Closeable {
      * Set LED display brightness.
      * @param value brigthness value between 0 and 1.0f
      */
-    public void setBrightness(float value) throws ErrnoException {
+    public void setBrightness(float value) throws IOException {
         int val = Math.round(value*Ht16k33.HT16K33_BRIGHTNESS_MAX);
         setBrightness(val);
     }
@@ -97,7 +101,7 @@ public class Ht16k33 implements Closeable {
      * @param column
      * @param data LED state for ROW0-15
      */
-    public void writeColumn(int column, short data) throws ErrnoException {
+    public void writeColumn(int column, short data) throws IOException {
         mDevice.writeRegWord(column*2, data);
     }
 }

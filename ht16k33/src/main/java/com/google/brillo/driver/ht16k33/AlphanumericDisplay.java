@@ -1,8 +1,8 @@
 package com.google.brillo.driver.ht16k33;
 
 import android.hardware.pio.I2cDevice;
-import android.system.ErrnoException;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 
 public class AlphanumericDisplay extends Ht16k33 {
@@ -11,25 +11,25 @@ public class AlphanumericDisplay extends Ht16k33 {
     /**
      * Create a new driver for a HT16K33 based alphanumeric display connected on the given I2C bus.
      * @param bus
-     * @throws ErrnoException
+     * @throws IOException
      */
-    public AlphanumericDisplay(String bus) throws ErrnoException {
+    public AlphanumericDisplay(String bus) throws IOException {
         super(bus);
     }
 
     /**
      * Create a new driver for a HT16K33 based alphanumeric display from a given I2C device.
      * @param device
-     * @throws ErrnoException
+     * @throws IOException
      */
-    public AlphanumericDisplay(I2cDevice device) throws ErrnoException {
+    public AlphanumericDisplay(I2cDevice device) throws IOException {
         super(device);
     }
 
     /**
      * Clear the display memory.
      */
-    public void clear() throws ErrnoException {
+    public void clear() throws IOException {
         for (int i = 0; i < 4; i++) {
             writeColumn(i, (short)0x0000);
         }
@@ -41,7 +41,7 @@ public class AlphanumericDisplay extends Ht16k33 {
      * @param c character value
      * @param dot state of the dot LED
      */
-    public void display(char c, int index, boolean dot) throws ErrnoException {
+    public void display(char c, int index, boolean dot) throws IOException {
         int val = Font.DATA[c];
         if (dot) {
             val |= 1 << 14;
@@ -53,7 +53,7 @@ public class AlphanumericDisplay extends Ht16k33 {
      * Display a decimal number.
      * @param n number value
      */
-    public void display(double n) throws ErrnoException {
+    public void display(double n) throws IOException {
         // pad with leading space until we get 5 chars
         // since double always get formatted with a dot
         // and the dot doesn't consume any space on the display.
@@ -65,7 +65,7 @@ public class AlphanumericDisplay extends Ht16k33 {
      * Display a integer number.
      * @param n number value
      */
-    public void display(int n) throws ErrnoException {
+    public void display(int n) throws IOException {
         // pad with leading space until we get 4 chars
         display(String.format("%4s", n));
     }
@@ -74,7 +74,7 @@ public class AlphanumericDisplay extends Ht16k33 {
      * Display a string.
      * @param s string value
      */
-    public void display(String s) throws ErrnoException {
+    public void display(String s) throws IOException {
         mBuffer.clear();
         mBuffer.mark();
         short n = 0;

@@ -3,9 +3,9 @@ package com.google.brillo.driver.grove.accelerometer;
 import android.hardware.SensorManager;
 import android.hardware.userdriver.sensors.AccelerometerDriver;
 import android.hardware.userdriver.sensors.VectorWithStatus;
-import android.system.ErrnoException;
 import android.util.Log;
 
+import java.io.IOException;
 import java.util.UUID;
 
 class Mma7660FcAccelerometerDriver {
@@ -34,7 +34,7 @@ class Mma7660FcAccelerometerDriver {
                     } else {
                         mma7660fc.setMode(Mma7660Fc.MODE_STANDBY);
                     }
-                } catch (ErrnoException e) {
+                } catch (IOException e) {
                     Log.e(TAG, "peripheral error: ", e);
                 }
             }
@@ -48,7 +48,7 @@ class Mma7660FcAccelerometerDriver {
                             sample[1] * SensorManager.GRAVITY_EARTH,
                             sample[2] * SensorManager.GRAVITY_EARTH,
                             SensorManager.SENSOR_STATUS_ACCURACY_HIGH); // 120Hz
-                } catch (ErrnoException | IllegalStateException e) {
+                } catch (IOException | IllegalStateException e) {
                     Log.e(TAG, "peripheral error: ", e);
                     return new VectorWithStatus(0, 0, 0, SensorManager.SENSOR_STATUS_UNRELIABLE);
                 }

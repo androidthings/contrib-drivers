@@ -3,9 +3,9 @@ package com.google.brillo.driver.grove.lcdrgb;
 import android.graphics.Color;
 import android.hardware.pio.I2cDevice;
 import android.hardware.pio.PeripheralManagerService;
-import android.system.ErrnoException;
 
 import java.io.Closeable;
+import java.io.IOException;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
 public class LcdRgbBacklight implements Closeable {
@@ -38,7 +38,7 @@ public class LcdRgbBacklight implements Closeable {
     private I2cDevice mLcdDevice;
 
 
-    public LcdRgbBacklight(String bus) throws ErrnoException {
+    public LcdRgbBacklight(String bus) throws IOException {
         PeripheralManagerService pioService = new PeripheralManagerService();
         try {
             mRgbDevice = pioService.openI2cDevice(bus, RGB_ADDRESS);
@@ -47,24 +47,33 @@ public class LcdRgbBacklight implements Closeable {
             mRgbDevice.writeRegByte(REG_OUTPUT, (byte) ENABLE_PWM);
             mLcdDevice.write(COMMAND_DISPLAY_ON,COMMAND_DISPLAY_ON.length);
             mLcdDevice.write(COMMAND_ENTRY_MODE,COMMAND_ENTRY_MODE.length);
-        } catch (ErrnoException|RuntimeException e) {
-            close();
+        } catch (IOException|RuntimeException e) {
+            try {
+                close();
+            } catch (IOException|RuntimeException ignored) {
+            }
             throw e;
         }
     }
 
-    public void close() {
+    public void close() throws IOException {
         if (mRgbDevice != null) {
-            mRgbDevice.close();
-            mRgbDevice = null;
+            try {
+                mRgbDevice.close();
+            } finally {
+                mRgbDevice = null;
+            }
         }
         if (mLcdDevice != null) {
-            mLcdDevice.close();
-            mLcdDevice = null;
+            try {
+                mRgbDevice.close();
+            } finally {
+                mRgbDevice = null;
+            }
         }
     }
 
-    public void clear() throws ErrnoException, IllegalStateException {
+    public void clear() throws IOException, IllegalStateException {
         if (mLcdDevice == null) {
             throw new IllegalStateException("i2c device not opened");
         }
@@ -72,7 +81,7 @@ public class LcdRgbBacklight implements Closeable {
         mLcdDevice.write(COMMAND_HOME, COMMAND_HOME.length);
     }
 
-    public void setBackground(int color) throws ErrnoException, IllegalStateException {
+    public void setBackground(int color) throws IOException, IllegalStateException {
         if (mRgbDevice == null) {
             throw new IllegalStateException("i2c device not opened");
         }
@@ -81,7 +90,7 @@ public class LcdRgbBacklight implements Closeable {
         mRgbDevice.writeRegByte(REG_BLUE, (byte)Color.blue(color));
     }
 
-    public void write(String message) throws ErrnoException, IllegalStateException {
+    public void write(String message) throws IOException, IllegalStateException {
         if (mLcdDevice == null) {
             throw new IllegalStateException("i2c device not opened");
         }

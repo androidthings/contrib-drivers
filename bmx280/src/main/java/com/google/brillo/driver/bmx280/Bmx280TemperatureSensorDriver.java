@@ -1,13 +1,13 @@
 package com.google.brillo.driver.bmx280;
 
 import android.hardware.userdriver.sensors.TemperatureSensorDriver;
-import android.system.ErrnoException;
 import android.util.Log;
 
+import java.io.IOException;
 import java.util.UUID;
 
 class Bmx280TemperatureSensorDriver {
-    private static final String TAG = Bmx280TemperatureSensorDriver.class.getSimpleName();
+    private static final String TAG = "TemperatureSensorDriver";
     // DRIVER parameters
     // documented at https://source.android.com/devices/sensors/hal-interface.html#sensor_t
     private static final String DRIVER_NAME = "BMP280/BME280";
@@ -29,7 +29,7 @@ class Bmx280TemperatureSensorDriver {
             public float read() {
                 try {
                     return driver.readTemperature();
-                } catch (ErrnoException | IllegalStateException e) {
+                } catch (IOException | IllegalStateException e) {
                     Log.e(TAG, "error reading bmx280 sensor data: ", e);
                     return Float.NaN;
                 }

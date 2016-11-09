@@ -2,15 +2,14 @@ package com.google.brillo.driver.captouch;
 
 import android.content.Context;
 import android.hardware.userdriver.InputDriver;
-import android.hardware.userdriver.InputDriverEvent;
 import android.hardware.userdriver.UserDriverManager;
 import android.os.Handler;
 import android.support.annotation.VisibleForTesting;
-import android.system.ErrnoException;
 import android.util.Log;
+import android.view.InputDevice;
+import android.view.KeyEvent;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.io.IOException;
 
 /**
  * User-space driver to process capacitive touch events from the
@@ -24,23 +23,13 @@ public class Cap12xxInputDriver implements AutoCloseable {
     // Driver parameters
     private static final String DRIVER_NAME = "Cap12xx";
     private static final int DRIVER_VERSION = 1;
-    // Input event states
-    private static final int EVENT_RELEASED = 0;
-    private static final int EVENT_PRESSED  = 1;
-    // Constants defined in linux/input.h
-    private static final int EV_SYN = 0;
-    private static final int EV_KEY = 1;
-    private static Integer[] SUPPORTED_EVENT_TYPE = {EV_SYN, EV_KEY};
-    // Constants defined in linux/uinput.h
-    private static final int UI_SET_EVBIT  = 0x40045564;
-    private static final int UI_SET_KEYBIT = 0x40045565;
 
     private Context mContext;
     private Cap12xx mPeripheralDevice;
     // Framework input driver
     private InputDriver mInputDriver;
     // Key codes mapped to input channels
-    private Integer[] mKeycodes;
+    private int[] mKeycodes;
 
     /**
      * Create a new Cap12xxInputDriver to forward capacitive touch events
@@ -59,7 +48,7 @@ public class Cap12xxInputDriver implements AutoCloseable {
                               String i2cName,
                               String alertName,
                               Cap12xx.Configuration chip,
-                              int[] keyCodes) throws ErrnoException {
+                              int[] keyCodes) throws IOException {
         this(context, i2cName, alertName, chip, null, keyCodes);
     }
 
@@ -82,7 +71,7 @@ public class Cap12xxInputDriver implements AutoCloseable {
                               String alertName,
                               Cap12xx.Configuration chip,
                               Handler handler,
-                              int[] keyCodes) throws ErrnoException {
+                              int[] keyCodes) throws IOException {
         Cap12xx peripheral = new Cap12xx(context, i2cName, alertName, chip, handler);
         init(context, peripheral, keyCodes);
     }
@@ -93,7 +82,7 @@ public class Cap12xxInputDriver implements AutoCloseable {
     @VisibleForTesting
     /*package*/ Cap12xxInputDriver(Context context,
                                    Cap12xx peripheral,
-                                   int[] keyCodes) throws ErrnoException {
+                                   int[] keyCodes) throws IOException {
         init(context, peripheral, keyCodes);
     }
 
@@ -106,11 +95,7 @@ public class Cap12xxInputDriver implements AutoCloseable {
             throw new IllegalArgumentException("Must provide a valid set of key codes.");
         }
 
-        mKeycodes = new Integer[keyCodes.length];
-        for (int i = 0; i < keyCodes.length; i++) {
-            mKeycodes[i] = keyCodes[i];
-        }
-
+        mKeycodes = keyCodes;
         mContext = context.getApplicationContext();
         mPeripheralDevice = peripheral;
         mPeripheralDevice.setOnCapTouchListener(mTouchListener);
@@ -128,9 +113,9 @@ public class Cap12xxInputDriver implements AutoCloseable {
      * @param rate one of {@link Cap12xx#REPEAT_NORMAL}, {@link Cap12xx#REPEAT_SLOW},
      *             {@link Cap12xx#REPEAT_FAST}, or {@link Cap12xx#REPEAT_DISABLE}.
      *
-     * @throws ErrnoException
+     * @throws IOException
      */
-    public void setRepeatRate(@Cap12xx.RepeatRate int rate) throws ErrnoException {
+    public void setRepeatRate(@Cap12xx.RepeatRate int rate) throws IOException {
         if (mPeripheralDevice != null) {
             mPeripheralDevice.setRepeatRate(rate);
         }
@@ -144,9 +129,9 @@ public class Cap12xxInputDriver implements AutoCloseable {
      * @param sensitivity one of {@link Cap12xx#SENSITIVITY_NORMAL},
      *                    {@link Cap12xx#SENSITIVITY_LOW}, or {@link Cap12xx#SENSITIVITY_HIGH}.
      *
-     * @throws ErrnoException
+     * @throws IOException
      */
-    public void setSensitivity(@Cap12xx.Sensitivity int sensitivity) throws ErrnoException {
+    public void setSensitivity(@Cap12xx.Sensitivity int sensitivity) throws IOException {
         if (mPeripheralDevice != null) {
             mPeripheralDevice.setSensitivity(sensitivity);
         }
@@ -159,9 +144,9 @@ public class Cap12xxInputDriver implements AutoCloseable {
      *
      * @param count Maximum number of inputs allowed to generate events.
      *
-     * @throws ErrnoException
+     * @throws IOException
      */
-    public void setMultitouchInputMax(int count) throws ErrnoException {
+    public void setMultitouchInputMax(int count) throws IOException {
         if (mPeripheralDevice != null) {
             mPeripheralDevice.setMultitouchInputMax(count);
         }
@@ -192,12 +177,10 @@ public class Cap12xxInputDriver implements AutoCloseable {
 
         // Emit an event for each defined input channel
         for (int i = 0; i < mKeycodes.length; i++) {
-            boolean active = status[i];
-            int code = mKeycodes[i];
-
-            mInputDriver.emit(new InputDriverEvent[]{
-                    new InputDriverEvent(EV_KEY, code, active ? EVENT_PRESSED : EVENT_RELEASED),
-                    new InputDriverEvent(EV_SYN, 0, 0)
+            int keyAction = status[i] ? KeyEvent.ACTION_DOWN : KeyEvent.ACTION_UP;
+            int keyCode = mKeycodes[i];
+            mInputDriver.emit(new KeyEvent[]{
+                    new KeyEvent(keyAction, keyCode)
             });
         }
     }
@@ -229,13 +212,10 @@ public class Cap12xxInputDriver implements AutoCloseable {
      * uses to emit input events based on the driver's event codes list.
      */
     private InputDriver buildInputDriver() {
-        Map<Integer, Integer[]> supportedEvents = new HashMap<>();
-        supportedEvents.put(UI_SET_EVBIT, SUPPORTED_EVENT_TYPE);
-        supportedEvents.put(UI_SET_KEYBIT, mKeycodes);
-
-        return InputDriver.builder(supportedEvents)
+        return InputDriver.builder(InputDevice.SOURCE_CLASS_BUTTON)
                 .name(DRIVER_NAME)
                 .version(DRIVER_VERSION)
+                .keys(mKeycodes)
                 .build();
     }
 
@@ -243,12 +223,16 @@ public class Cap12xxInputDriver implements AutoCloseable {
      * Close this driver and any underlying resources associated with the connection.
      */
     @Override
-    public void close() {
+    public void close() throws IOException {
         unregister();
 
         if (mPeripheralDevice != null) {
             mPeripheralDevice.setOnCapTouchListener(null);
-            mPeripheralDevice.close();
+            try {
+                mPeripheralDevice.close();
+            } finally {
+                mPeripheralDevice = null;
+            }
         }
     }
 }

@@ -2,9 +2,9 @@ package com.google.brillo.driver.speaker;
 
 import android.hardware.pio.PeripheralManagerService;
 import android.hardware.pio.Pwm;
-import android.system.ErrnoException;
 
 import java.io.Closeable;
+import java.io.IOException;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
 public class Speaker implements Closeable {
@@ -14,31 +14,34 @@ public class Speaker implements Closeable {
     /**
      * Create a Speaker from a {@link Pwm} device
      */
-    public Speaker(Pwm device) throws ErrnoException {
+    public Speaker(Pwm device) throws IOException {
         connect(device);
     }
 
     /**
      * Create a Speaker connected to the given Pwm pin name
      */
-    public Speaker(String pin) throws ErrnoException {
+    public Speaker(String pin) throws IOException {
         PeripheralManagerService pioService = new PeripheralManagerService();
         Pwm device = pioService.openPwm(pin);
         try {
             connect(device);
-        } catch (ErrnoException|RuntimeException e) {
-            close();
+        } catch (IOException|RuntimeException e) {
+            try {
+                close();
+            } catch (IOException|RuntimeException ignored) {
+            }
             throw e;
         }
     }
 
-    private void connect(Pwm device) throws ErrnoException {
+    private void connect(Pwm device) throws IOException {
         mPwm = device;
         mPwm.setPwmDutyCycle(50.0); // square wave
     }
 
     @Override
-    public void close() {
+    public void close() throws IOException {
         if (mPwm != null) {
             try {
                 mPwm.close();
@@ -52,10 +55,10 @@ public class Speaker implements Closeable {
      * Play the specified frequency. Play continues until {@link #stop()} is called.
      *
      * @param frequency the frequency to play in Hz
-     * @throws ErrnoException
+     * @throws IOException
      * @throws IllegalStateException if the device is closed
      */
-    public void play(double frequency) throws ErrnoException, IllegalStateException {
+    public void play(double frequency) throws IOException, IllegalStateException {
         if (mPwm == null) {
             throw new IllegalStateException("pwm device not opened");
         }
@@ -66,10 +69,10 @@ public class Speaker implements Closeable {
     /**
      * Stop a currently playing frequency
      *
-     * @throws ErrnoException
+     * @throws IOException
      * @throws IllegalStateException if the device is closed
      */
-    public void stop() throws ErrnoException, IllegalStateException {
+    public void stop() throws IOException, IllegalStateException {
         if (mPwm == null) {
             throw new IllegalStateException("pwm device not opened");
         }

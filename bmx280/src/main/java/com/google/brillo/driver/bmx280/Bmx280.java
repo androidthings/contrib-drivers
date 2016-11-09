@@ -5,9 +5,9 @@ import android.hardware.pio.PeripheralManagerService;
 import android.hardware.userdriver.sensors.PressureSensorDriver;
 import android.hardware.userdriver.sensors.TemperatureSensorDriver;
 import android.support.annotation.VisibleForTesting;
-import android.system.ErrnoException;
 
 import java.io.Closeable;
+import java.io.IOException;
 
 /**
  * Driver for the BMP/BME 280 temperature sensor.
@@ -100,28 +100,31 @@ public class Bmx280 implements Closeable {
     /**
      * Create a new BMP/BME280 sensor driver connected on the given bus.
      * @param bus I2C bus the sensor is connected to.
-     * @throws ErrnoException
+     * @throws IOException
      */
-    public Bmx280(String bus) throws ErrnoException {
+    public Bmx280(String bus) throws IOException {
         PeripheralManagerService pioService = new PeripheralManagerService();
         I2cDevice device = pioService.openI2cDevice(bus, I2C_ADDRESS);
         try {
             connect(device);
-        } catch (ErrnoException|RuntimeException e) {
-            close();
+        } catch (IOException|RuntimeException e) {
+            try {
+                close();
+            } catch (IOException|RuntimeException ignored) {
+            }
             throw e;
         }
     }
     /**
      * Create a new BMP/BME280 sensor driver connected to the given I2c device.
      * @param device I2C device of the sensor.
-     * @throws ErrnoException
+     * @throws IOException
      */
-    public Bmx280(I2cDevice device) throws ErrnoException {
+    public Bmx280(I2cDevice device) throws IOException {
         connect(device);
     }
 
-    private void connect(I2cDevice device) throws ErrnoException {
+    private void connect(I2cDevice device) throws IOException {
         mDevice = device;
         mChipId = mDevice.readRegByte(BMP280_REG_ID);
 
@@ -153,7 +156,7 @@ public class Bmx280 implements Closeable {
      * Close the driver and the underlying device.
      */
     @Override
-    public void close() {
+    public void close() throws IOException {
         if (mDevice != null) {
             try {
                 mDevice.close();
@@ -175,7 +178,7 @@ public class Bmx280 implements Closeable {
      *
      * @return the current temperature in degrees Celsius
      */
-    public float readTemperature() throws ErrnoException, IllegalStateException {
+    public float readTemperature() throws IOException, IllegalStateException {
         return readAndCompensateTemperature()[0];
     }
 
@@ -184,7 +187,7 @@ public class Bmx280 implements Closeable {
      * Celsius; the second element is a fine temperature value that is needed for pressure and
      * humidity compensation formulas.
      */
-    private float[] readAndCompensateTemperature() throws ErrnoException, IllegalStateException {
+    private float[] readAndCompensateTemperature() throws IOException, IllegalStateException {
         int rawTemp = readSample(BMP280_REG_TEMP);
         return compensateTemperature(rawTemp, mTempCalibrationData);
     }
@@ -195,9 +198,9 @@ public class Bmx280 implements Closeable {
      * requires sampling the current temperature.
      *
      * @return the barometric pressure in hPa units
-     * @throws ErrnoException
+     * @throws IOException
      */
-    public float readPressure() throws ErrnoException, IllegalStateException {
+    public float readPressure() throws IOException, IllegalStateException {
         return readTemperatureAndPressure()[1];
     }
 
@@ -206,9 +209,9 @@ public class Bmx280 implements Closeable {
      *
      * @return a 2-element array. The first element is temperature in degrees Celsius, and the
      * second is barometric pressure in hPa units.
-     * @throws ErrnoException
+     * @throws IOException
      */
-    public float[] readTemperatureAndPressure() throws ErrnoException, IllegalStateException {
+    public float[] readTemperatureAndPressure() throws IOException, IllegalStateException {
         // The pressure compensation formula requires the fine temperature reading, so we always
         // read temperature first.
         float[] temperatures = readAndCompensateTemperature();
@@ -219,8 +222,9 @@ public class Bmx280 implements Closeable {
 
     /**
      * Reads 20 bits from the given address.
+     * @throws IOException
      */
-    private int readSample(int address) throws ErrnoException, IllegalStateException {
+    private int readSample(int address) throws IOException, IllegalStateException {
         if (mDevice == null) {
             throw new IllegalStateException("I2C device is already closed");
         }
