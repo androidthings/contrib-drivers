@@ -5,10 +5,6 @@ import android.hardware.pio.PeripheralManagerService;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.nio.ByteBuffer;
-
-import android.util.Log;
-
 
 public class Ht16k33 implements Closeable {
     private static final String TAG = "Ht16k33";
@@ -77,7 +73,7 @@ public class Ht16k33 implements Closeable {
 
     /**
      * Set LED display brightness.
-     * @param value brigthness value between 0 and 16
+     * @param value brigthness value between 0 and {@link #HT16K33_BRIGHTNESS_MAX}
      */
     public void setBrightness(int value) throws IOException {
         if (value < 0 || value > HT16K33_BRIGHTNESS_MAX) {
@@ -92,7 +88,7 @@ public class Ht16k33 implements Closeable {
      * @param value brigthness value between 0 and 1.0f
      */
     public void setBrightness(float value) throws IOException {
-        int val = Math.round(value*Ht16k33.HT16K33_BRIGHTNESS_MAX);
+        int val = Math.round(value*HT16K33_BRIGHTNESS_MAX);
         setBrightness(val);
     }
 
