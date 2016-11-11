@@ -3,11 +3,11 @@ package com.google.brillo.driver.ht16k33;
 import android.hardware.pio.I2cDevice;
 import android.hardware.pio.PeripheralManagerService;
 
-import java.io.Closeable;
 import java.io.IOException;
 
-public class Ht16k33 implements Closeable {
-    private static final String TAG = "Ht16k33";
+public class Ht16k33 implements AutoCloseable {
+
+    private static final String TAG = Ht16k33.class.getSimpleName();
 
     /**
      * I2C slave address.

@@ -1,12 +1,13 @@
 package com.google.brillo.driver.bmx280;
 
+import android.hardware.userdriver.UserDriverManager;
 import android.hardware.userdriver.sensors.PressureSensorDriver;
 import android.util.Log;
 
 import java.io.IOException;
 import java.util.UUID;
 
-public class Bmx280PressureSensorDriver {
+public class Bmx280PressureSensorDriver implements AutoCloseable {
     private static final String TAG = "PressureSensorDriver";
     // DRIVER parameters
     // documented at https://source.android.com/devices/sensors/hal-interface.html#sensor_t
@@ -19,6 +20,60 @@ public class Bmx280PressureSensorDriver {
     private static final int DRIVER_MAX_DELAY_US = Math.round(1000000.f / Bmx280.MIN_FREQ_HZ);
     private static final int DRIVER_VERSION = 1;
     private static final String DRIVER_REQUIRED_PERMISSION = "";
+
+    private Bmx280 mDevice;
+    private PressureSensorDriver mDriver;
+
+    /**
+     * Create a new framework pressure sensor driver connected on the given bus.
+     * The driver emits {@link android.hardware.Sensor} with pressure data when registered.
+     * @param bus I2C bus the sensor is connected to.
+     * @throws IOException
+     * @see #register()
+     */
+    public Bmx280PressureSensorDriver(String bus) throws IOException {
+        mDevice = new Bmx280(bus);
+    }
+
+    /**
+     * Close the driver and the underlying device.
+     * @throws IOException
+     */
+    @Override
+    public void close() throws IOException {
+        unregister();
+        if (mDevice != null) {
+            try {
+                mDevice.close();
+            } finally {
+                mDevice = null;
+            }
+        }
+    }
+
+    /**
+     * Register the driver in the framework.
+     * @see #unregister()
+     */
+    public void register() {
+        if (mDevice == null) {
+            throw new IllegalStateException("cannot registered closed driver");
+        }
+        if (mDriver == null) {
+            mDriver = build(mDevice);
+            UserDriverManager.getManager().registerSensorDriver(mDriver);
+        }
+    }
+
+    /**
+     * Unregister the driver from the framework.
+     */
+    public void unregister() {
+        if (mDriver != null) {
+            UserDriverManager.getManager().unregisterSensorDriver(mDriver);
+            mDriver = null;
+        }
+    }
 
     static PressureSensorDriver build(Bmx280 driver) {
         return new PressureSensorDriver(DRIVER_NAME, DRIVER_VENDOR, DRIVER_VERSION,

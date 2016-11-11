@@ -20,7 +20,6 @@ import android.hardware.pio.PeripheralManagerService;
 import android.hardware.pio.SpiDevice;
 import android.util.Log;
 
-import java.io.Closeable;
 import java.io.IOException;
 
 /**
@@ -33,7 +32,7 @@ import java.io.IOException;
  */
 
 @SuppressWarnings({"unused", "WeakerAccess"})
-public class Apa102 implements Closeable {
+public class Apa102 implements AutoCloseable {
     private static final String TAG = "Apa102";
 
     /**

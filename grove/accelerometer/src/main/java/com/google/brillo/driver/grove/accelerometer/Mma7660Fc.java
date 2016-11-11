@@ -2,16 +2,14 @@ package com.google.brillo.driver.grove.accelerometer;
 
 import android.hardware.pio.I2cDevice;
 import android.hardware.pio.PeripheralManagerService;
-import android.hardware.userdriver.sensors.AccelerometerDriver;
 import android.support.annotation.IntDef;
 
-import java.io.Closeable;
 import java.io.IOException;
 
 /**
  * Driver for the MMA7660FC 1.5g accelerometer.
  */
-public class Mma7660Fc implements Closeable {
+public class Mma7660Fc implements AutoCloseable {
     private static final String TAG = Mma7660Fc.class.getSimpleName();
     /**
      * I2C slave address of the MMA7660FC.
@@ -188,13 +186,5 @@ public class Mma7660Fc implements Closeable {
                 DRIVER_ACC_LOOKUP_G[y],
                 DRIVER_ACC_LOOKUP_G[z]
         };
-    }
-
-    /**
-     * Create a new framework accelerometer driver.
-     * @return
-     */
-    public AccelerometerDriver createAccelerometerDriver() {
-        return Mma7660FcAccelerometerDriver.build(this);
     }
 }
