@@ -129,11 +129,11 @@ public class Bmx280 implements Closeable {
         mChipId = mDevice.readRegByte(BMP280_REG_ID);
 
         // Read temperature calibration data (3 words). First value is unsigned.
-        mTempCalibrationData[0] = mDevice.readRegWord(BMP280_REG_TEMP_CALIB_1);
+        mTempCalibrationData[0] = mDevice.readRegWord(BMP280_REG_TEMP_CALIB_1) & 0xffff;
         mTempCalibrationData[1] = (short) mDevice.readRegWord(BMP280_REG_TEMP_CALIB_2);
         mTempCalibrationData[2] = (short) mDevice.readRegWord(BMP280_REG_TEMP_CALIB_3);
         // Read pressure calibration data (9 words). First value is unsigned.
-        mPressureCalibrationData[0] = mDevice.readRegWord(BMP280_REG_PRESS_CALIB_1);
+        mPressureCalibrationData[0] = mDevice.readRegWord(BMP280_REG_PRESS_CALIB_1) & 0xffff;
         mPressureCalibrationData[1] = (short) mDevice.readRegWord(BMP280_REG_PRESS_CALIB_2);
         mPressureCalibrationData[2] = (short) mDevice.readRegWord(BMP280_REG_PRESS_CALIB_3);
         mPressureCalibrationData[3] = (short) mDevice.readRegWord(BMP280_REG_PRESS_CALIB_4);
