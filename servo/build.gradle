@@ -1,7 +1,7 @@
 apply plugin: 'com.android.library'
 apply plugin: 'maven-publish'
 
-def packageVersion = '0.7'
+def packageVersion = '0.8'
 
 android {
     compileSdkVersion 24
@@ -29,8 +29,7 @@ task sourceJar(type: Jar) {
 }
 
 publishing {
-    assert project.hasProperty('BRILLO_REPOSITORY'): \
-       "Property BRILLO_REPOSITORY not set.\n" +
+    assert project.hasProperty('BRILLO_REPOSITORY'): "Property BRILLO_REPOSITORY not set.\n" +
             "Please, set your ~/.gradle/init.gradle as instructed in go/brillo-gradle-setup"
     publications {
         mavenJava(MavenPublication) {
