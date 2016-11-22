@@ -3,22 +3,18 @@ package com.google.brillo.driver.button;
 import android.hardware.pio.Gpio;
 import android.hardware.pio.GpioCallback;
 import android.hardware.pio.PeripheralManagerService;
-import android.hardware.userdriver.InputDriver;
 import android.os.Handler;
 import android.support.annotation.VisibleForTesting;
 import android.util.Log;
-import android.view.InputDevice;
 import android.view.ViewConfiguration;
-import android.view.KeyEvent;
 
-import java.io.Closeable;
 import java.io.IOException;
 
 /**
  * Driver for GPIO based buttons with pull-up or pull-down resistors.
  */
 @SuppressWarnings({"unused", "WeakerAccess"})
-public class Button implements Closeable {
+public class Button implements AutoCloseable {
     private static final String TAG = Button.class.getSimpleName();
 
     /**
@@ -50,7 +46,7 @@ public class Button implements Closeable {
 
     /**
      * Create a new Button driver for the given GPIO pin name.
-     * @param pin Gpio where the button is attached.
+     * @param pin GPIO pin where the button is attached.
      * @param logicLevel Logic level when the button is considered pressed.
      * @throws IOException
      */
@@ -210,39 +206,5 @@ public class Button implements Closeable {
                 }
             }
         }
-    }
-
-    static class ButtonInputDriver {
-        private static final String DRIVER_NAME = "Button";
-        private static final int DRIVER_VERSION = 1;
-        static InputDriver build(Button button, int keyCode) {
-            InputDriver inputDriver = InputDriver.builder(InputDevice.SOURCE_CLASS_BUTTON)
-                    .name(DRIVER_NAME)
-                    .version(DRIVER_VERSION)
-                    .keys(new int[]{keyCode})
-                    .build();
-            button.setOnButtonEventListener(new OnButtonEventListener() {
-                @Override
-                public void onButtonEvent(Button b, boolean pressed) {
-                    int keyAction = pressed ? KeyEvent.ACTION_DOWN : KeyEvent.ACTION_UP;
-                    inputDriver.emit(new KeyEvent[]{
-                            new KeyEvent(keyAction, keyCode)
-                    });
-                }
-            });
-            return inputDriver;
-        }
-    }
-
-    /**
-     * Create a new {@link android.hardware.userdriver.InputDriver} that will emit
-     * the proper key events whenever the {@link Button} is pressed or released.
-     * Register this driver with the framework by calling {@link android.hardware.userdriver.UserDriverManager#registerInputDriver(InputDriver)}
-     * @param key key to be emitted.
-     * @return new input driver instance.
-     * @see android.hardware.userdriver.UserDriverManager#registerInputDriver(InputDriver)
-     */
-    public InputDriver createInputDriver(int key) {
-        return ButtonInputDriver.build(this, key);
     }
 }

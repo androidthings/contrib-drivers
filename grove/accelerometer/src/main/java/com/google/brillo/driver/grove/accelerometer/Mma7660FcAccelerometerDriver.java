@@ -1,6 +1,7 @@
 package com.google.brillo.driver.grove.accelerometer;
 
 import android.hardware.SensorManager;
+import android.hardware.userdriver.UserDriverManager;
 import android.hardware.userdriver.sensors.AccelerometerDriver;
 import android.hardware.userdriver.sensors.VectorWithStatus;
 import android.util.Log;
@@ -8,7 +9,7 @@ import android.util.Log;
 import java.io.IOException;
 import java.util.UUID;
 
-class Mma7660FcAccelerometerDriver {
+public class Mma7660FcAccelerometerDriver implements AutoCloseable {
     private static final String TAG = Mma7660FcAccelerometerDriver.class.getSimpleName();
     private static final String DRIVER_NAME = "GroveAccelerometer";
     private static final String DRIVER_VENDOR = "Seeed";
@@ -19,6 +20,59 @@ class Mma7660FcAccelerometerDriver {
     private static final int DRIVER_MAX_DELAY_US = Math.round(1000000.f/Mma7660Fc.MIN_FREQ_HZ);
     private static final int DRIVER_VERSION = 1;
     private static final String DRIVER_REQUIRED_PERMISSION = "";
+    private Mma7660Fc mDevice;
+    private AccelerometerDriver mDriver;
+
+    /**
+     * Create a new framework accelerometer driver connected to the given I2C bus.
+     * The driver emits {@link android.hardware.Sensor} with acceleration data when registered.
+     * @param bus
+     * @throws IOException
+     * @see #register()
+     */
+    public Mma7660FcAccelerometerDriver(String bus) throws IOException {
+        mDevice = new Mma7660Fc(bus);
+    }
+
+    /**
+     * Close the driver and the underlying device.
+     * @throws IOException
+     */
+    @Override
+    public void close() throws IOException {
+        unregister();
+        if (mDevice != null) {
+            try {
+                mDevice.close();
+            } finally {
+                mDevice = null;
+            }
+        }
+    }
+
+    /**
+     * Register the driver in the framework.
+     * @see #unregister()
+     */
+    public void register() {
+        if (mDevice == null) {
+            throw new IllegalStateException("cannot registered closed driver");
+        }
+        if (mDriver == null) {
+            mDriver = build(mDevice);
+            UserDriverManager.getManager().registerSensorDriver(mDriver);
+        }
+    }
+
+    /**
+     * Unregister the driver from the framework.
+     */
+    public void unregister() {
+        if (mDriver != null) {
+            UserDriverManager.getManager().unregisterSensorDriver(mDriver);
+            mDriver = null;
+        }
+    }
 
     static AccelerometerDriver build(Mma7660Fc mma7660fc) {
         return new AccelerometerDriver(DRIVER_NAME, DRIVER_VENDOR, DRIVER_VERSION,

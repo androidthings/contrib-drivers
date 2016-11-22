@@ -3,11 +3,10 @@ package com.google.brillo.driver.speaker;
 import android.hardware.pio.PeripheralManagerService;
 import android.hardware.pio.Pwm;
 
-import java.io.Closeable;
 import java.io.IOException;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
-public class Speaker implements Closeable {
+public class Speaker implements AutoCloseable {
 
     private Pwm mPwm;
 

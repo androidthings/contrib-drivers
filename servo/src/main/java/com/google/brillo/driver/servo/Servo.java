@@ -3,11 +3,10 @@ package com.google.brillo.driver.servo;
 import android.hardware.pio.PeripheralManagerService;
 import android.hardware.pio.Pwm;
 
-import java.io.Closeable;
 import java.io.IOException;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
-public class Servo implements Closeable {
+public class Servo implements AutoCloseable {
     private static final String TAG = Servo.class.getSimpleName();
 
     public static final double DEFAULT_FREQUENCY_HZ = 50;

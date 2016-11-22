@@ -2,18 +2,15 @@ package com.google.brillo.driver.bmx280;
 
 import android.hardware.pio.I2cDevice;
 import android.hardware.pio.PeripheralManagerService;
-import android.hardware.userdriver.sensors.PressureSensorDriver;
-import android.hardware.userdriver.sensors.TemperatureSensorDriver;
 import android.support.annotation.VisibleForTesting;
 
-import java.io.Closeable;
 import java.io.IOException;
 
 /**
  * Driver for the BMP/BME 280 temperature sensor.
  */
 @SuppressWarnings({"unused", "WeakerAccess"})
-public class Bmx280 implements Closeable {
+public class Bmx280 implements AutoCloseable {
 
     private static final String TAG = Bmx280.class.getSimpleName();
 
@@ -286,21 +283,5 @@ public class Bmx280 implements Closeable {
         p = p + (var1 + var2 + ((float) dig_P7)) / 16.0f;
         // p is in Pa, convert to hPa
         return p / 100.0f;
-    }
-
-    /**
-     * Create a new framework temperature sensor driver.
-     * @return the temperature sensor driver.
-     */
-    public TemperatureSensorDriver createTemperatureSensorDriver() {
-        return Bmx280TemperatureSensorDriver.build(this);
-    }
-
-    /**
-     * Create a new framework pressure sensor driver.
-     * @return the temperature sensor driver.
-     */
-    public PressureSensorDriver createPressureSensorDriver() {
-        return Bmx280PressureSensorDriver.build(this);
     }
 }

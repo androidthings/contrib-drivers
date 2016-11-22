@@ -4,11 +4,10 @@ import android.graphics.Color;
 import android.hardware.pio.I2cDevice;
 import android.hardware.pio.PeripheralManagerService;
 
-import java.io.Closeable;
 import java.io.IOException;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
-public class LcdRgbBacklight implements Closeable {
+public class LcdRgbBacklight implements AutoCloseable {
     private static final int RGB_ADDRESS = 0xc4 >> 1;
     private static final int LCD_ADDRESS = 0x7c >> 1;
     private static final int REG_MODE_1 = 0x00;
