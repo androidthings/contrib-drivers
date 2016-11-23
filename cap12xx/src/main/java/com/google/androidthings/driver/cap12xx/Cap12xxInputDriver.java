@@ -57,7 +57,7 @@ public class Cap12xxInputDriver implements AutoCloseable {
      * @param alertName optional GPIO pin name connected to the controller's
      *                  alert interrupt signal. Can be null.
      * @param chip identifier for the connected controller device chip.
-     * @param keyCodes event codes to be emitted for each input channel.
+     * @param keyCodes {@link KeyEvent} codes to be emitted for each input channel.
      *                 Length must match the input channel count of the
      *                 touch controller.
      */
@@ -79,7 +79,7 @@ public class Cap12xxInputDriver implements AutoCloseable {
      *                  alert interrupt signal. Can be null.
      * @param chip identifier for the connected controller device chip.
      * @param handler optional {@link Handler} for software polling and callback events.
-     * @param keyCodes event codes to be emitted for each input channel.
+     * @param keyCodes {@link KeyEvent} codes to be emitted for each input channel.
      *                 Length must match the input channel count of the
      *                 touch controller.
      */

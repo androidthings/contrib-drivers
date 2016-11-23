@@ -181,7 +181,10 @@ public class Cap12xx implements AutoCloseable {
         try {
             PeripheralManagerService manager = new PeripheralManagerService();
             I2cDevice device = manager.openI2cDevice(i2cName, I2C_ADDRESS);
-            Gpio alertPin = manager.openGpio(alertName);
+            Gpio alertPin = null;
+            if (alertName != null) {
+                alertPin = manager.openGpio(alertName);
+            }
             init(device, alertPin, chip, handler);
         } catch (IOException|RuntimeException e) {
             // Close the peripherals if an init error occurs
