@@ -93,7 +93,7 @@ public class Apa102 implements AutoCloseable {
      * @param device {@link SpiDevice} where the LED strip is attached to.
      * @param ledMode The {@link Mode} indicating the red/green/blue byte ordering for the device.
      */
-    public Apa102(SpiDevice device, Mode ledMode) throws IOException {
+    /*package*/ Apa102(SpiDevice device, Mode ledMode) throws IOException {
         mLedMode = ledMode;
         mDevice = device;
         configure(mDevice);

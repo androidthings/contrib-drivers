@@ -22,7 +22,7 @@ public class AlphanumericDisplay extends Ht16k33 {
      * @param device
      * @throws IOException
      */
-    public AlphanumericDisplay(I2cDevice device) throws IOException {
+    /*package*/ AlphanumericDisplay(I2cDevice device) throws IOException {
         super(device);
     }
 

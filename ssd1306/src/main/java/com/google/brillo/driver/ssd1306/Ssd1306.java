@@ -96,15 +96,6 @@ public class Ssd1306 implements Closeable {
     }
 
     /**
-     * Create a new Ssd1306 driver connected to the given device
-     * @param device I2C device of the display
-     * @throws IOException
-     */
-    public Ssd1306(I2cDevice device) throws IOException {
-        init(device);
-    }
-
-    /**
      * Create a new Ssd1306 driver connected to the named I2C bus
      * @param i2cName I2C bus name the display is connected to
      * @throws IOException
@@ -120,6 +111,15 @@ public class Ssd1306 implements Closeable {
             }
             throw e;
         }
+    }
+
+    /**
+     * Create a new Ssd1306 driver connected to the given device
+     * @param device I2C device of the display
+     * @throws IOException
+     */
+    /*package*/ Ssd1306(I2cDevice device) throws IOException {
+        init(device);
     }
 
     /**

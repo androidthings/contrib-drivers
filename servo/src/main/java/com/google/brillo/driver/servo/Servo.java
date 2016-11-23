@@ -62,7 +62,7 @@ public class Servo implements AutoCloseable {
      * @param device the PWM device
      * @throws IOException
      */
-    public Servo(Pwm device) throws IOException {
+    /*package*/ Servo(Pwm device) throws IOException {
         this(device, DEFAULT_FREQUENCY_HZ);
     }
 
@@ -73,7 +73,7 @@ public class Servo implements AutoCloseable {
      * @param frequencyHz the frequency in Hertz
      * @throws IOException
      */
-    public Servo(Pwm device, double frequencyHz) throws IOException {
+    /*package*/ Servo(Pwm device, double frequencyHz) throws IOException {
         try {
             connect(device, frequencyHz);
         } catch (IOException | RuntimeException e) {
