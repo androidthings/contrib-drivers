@@ -86,7 +86,7 @@ public class Mma7660Fc implements AutoCloseable {
      * @param device
      * @throws IOException
      */
-    public Mma7660Fc(I2cDevice device) throws IOException {
+    /*package*/ Mma7660Fc(I2cDevice device) throws IOException {
         connect(device);
     }
 

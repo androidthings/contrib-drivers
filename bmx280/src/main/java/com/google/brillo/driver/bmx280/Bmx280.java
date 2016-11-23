@@ -112,12 +112,13 @@ public class Bmx280 implements AutoCloseable {
             throw e;
         }
     }
+
     /**
      * Create a new BMP/BME280 sensor driver connected to the given I2c device.
      * @param device I2C device of the sensor.
      * @throws IOException
      */
-    public Bmx280(I2cDevice device) throws IOException {
+    /*package*/  Bmx280(I2cDevice device) throws IOException {
         connect(device);
     }
 

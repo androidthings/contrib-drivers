@@ -39,7 +39,7 @@ public class Ht16k33 implements AutoCloseable {
      * Create a new driver for a HT16K33 peripheral from a given I2C device.
      * @param device
      */
-    public Ht16k33(I2cDevice device) {
+    /*package*/ Ht16k33(I2cDevice device) {
         connect(device);
     }
 

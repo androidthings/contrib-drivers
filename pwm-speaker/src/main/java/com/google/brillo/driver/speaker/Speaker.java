@@ -11,14 +11,7 @@ public class Speaker implements AutoCloseable {
     private Pwm mPwm;
 
     /**
-     * Create a Speaker from a {@link Pwm} device
-     */
-    public Speaker(Pwm device) throws IOException {
-        connect(device);
-    }
-
-    /**
-     * Create a Speaker connected to the given Pwm pin name
+     * Create a Speaker connected to the given PWM pin name
      */
     public Speaker(String pin) throws IOException {
         PeripheralManagerService pioService = new PeripheralManagerService();
@@ -32,6 +25,13 @@ public class Speaker implements AutoCloseable {
             }
             throw e;
         }
+    }
+
+    /**
+     * Create a Speaker from a {@link Pwm} device
+     */
+    /*package*/ Speaker(Pwm device) throws IOException {
+        connect(device);
     }
 
     private void connect(Pwm device) throws IOException {
