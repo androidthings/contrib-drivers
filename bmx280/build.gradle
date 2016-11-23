@@ -22,7 +22,6 @@ android {
 dependencies {
     compile 'com.android.support:support-annotations:24.2.0'
     compile 'com.google.brillo:iot-sdk:0.8'
-    testCompile 'junit:junit:4.12'
 }
 
 task sourceJar(type: Jar) {
