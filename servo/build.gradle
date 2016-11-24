@@ -17,7 +17,7 @@
 apply plugin: 'com.android.library'
 apply plugin: 'maven-publish'
 
-def packageVersion = '0.10'
+def packageVersion = '0.1'
 
 android {
     compileSdkVersion 24
@@ -49,7 +49,7 @@ publishing {
             "Please, set your ~/.gradle/init.gradle as instructed in go/brillo-gradle-setup"
     publications {
         mavenJava(MavenPublication) {
-            groupId 'com.google.brillo.driver'
+            groupId 'com.google.androidthings.driver'
             artifactId 'servo'
             version packageVersion
             artifacts = configurations.archives.artifacts

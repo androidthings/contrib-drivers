@@ -1,12 +1,12 @@
-Brillo user-space drivers
-=========================
+Android Things user-space drivers
+=================================
 
-Reusable drivers for Brillo.
+Reusable drivers for Android Things.
 
 Pre-requisites
 --------------
 
-- com.google.brillo:brillo-sdk
+- Java 8
 
 
 Build and install
@@ -19,78 +19,23 @@ If all works, each driver will be compiled, packaged and published to a Maven
 repository.
 
 For consistency, it is recommended that all drivers in this directory are
-published under the groupdId of "com.google.brillo.driver". For example, the
-`servo` driver version 0.3 is published as `com.google.brillo.driver:servo:0.3`
+published under the groupdId of "com.google.androidthings.driver". For example, the
+`servo` driver version 0.1 is published as `com.google.androidthings.driver:servo:0.1`
 
 
 How to use it
 =============
 
-To use a driver published from this repository in another project, in addition
-to the Brillo SDK, you just need the corresponding driver dependency
-in your build.gradle:
+To use a driver published from this repository in another project,
+you just need the corresponding driver dependency in your build.gradle:
 
 ```
 dependencies {
-    compile 'com.google.brillo:brillo-sdk:0.3'
-    compile 'com.google.brillo.driver:servo:0.3'
+    compile 'com.google.androidthings.driver:servo:0.1'
 }
 ```
 
-(changing the versions if necessary)
-
-Until Brillo is launched, the "Pre-requisites" section from
-go/brillo-gradle-setup also needs to be fulfilled, since Gradle needs to
-know how to find the private Maven repo.
-
-
-How to publish a new driver
-===========================
-
-In order to set your Gradle configuration to publish your driver with a single command, you need
-to configure your ~/.gradle/init.gradle as described in go/brillo-gradle-setup and add
-this snippet to your project's build.gradle:
-
-```
-apply plugin: 'maven-publish'
-
-def packageVersion = '0.1'
-
-task sourceJar(type: Jar) {
-    classifier = 'sources'
-    from android.sourceSets.main.java.sourceFiles
-}
-
-publishing {
-    assert project.hasProperty('BRILLO_REPOSITORY'): \
-       "Property BRILLO_REPOSITORY not set.\n" +
-            "Please, set your ~/.gradle/init.gradle as instructed in go/brillo-gradle-setup"
-    publications {
-        mavenJava(MavenPublication) {
-            groupId 'com.google.brillo.driver'
-            artifactId '<YOUR_ARTIFACT_ID>'
-            version packageVersion
-            artifacts = configurations.archives.artifacts
-            artifact sourceJar
-        }
-    }
-    repositories {
-        maven {
-            url BRILLO_REPOSITORY
-            credentials(AwsCredentials) {
-                accessKey AWS_ACCESS_KEY
-                secretKey AWS_SECRET_KEY
-            }
-        }
-    }
-}
-```
-
-Then, change the packageVersion appropriately and run `./gradlew YOURPROJECT:publish`
-
-For example, `./gradlew servo:publish`
-
-NOTE: You can use the existing build.gradle in `servo` as an example.
+(changing the version if necessary)
 
 
 License
