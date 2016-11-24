@@ -17,8 +17,9 @@
 package com.google.androidthings.driver.ssd1306;
 
 import android.graphics.Bitmap;
-import android.hardware.pio.I2cDevice;
-import android.hardware.pio.PeripheralManagerService;
+
+import com.google.androidthings.pio.I2cDevice;
+import com.google.androidthings.pio.PeripheralManagerService;
 
 import java.io.Closeable;
 import java.io.IOException;

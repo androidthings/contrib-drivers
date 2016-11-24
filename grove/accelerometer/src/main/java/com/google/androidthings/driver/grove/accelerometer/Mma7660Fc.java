@@ -16,9 +16,10 @@
 
 package com.google.androidthings.driver.grove.accelerometer;
 
-import android.hardware.pio.I2cDevice;
-import android.hardware.pio.PeripheralManagerService;
 import android.support.annotation.IntDef;
+
+import com.google.androidthings.pio.I2cDevice;
+import com.google.androidthings.pio.PeripheralManagerService;
 
 import java.io.IOException;
 

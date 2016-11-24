@@ -41,8 +41,8 @@
 
 package com.google.androidthings.driver.tm1637;
 
-import android.hardware.pio.Gpio;
-import android.hardware.pio.PeripheralManagerService;
+import com.google.androidthings.pio.Gpio;
+import com.google.androidthings.pio.PeripheralManagerService;
 
 import java.io.Closeable;
 import java.io.IOException;

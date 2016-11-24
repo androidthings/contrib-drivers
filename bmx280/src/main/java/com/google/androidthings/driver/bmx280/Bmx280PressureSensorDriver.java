@@ -16,9 +16,10 @@
 
 package com.google.androidthings.driver.bmx280;
 
-import android.hardware.userdriver.UserDriverManager;
-import android.hardware.userdriver.sensors.PressureSensorDriver;
 import android.util.Log;
+
+import com.google.androidthings.userdriver.UserDriverManager;
+import com.google.androidthings.userdriver.sensors.PressureSensorDriver;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -97,7 +98,7 @@ public class Bmx280PressureSensorDriver implements AutoCloseable {
                 DRIVER_REQUIRED_PERMISSION, DRIVER_MAX_DELAY_US, UUID.randomUUID()) {
 
             @Override
-            public void enable(boolean enable) {
+            public void setEnabled(boolean enabled) throws IOException {
                 try {
                     driver.setMode(Bmx280.MODE_NORMAL);
                     driver.setPressureOversampling(Bmx280.OVERSAMPLING_1X);

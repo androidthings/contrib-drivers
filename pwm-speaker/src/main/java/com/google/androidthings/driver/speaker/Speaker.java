@@ -16,8 +16,8 @@
 
 package com.google.androidthings.driver.speaker;
 
-import android.hardware.pio.PeripheralManagerService;
-import android.hardware.pio.Pwm;
+import com.google.androidthings.pio.PeripheralManagerService;
+import com.google.androidthings.pio.Pwm;
 
 import java.io.IOException;
 
@@ -78,7 +78,7 @@ public class Speaker implements AutoCloseable {
             throw new IllegalStateException("pwm device not opened");
         }
         mPwm.setPwmFrequencyHz(frequency);
-        mPwm.enable();
+        mPwm.setEnabled(true);
     }
 
     /**
@@ -91,6 +91,6 @@ public class Speaker implements AutoCloseable {
         if (mPwm == null) {
             throw new IllegalStateException("pwm device not opened");
         }
-        mPwm.disable();
+        mPwm.setEnabled(false);
     }
 }

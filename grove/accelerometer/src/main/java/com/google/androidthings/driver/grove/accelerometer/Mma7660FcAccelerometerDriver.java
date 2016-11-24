@@ -17,10 +17,11 @@
 package com.google.androidthings.driver.grove.accelerometer;
 
 import android.hardware.SensorManager;
-import android.hardware.userdriver.UserDriverManager;
-import android.hardware.userdriver.sensors.AccelerometerDriver;
-import android.hardware.userdriver.sensors.VectorWithStatus;
 import android.util.Log;
+
+import com.google.androidthings.userdriver.UserDriverManager;
+import com.google.androidthings.userdriver.sensors.AccelerometerDriver;
+import com.google.androidthings.userdriver.sensors.VectorWithStatus;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -97,9 +98,9 @@ public class Mma7660FcAccelerometerDriver implements AutoCloseable {
                 UUID.randomUUID()) {
 
             @Override
-            public void enable(boolean enable) {
+            public void setEnabled(boolean enabled) throws IOException {
                 try {
-                    if (enable) {
+                    if (enabled) {
                         mma7660fc.setMode(Mma7660Fc.MODE_ACTIVE);
                     } else {
                         mma7660fc.setMode(Mma7660Fc.MODE_STANDBY);

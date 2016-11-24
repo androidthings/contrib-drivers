@@ -1,6 +1,3 @@
-package com.google.androidthings.driver.ht16k33;
-
-import android.hardware.pio.I2cDevice;
 /*
  * Copyright 2016, The Android Open Source Project
  *
@@ -16,6 +13,10 @@ import android.hardware.pio.I2cDevice;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+package com.google.androidthings.driver.ht16k33;
+
+import com.google.androidthings.pio.I2cDevice;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;

@@ -16,13 +16,14 @@
 
 package com.google.androidthings.driver.button;
 
-import android.hardware.pio.Gpio;
-import android.hardware.pio.GpioCallback;
-import android.hardware.pio.PeripheralManagerService;
 import android.os.Handler;
 import android.support.annotation.VisibleForTesting;
 import android.util.Log;
 import android.view.ViewConfiguration;
+
+import com.google.androidthings.pio.Gpio;
+import com.google.androidthings.pio.GpioCallback;
+import com.google.androidthings.pio.PeripheralManagerService;
 
 import java.io.IOException;
 

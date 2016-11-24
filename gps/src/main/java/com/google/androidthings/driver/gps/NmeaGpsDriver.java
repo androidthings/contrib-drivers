@@ -17,12 +17,13 @@
 package com.google.androidthings.driver.gps;
 
 import android.content.Context;
-import android.hardware.userdriver.GpsDriver;
-import android.hardware.userdriver.UserDriverManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Handler;
 import android.support.annotation.VisibleForTesting;
+
+import com.google.androidthings.userdriver.GpsDriver;
+import com.google.androidthings.userdriver.UserDriverManager;
 
 import java.io.IOException;
 

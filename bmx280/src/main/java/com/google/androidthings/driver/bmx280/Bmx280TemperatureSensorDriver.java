@@ -16,9 +16,10 @@
 
 package com.google.androidthings.driver.bmx280;
 
-import android.hardware.userdriver.UserDriverManager;
-import android.hardware.userdriver.sensors.TemperatureSensorDriver;
 import android.util.Log;
+
+import com.google.androidthings.userdriver.UserDriverManager;
+import com.google.androidthings.userdriver.sensors.TemperatureSensorDriver;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -98,7 +99,7 @@ public class Bmx280TemperatureSensorDriver implements AutoCloseable {
                 UUID.randomUUID()) {
 
             @Override
-            public void enable(boolean enable) {
+            public void setEnabled(boolean enabled) throws IOException {
                 try {
                     driver.setMode(Bmx280.MODE_NORMAL);
                     driver.setTemperatureOversampling(Bmx280.OVERSAMPLING_1X);

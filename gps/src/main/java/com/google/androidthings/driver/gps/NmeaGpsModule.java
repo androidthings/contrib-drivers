@@ -16,12 +16,13 @@
 
 package com.google.androidthings.driver.gps;
 
-import android.hardware.pio.PeripheralManagerService;
-import android.hardware.pio.UartDevice;
-import android.hardware.pio.UartDeviceCallback;
 import android.os.Handler;
 import android.support.annotation.VisibleForTesting;
 import android.util.Log;
+
+import com.google.androidthings.pio.PeripheralManagerService;
+import com.google.androidthings.pio.UartDevice;
+import com.google.androidthings.pio.UartDeviceCallback;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;

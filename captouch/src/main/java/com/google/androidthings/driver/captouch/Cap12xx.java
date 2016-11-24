@@ -17,15 +17,16 @@
 package com.google.androidthings.driver.captouch;
 
 import android.content.Context;
-import android.hardware.pio.Gpio;
-import android.hardware.pio.GpioCallback;
-import android.hardware.pio.I2cDevice;
-import android.hardware.pio.PeripheralManagerService;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.IntDef;
 import android.support.annotation.VisibleForTesting;
 import android.util.Log;
+
+import com.google.androidthings.pio.Gpio;
+import com.google.androidthings.pio.GpioCallback;
+import com.google.androidthings.pio.I2cDevice;
+import com.google.androidthings.pio.PeripheralManagerService;
 
 import java.io.IOException;
 import java.lang.annotation.Retention;

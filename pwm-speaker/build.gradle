@@ -17,7 +17,7 @@
 apply plugin: 'com.android.library'
 apply plugin: 'maven-publish'
 
-def packageVersion = '0.1'
+def packageVersion = '0.2'
 
 android {
     compileSdkVersion 24
@@ -36,7 +36,7 @@ android {
 }
 
 dependencies {
-    compile 'com.google.brillo:iot-sdk:0.8'
+    provided 'com.android.things:androidthings:0.1-preview'
 }
 
 task sourceJar(type: Jar) {

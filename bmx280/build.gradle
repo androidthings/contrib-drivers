@@ -17,7 +17,7 @@
 apply plugin: 'com.android.library'
 apply plugin: 'maven-publish'
 
-def packageVersion = '0.1'
+def packageVersion = '0.2'
 
 android {
     compileSdkVersion 24
@@ -37,7 +37,7 @@ android {
 
 dependencies {
     compile 'com.android.support:support-annotations:24.2.0'
-    compile 'com.google.brillo:iot-sdk:0.8'
+    provided 'com.android.things:androidthings:0.1-preview'
     testCompile 'junit:junit:4.12'
 }
 

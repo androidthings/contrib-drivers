@@ -17,9 +17,10 @@
 package com.google.androidthings.driver.apa102;
 
 import android.graphics.Color;
-import android.hardware.pio.PeripheralManagerService;
-import android.hardware.pio.SpiDevice;
 import android.util.Log;
+
+import com.google.androidthings.pio.PeripheralManagerService;
+import com.google.androidthings.pio.SpiDevice;
 
 import java.io.IOException;
 
