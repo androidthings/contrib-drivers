@@ -16,6 +16,8 @@
 
 package com.google.androidthings.driver.pwmservo;
 
+import android.support.annotation.VisibleForTesting;
+
 import com.google.androidthings.pio.PeripheralManagerService;
 import com.google.androidthings.pio.Pwm;
 
@@ -78,6 +80,7 @@ public class Servo implements AutoCloseable {
      * @param device the PWM device
      * @throws IOException
      */
+    @VisibleForTesting
     /*package*/ Servo(Pwm device) throws IOException {
         this(device, DEFAULT_FREQUENCY_HZ);
     }
@@ -89,6 +92,7 @@ public class Servo implements AutoCloseable {
      * @param frequencyHz the frequency in Hertz
      * @throws IOException
      */
+    @VisibleForTesting
     /*package*/ Servo(Pwm device, double frequencyHz) throws IOException {
         try {
             connect(device, frequencyHz);

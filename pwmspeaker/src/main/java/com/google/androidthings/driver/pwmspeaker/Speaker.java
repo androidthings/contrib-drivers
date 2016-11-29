@@ -16,6 +16,8 @@
 
 package com.google.androidthings.driver.pwmspeaker;
 
+import android.support.annotation.VisibleForTesting;
+
 import com.google.androidthings.pio.PeripheralManagerService;
 import com.google.androidthings.pio.Pwm;
 
@@ -46,6 +48,7 @@ public class Speaker implements AutoCloseable {
     /**
      * Create a Speaker from a {@link Pwm} device
      */
+    @VisibleForTesting
     /*package*/ Speaker(Pwm device) throws IOException {
         connect(device);
     }
