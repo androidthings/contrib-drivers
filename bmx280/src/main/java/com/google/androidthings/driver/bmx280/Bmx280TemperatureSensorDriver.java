@@ -92,7 +92,7 @@ public class Bmx280TemperatureSensorDriver implements AutoCloseable {
         }
     }
 
-    static TemperatureSensorDriver build(Bmx280 driver) {
+    static TemperatureSensorDriver build(final Bmx280 driver) {
         return new TemperatureSensorDriver(DRIVER_NAME, DRIVER_VENDOR, DRIVER_VERSION,
                 DRIVER_MAX_RANGE, DRIVER_RESOLUTION, DRIVER_POWER,
                 DRIVER_MIN_DELAY_US, DRIVER_REQUIRED_PERMISSION, DRIVER_MAX_DELAY_US,

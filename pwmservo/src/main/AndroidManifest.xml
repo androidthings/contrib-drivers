@@ -1,4 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.google.androidthings.driver.pwmservo">
-
+    <application>
+        <uses-library android:name="com.google.androidthings"/>
+    </application>
 </manifest>

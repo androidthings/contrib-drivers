@@ -91,7 +91,7 @@ public class Mma7660FcAccelerometerDriver implements AutoCloseable {
         }
     }
 
-    static AccelerometerDriver build(Mma7660Fc mma7660fc) {
+    static AccelerometerDriver build(final Mma7660Fc mma7660fc) {
         return new AccelerometerDriver(DRIVER_NAME, DRIVER_VENDOR, DRIVER_VERSION,
                 DRIVER_MAX_RANGE, DRIVER_RESOLUTION, DRIVER_POWER,
                 DRIVER_MIN_DELAY_US, DRIVER_REQUIRED_PERMISSION, DRIVER_MAX_DELAY_US,

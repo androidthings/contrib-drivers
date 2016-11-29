@@ -92,7 +92,7 @@ public class Bmx280PressureSensorDriver implements AutoCloseable {
         }
     }
 
-    static PressureSensorDriver build(Bmx280 driver) {
+    static PressureSensorDriver build(final Bmx280 driver) {
         return new PressureSensorDriver(DRIVER_NAME, DRIVER_VENDOR, DRIVER_VERSION,
                 DRIVER_MAX_RANGE, DRIVER_RESOLUTION, DRIVER_POWER, DRIVER_MIN_DELAY_US,
                 DRIVER_REQUIRED_PERMISSION, DRIVER_MAX_DELAY_US, UUID.randomUUID()) {
