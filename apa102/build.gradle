@@ -17,7 +17,7 @@
 apply plugin: 'com.android.library'
 apply plugin: 'maven-publish'
 
-def packageVersion = '0.3'
+def packageVersion = '0.4'
 
 android {
     compileSdkVersion 24
@@ -32,7 +32,7 @@ android {
 }
 
 dependencies {
-    provided 'com.android.things:androidthings:0.1-preview'
+    provided 'com.android.things:androidthings:0.2-RC1-preview'
 }
 
 task sourceJar(type: Jar) {

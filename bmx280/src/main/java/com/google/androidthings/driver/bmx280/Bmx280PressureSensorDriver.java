@@ -16,10 +16,12 @@
 
 package com.google.androidthings.driver.bmx280;
 
-import android.util.Log;
+import android.hardware.Sensor;
 
 import com.google.androidthings.userdriver.UserDriverManager;
-import com.google.androidthings.userdriver.sensors.PressureSensorDriver;
+import com.google.androidthings.userdriver.UserSensor;
+import com.google.androidthings.userdriver.UserSensorDriver;
+import com.google.androidthings.userdriver.UserSensorReading;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -39,7 +41,7 @@ public class Bmx280PressureSensorDriver implements AutoCloseable {
     private static final String DRIVER_REQUIRED_PERMISSION = "";
 
     private Bmx280 mDevice;
-    private PressureSensorDriver mDriver;
+    private UserSensor mUserSensor;
 
     /**
      * Create a new framework pressure sensor driver connected on the given bus.
@@ -76,9 +78,9 @@ public class Bmx280PressureSensorDriver implements AutoCloseable {
         if (mDevice == null) {
             throw new IllegalStateException("cannot registered closed driver");
         }
-        if (mDriver == null) {
-            mDriver = build(mDevice);
-            UserDriverManager.getManager().registerSensorDriver(mDriver);
+        if (mUserSensor == null) {
+            mUserSensor = build(mDevice);
+            UserDriverManager.getManager().registerSensor(mUserSensor);
         }
     }
 
@@ -86,36 +88,42 @@ public class Bmx280PressureSensorDriver implements AutoCloseable {
      * Unregister the driver from the framework.
      */
     public void unregister() {
-        if (mDriver != null) {
-            UserDriverManager.getManager().unregisterSensorDriver(mDriver);
-            mDriver = null;
+        if (mUserSensor != null) {
+            UserDriverManager.getManager().unregisterSensor(mUserSensor);
+            mUserSensor = null;
         }
     }
 
-    static PressureSensorDriver build(final Bmx280 driver) {
-        return new PressureSensorDriver(DRIVER_NAME, DRIVER_VENDOR, DRIVER_VERSION,
-                DRIVER_MAX_RANGE, DRIVER_RESOLUTION, DRIVER_POWER, DRIVER_MIN_DELAY_US,
-                DRIVER_REQUIRED_PERMISSION, DRIVER_MAX_DELAY_US, UUID.randomUUID()) {
+    static UserSensor build(final Bmx280 device) {
+        return UserSensor.builder()
+                .setType(Sensor.TYPE_PRESSURE)
+                .setName(DRIVER_NAME)
+                .setVendor(DRIVER_VENDOR)
+                .setVersion(DRIVER_VERSION)
+                .setMaxRange(DRIVER_MAX_RANGE)
+                .setResolution(DRIVER_RESOLUTION)
+                .setPower(DRIVER_POWER)
+                .setMinDelay(DRIVER_MIN_DELAY_US)
+                .setRequiredPermission(DRIVER_REQUIRED_PERMISSION)
+                .setMaxDelay(DRIVER_MAX_DELAY_US)
+                .setUuid(UUID.randomUUID())
+                .setDriver(new UserSensorDriver() {
+                    @Override
+                    public UserSensorReading read() throws IOException {
+                        return new UserSensorReading(new float[]{device.readPressure()});
+                    }
 
-            @Override
-            public void setEnabled(boolean enabled) throws IOException {
-                try {
-                    driver.setMode(Bmx280.MODE_NORMAL);
-                    driver.setPressureOversampling(Bmx280.OVERSAMPLING_1X);
-                } catch (IOException e) {
-                    Log.e(TAG, "error enabling bmx280 sensor: ", e);
-                }
-            }
-
-            @Override
-            public float read() {
-                try {
-                    return driver.readPressure();
-                } catch (IOException | IllegalStateException e) {
-                    Log.e(TAG, "Error reading pressure", e);
-                    return Float.NaN;
-                }
-            }
-        };
+                    @Override
+                    public void setEnabled(boolean enabled) throws IOException {
+                        if (enabled) {
+                            device.setMode(Bmx280.MODE_NORMAL);
+                            device.setPressureOversampling(Bmx280.OVERSAMPLING_1X);
+                        } else {
+                            device.setMode(Bmx280.MODE_SLEEP);
+                            device.setPressureOversampling(Bmx280.OVERSAMPLING_SKIPPED);
+                        }
+                    }
+                })
+                .build();
     }
 }

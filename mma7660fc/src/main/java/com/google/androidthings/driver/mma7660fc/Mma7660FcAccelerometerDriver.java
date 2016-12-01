@@ -16,12 +16,13 @@
 
 package com.google.androidthings.driver.mma7660fc;
 
+import android.hardware.Sensor;
 import android.hardware.SensorManager;
-import android.util.Log;
 
 import com.google.androidthings.userdriver.UserDriverManager;
-import com.google.androidthings.userdriver.sensors.AccelerometerDriver;
-import com.google.androidthings.userdriver.sensors.VectorWithStatus;
+import com.google.androidthings.userdriver.UserSensor;
+import com.google.androidthings.userdriver.UserSensorDriver;
+import com.google.androidthings.userdriver.UserSensorReading;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -38,7 +39,7 @@ public class Mma7660FcAccelerometerDriver implements AutoCloseable {
     private static final int DRIVER_VERSION = 1;
     private static final String DRIVER_REQUIRED_PERMISSION = "";
     private Mma7660Fc mDevice;
-    private AccelerometerDriver mDriver;
+    private UserSensor mUserSensor;
 
     /**
      * Create a new framework accelerometer driver connected to the given I2C bus.
@@ -75,9 +76,9 @@ public class Mma7660FcAccelerometerDriver implements AutoCloseable {
         if (mDevice == null) {
             throw new IllegalStateException("cannot registered closed driver");
         }
-        if (mDriver == null) {
-            mDriver = build(mDevice);
-            UserDriverManager.getManager().registerSensorDriver(mDriver);
+        if (mUserSensor == null) {
+            mUserSensor = build(mDevice);
+            UserDriverManager.getManager().registerSensor(mUserSensor);
         }
     }
 
@@ -85,45 +86,46 @@ public class Mma7660FcAccelerometerDriver implements AutoCloseable {
      * Unregister the driver from the framework.
      */
     public void unregister() {
-        if (mDriver != null) {
-            UserDriverManager.getManager().unregisterSensorDriver(mDriver);
-            mDriver = null;
+        if (mUserSensor != null) {
+            UserDriverManager.getManager().unregisterSensor(mUserSensor);
+            mUserSensor = null;
         }
     }
 
-    static AccelerometerDriver build(final Mma7660Fc mma7660fc) {
-        return new AccelerometerDriver(DRIVER_NAME, DRIVER_VENDOR, DRIVER_VERSION,
-                DRIVER_MAX_RANGE, DRIVER_RESOLUTION, DRIVER_POWER,
-                DRIVER_MIN_DELAY_US, DRIVER_REQUIRED_PERMISSION, DRIVER_MAX_DELAY_US,
-                UUID.randomUUID()) {
-
-            @Override
-            public void setEnabled(boolean enabled) throws IOException {
-                try {
-                    if (enabled) {
-                        mma7660fc.setMode(Mma7660Fc.MODE_ACTIVE);
-                    } else {
-                        mma7660fc.setMode(Mma7660Fc.MODE_STANDBY);
+    static UserSensor build(final Mma7660Fc mma7660fc) {
+        return UserSensor.builder()
+                .setType(Sensor.TYPE_ACCELEROMETER)
+                .setName(DRIVER_NAME)
+                .setVendor(DRIVER_VENDOR)
+                .setVersion(DRIVER_VERSION)
+                .setMaxRange(DRIVER_MAX_RANGE)
+                .setResolution(DRIVER_RESOLUTION)
+                .setPower(DRIVER_POWER)
+                .setMinDelay(DRIVER_MIN_DELAY_US)
+                .setRequiredPermission(DRIVER_REQUIRED_PERMISSION)
+                .setMaxDelay(DRIVER_MAX_DELAY_US)
+                .setUuid(UUID.randomUUID())
+                .setDriver(new UserSensorDriver() {
+                    @Override
+                    public UserSensorReading read() throws IOException {
+                        float[] sample = mma7660fc.readSample();
+                        for (int i=0; i<sample.length; i++) {
+                            sample[i] = sample[i] * SensorManager.GRAVITY_EARTH;
+                        }
+                        return new UserSensorReading(
+                                sample,
+                                SensorManager.SENSOR_STATUS_ACCURACY_HIGH); // 120Hz
                     }
-                } catch (IOException e) {
-                    Log.e(TAG, "peripheral error: ", e);
-                }
-            }
 
-            @Override
-            public VectorWithStatus read() {
-                try {
-                    float[] sample = mma7660fc.readSample();
-                    return new VectorWithStatus(
-                            sample[0] * SensorManager.GRAVITY_EARTH,
-                            sample[1] * SensorManager.GRAVITY_EARTH,
-                            sample[2] * SensorManager.GRAVITY_EARTH,
-                            SensorManager.SENSOR_STATUS_ACCURACY_HIGH); // 120Hz
-                } catch (IOException | IllegalStateException e) {
-                    Log.e(TAG, "peripheral error: ", e);
-                    return new VectorWithStatus(0, 0, 0, SensorManager.SENSOR_STATUS_UNRELIABLE);
-                }
-            }
-        };
+                    @Override
+                    public void setEnabled(boolean enabled) throws IOException {
+                        if (enabled) {
+                            mma7660fc.setMode(Mma7660Fc.MODE_ACTIVE);
+                        } else {
+                            mma7660fc.setMode(Mma7660Fc.MODE_STANDBY);
+                        }
+                    }
+                })
+                .build();
     }
 }

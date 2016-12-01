@@ -230,9 +230,9 @@ public class Cap12xxInputDriver implements AutoCloseable {
      */
     private InputDriver buildInputDriver() {
         return InputDriver.builder(InputDevice.SOURCE_CLASS_BUTTON)
-                .name(DRIVER_NAME)
-                .version(DRIVER_VERSION)
-                .keys(mKeycodes)
+                .setName(DRIVER_NAME)
+                .setVersion(DRIVER_VERSION)
+                .setKeys(mKeycodes)
                 .build();
     }
 
