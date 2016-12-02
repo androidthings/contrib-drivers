@@ -16,6 +16,8 @@
 
 package com.google.android.things.contrib.driver.ht16k33;
 
+import android.support.annotation.VisibleForTesting;
+
 import com.google.android.things.pio.I2cDevice;
 import com.google.android.things.pio.PeripheralManagerService;
 
@@ -37,7 +39,11 @@ public class Ht16k33 implements AutoCloseable {
     private static final int HT16K33_DISPLAY_ON = 0b0001;
     private static final int HT16K33_DISPLAY_OFF = 0b0000;
     private static final int HT16K33_CMD_BRIGHTNESS = 0xE0;
-    static final int HT16K33_BRIGHTNESS_MAX = 0b00001111;
+
+    /**
+     * The maximum brightness level for this display
+     */
+    public static final int HT16K33_BRIGHTNESS_MAX = 0b00001111;
 
     private I2cDevice mDevice;
 
@@ -55,6 +61,7 @@ public class Ht16k33 implements AutoCloseable {
      * Create a new driver for a HT16K33 peripheral from a given I2C device.
      * @param device
      */
+    @VisibleForTesting
     /*package*/ Ht16k33(I2cDevice device) {
         connect(device);
     }
@@ -63,16 +70,17 @@ public class Ht16k33 implements AutoCloseable {
         mDevice = device;
     }
 
-
     /**
      * Close the device and the underlying device.
      */
     @Override
     public void close() throws IOException {
-        try {
-            mDevice.close();
-        } finally {
-            mDevice = null;
+        if (mDevice != null) {
+            try {
+                mDevice.close();
+            } finally {
+                mDevice = null;
+            }
         }
     }
 
@@ -81,10 +89,13 @@ public class Ht16k33 implements AutoCloseable {
      * @throws IOException
      */
     public void setEnabled(boolean enabled) throws IOException {
+        if (mDevice == null) {
+            throw new IllegalStateException("I2C device not opened");
+        }
         int oscillator_flag = enabled ? HT16K33_OSCILLATOR_ON : HT16K33_OSCILLATOR_OFF;
-        mDevice.write(new byte[]{(byte) (HT16K33_CMD_SYSTEM_SETUP|oscillator_flag)}, 1);
+        mDevice.write(new byte[]{(byte) (HT16K33_CMD_SYSTEM_SETUP | oscillator_flag)}, 1);
         int display_flag = enabled ? HT16K33_DISPLAY_ON : HT16K33_DISPLAY_OFF;
-        mDevice.write(new byte[]{(byte) (HT16K33_CMD_DISPLAYSETUP|display_flag)}, 1);
+        mDevice.write(new byte[]{(byte) (HT16K33_CMD_DISPLAYSETUP | display_flag)}, 1);
     }
 
     /**
@@ -92,11 +103,14 @@ public class Ht16k33 implements AutoCloseable {
      * @param value brigthness value between 0 and {@link #HT16K33_BRIGHTNESS_MAX}
      */
     public void setBrightness(int value) throws IOException {
+        if (mDevice == null) {
+            throw new IllegalStateException("I2C device not opened");
+        }
         if (value < 0 || value > HT16K33_BRIGHTNESS_MAX) {
             throw new IllegalArgumentException("brightness must be between 0 and " +
                     HT16K33_BRIGHTNESS_MAX);
         }
-        mDevice.write(new byte[]{(byte)(HT16K33_CMD_BRIGHTNESS|(byte)value)}, 1);
+        mDevice.write(new byte[]{(byte) (HT16K33_CMD_BRIGHTNESS | (byte) value)}, 1);
     }
 
     /**
@@ -104,7 +118,7 @@ public class Ht16k33 implements AutoCloseable {
      * @param value brigthness value between 0 and 1.0f
      */
     public void setBrightness(float value) throws IOException {
-        int val = Math.round(value*HT16K33_BRIGHTNESS_MAX);
+        int val = Math.round(value * HT16K33_BRIGHTNESS_MAX);
         setBrightness(val);
     }
 
@@ -114,6 +128,9 @@ public class Ht16k33 implements AutoCloseable {
      * @param data LED state for ROW0-15
      */
     public void writeColumn(int column, short data) throws IOException {
-        mDevice.writeRegWord(column*2, data);
+        if (mDevice == null) {
+            throw new IllegalStateException("I2C device not opened");
+        }
+        mDevice.writeRegWord(column * 2, data);
     }
 }
