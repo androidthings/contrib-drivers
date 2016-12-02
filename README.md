@@ -1,41 +1,30 @@
 Android Things user-space drivers
 =================================
 
-Reusable drivers for Android Things.
+Sample peripheral drivers for Android Things.
 
-Pre-requisites
---------------
-
-- Java 8
-
-
-Build and install
-=================
-
-1. If necessary, increment the packageVersion for each driver in `<driver>/build.gradle`
-2. Run `./gradlew publish`
-
-If all works, each driver will be compiled, packaged and published to a Maven
-repository.
-
-For consistency, it is recommended that all drivers in this directory are
-published under the groupdId of "com.google.androidthings.driver". For example, the
-`servo` driver version 0.1 is published as `com.google.androidthings.driver:servo:0.1`
+NOTE: these drivers are not production-ready. They are offered as sample
+implementations of Android Things user space drivers for commomn peripherals
+as part of the Developer Preview release. There is no guarantee
+of correctness or robustness.
 
 
-How to use it
-=============
+How to use a driver
+===================
 
-To use a driver published from this repository in another project,
-you just need the corresponding driver dependency in your build.gradle:
+For your convenience, drivers in this repository are also published to JCenter
+as Maven artifacts. Look at their artifact and group ID in their build.gradle
+and add them as dependencies in your own project.
+
+For example, to use the `button` driver, version `0.4`, simply add the line
+below to your project's `build.gradle`:
+
 
 ```
 dependencies {
-    compile 'com.google.androidthings.driver:servo:0.1'
+    compile 'com.google.androidthings.driver:button:0.4'
 }
 ```
-
-(changing the version if necessary)
 
 
 License

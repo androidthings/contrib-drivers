@@ -41,8 +41,6 @@ task sourceJar(type: Jar) {
 }
 
 publishing {
-    assert project.hasProperty('BRILLO_REPOSITORY'): "Property BRILLO_REPOSITORY not set.\n" +
-            "Please, set your ~/.gradle/init.gradle as instructed in go/brillo-gradle-setup"
     publications {
         mavenJava(MavenPublication) {
             groupId 'com.google.androidthings.driver'
