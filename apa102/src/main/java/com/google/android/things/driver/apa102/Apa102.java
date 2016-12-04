@@ -17,7 +17,6 @@
 package com.google.android.things.driver.apa102;
 
 import android.graphics.Color;
-import android.util.Log;
 
 import com.google.android.things.pio.PeripheralManagerService;
 import com.google.android.things.pio.SpiDevice;
@@ -49,11 +48,19 @@ public class Apa102 implements AutoCloseable {
         BGR
     }
 
+    public enum Direction {
+        NORMAL,
+        REVERSED,
+    }
+
     // RGB LED strip configuration that must be provided by the caller.
     private Mode mLedMode;
 
     // RGB LED strip settings that have sensible defaults.
     private byte mLedBrightness = (byte) (0xE0 | 12); // 0 ... 31
+
+    // Direction of the led strip;
+    private Direction mDirection;
 
     // Device SPI Configuration constants
     private static final int APA102_PACKET_LENGTH = 4;
@@ -75,7 +82,19 @@ public class Apa102 implements AutoCloseable {
      * @param ledMode The {@link Mode} indicating the red/green/blue byte ordering for the device.
      */
     public Apa102(String spiBusPort, Mode ledMode) throws IOException {
+        this(spiBusPort, ledMode, Direction.NORMAL);
+    }
+
+    /**
+     * Create a new Apa102 driver.
+     *
+     * @param spiBusPort Name of the SPI bus
+     * @param ledMode The {@link Mode} indicating the red/green/blue byte ordering for the device.
+     * @param direction The {@link Direction} or the led strip.
+     */
+    public Apa102(String spiBusPort, Mode ledMode, Direction direction) throws IOException {
         mLedMode = ledMode;
+        mDirection = direction;
         PeripheralManagerService pioService = new PeripheralManagerService();
         mDevice = pioService.openSpiDevice(spiBusPort);
         try {
@@ -95,14 +114,14 @@ public class Apa102 implements AutoCloseable {
      * @param device {@link SpiDevice} where the LED strip is attached to.
      * @param ledMode The {@link Mode} indicating the red/green/blue byte ordering for the device.
      */
-    /*package*/ Apa102(SpiDevice device, Mode ledMode) throws IOException {
+    /*package*/ Apa102(SpiDevice device, Mode ledMode, Direction direction) throws IOException {
         mLedMode = ledMode;
+        mDirection = direction;
         mDevice = device;
         configure(mDevice);
     }
 
     private void configure(SpiDevice device) throws IOException {
-        Log.d(TAG, "Configuring SpiDevice for Apa102");
         // Note: You may need to set bit justification for your board.
         // mDevice.setBitJustification(SPI_BITJUST);
         device.setFrequency(SPI_FREQUENCY);
@@ -135,7 +154,8 @@ public class Apa102 implements AutoCloseable {
         // Compute the packets to send.
         for (int i = 0; i < colors.length; i++) {
             int position = ((i + 1) * APA102_PACKET_LENGTH);
-            System.arraycopy(getApaColorData(colors[i]), 0, ledData, position,
+            int di = mDirection == Direction.NORMAL ? i : colors.length - i - 1;
+            System.arraycopy(getApaColorData(colors[di]), 0, ledData, position,
                     APA102_PACKET_LENGTH);
         }
 
