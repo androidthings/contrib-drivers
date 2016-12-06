@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package com.google.androidthings.driver.apa102;
+package com.google.android.things.contrib.driver.apa102;
 
-import com.google.androidthings.pio.SpiDevice;
+import com.google.android.things.pio.SpiDevice;
 
 import org.junit.Rule;
 import org.junit.Test;
