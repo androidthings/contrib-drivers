@@ -150,7 +150,6 @@ public class ServoTest {
         servo.setAngleRange(minAngle, maxAngle);
 
         mExpectedException.expect(IllegalArgumentException.class);
-        mExpectedException.expectMessage("not in range [" + minAngle + ", " + maxAngle + "]");
         servo.setAngle(-1);
     }
 
@@ -162,7 +161,6 @@ public class ServoTest {
         servo.setAngleRange(minAngle, maxAngle);
 
         mExpectedException.expect(IllegalArgumentException.class);
-        mExpectedException.expectMessage("not in range [" + minAngle + ", " + maxAngle + "]");
         servo.setAngle(1000);
     }
 
