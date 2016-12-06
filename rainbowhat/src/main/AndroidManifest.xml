@@ -17,6 +17,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.google.androidthings.driver.rainbowhat">
     <application>
-        <uses-library android:name="com.google.androidthings"/>
+        <uses-library android:name="com.google.android.things"/>
     </application>
 </manifest>

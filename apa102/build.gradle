@@ -17,7 +17,7 @@
 apply plugin: 'com.android.library'
 apply plugin: 'maven-publish'
 
-def packageVersion = '0.4'
+def packageVersion = '0.1'
 
 android {
     compileSdkVersion 24
@@ -32,7 +32,7 @@ android {
 }
 
 dependencies {
-    provided 'com.android.things:androidthings:0.2-RC1-preview'
+    provided 'com.google.android.things:androidthings:0.1-preview'
 }
 
 task sourceJar(type: Jar) {
@@ -43,7 +43,7 @@ task sourceJar(type: Jar) {
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            groupId 'com.google.androidthings.driver'
+            groupId 'com.google.android.things.driver'
             artifactId 'apa102'
             version packageVersion
             artifacts = configurations.archives.artifacts

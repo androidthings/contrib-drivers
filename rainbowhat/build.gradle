@@ -33,13 +33,13 @@ android {
 
 dependencies {
     compile 'com.android.support:support-annotations:24.2.0'
-    provided 'com.android.things:androidthings:0.2-RC1-preview'
-    compile 'com.google.androidthings.driver:apa102:0.4'
-    compile 'com.google.androidthings.driver:button:0.4'
-    compile 'com.google.androidthings.driver:bmx280:0.4'
-    compile 'com.google.androidthings.driver:ht16k33:0.4'
-    compile 'com.google.androidthings.driver:pwm-speaker:0.4'
-    compile 'com.google.androidthings.driver:pwm-servo:0.4'
+    provided 'com.google.android.things:androidthings:0.1-preview'
+    compile 'com.google.android.things.driver:apa102:0.1'
+    compile 'com.google.android.things.driver:button:0.1'
+    compile 'com.google.android.things.driver:bmx280:0.1'
+    compile 'com.google.android.things.driver:ht16k33:0.1'
+    compile 'com.google.android.things.driver:pwm-speaker:0.1'
+    compile 'com.google.android.things.driver:pwm-servo:0.1'
     testCompile 'junit:junit:4.12'
 }
 
@@ -51,7 +51,7 @@ task sourceJar(type: Jar) {
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            groupId 'com.google.androidthings.driver'
+            groupId 'com.google.android.things.driver'
             artifactId 'rainbowhat'
             version packageVersion
             artifacts = configurations.archives.artifacts

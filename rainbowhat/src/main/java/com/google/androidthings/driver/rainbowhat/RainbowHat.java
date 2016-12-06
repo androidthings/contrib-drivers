@@ -18,16 +18,16 @@ package com.google.androidthings.driver.rainbowhat;
 
 import android.support.annotation.StringDef;
 
-import com.google.androidthings.driver.apa102.Apa102;
-import com.google.androidthings.driver.bmx280.Bmx280;
-import com.google.androidthings.driver.bmx280.Bmx280SensorDriver;
-import com.google.androidthings.driver.button.Button;
-import com.google.androidthings.driver.button.ButtonInputDriver;
-import com.google.androidthings.driver.ht16k33.AlphanumericDisplay;
-import com.google.androidthings.driver.pwmservo.Servo;
-import com.google.androidthings.driver.pwmspeaker.Speaker;
-import com.google.androidthings.pio.Gpio;
-import com.google.androidthings.pio.PeripheralManagerService;
+import com.google.android.things.driver.apa102.Apa102;
+import com.google.android.things.driver.bmx280.Bmx280;
+import com.google.android.things.driver.bmx280.Bmx280SensorDriver;
+import com.google.android.things.driver.button.Button;
+import com.google.android.things.driver.button.ButtonInputDriver;
+import com.google.android.things.driver.ht16k33.AlphanumericDisplay;
+import com.google.android.things.driver.pwmservo.Servo;
+import com.google.android.things.driver.pwmspeaker.Speaker;
+import com.google.android.things.pio.Gpio;
+import com.google.android.things.pio.PeripheralManagerService;
 
 import java.io.Closeable;
 import java.io.IOException;
