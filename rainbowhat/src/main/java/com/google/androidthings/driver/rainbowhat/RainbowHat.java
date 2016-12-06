@@ -18,14 +18,14 @@ package com.google.androidthings.driver.rainbowhat;
 
 import android.support.annotation.StringDef;
 
-import com.google.android.things.driver.apa102.Apa102;
-import com.google.android.things.driver.bmx280.Bmx280;
-import com.google.android.things.driver.bmx280.Bmx280SensorDriver;
-import com.google.android.things.driver.button.Button;
-import com.google.android.things.driver.button.ButtonInputDriver;
-import com.google.android.things.driver.ht16k33.AlphanumericDisplay;
-import com.google.android.things.driver.pwmservo.Servo;
-import com.google.android.things.driver.pwmspeaker.Speaker;
+import com.google.android.things.contrib.driver.apa102.Apa102;
+import com.google.android.things.contrib.driver.bmx280.Bmx280;
+import com.google.android.things.contrib.driver.bmx280.Bmx280SensorDriver;
+import com.google.android.things.contrib.driver.button.Button;
+import com.google.android.things.contrib.driver.button.ButtonInputDriver;
+import com.google.android.things.contrib.driver.ht16k33.AlphanumericDisplay;
+import com.google.android.things.contrib.driver.pwmservo.Servo;
+import com.google.android.things.contrib.driver.pwmspeaker.Speaker;
 import com.google.android.things.pio.Gpio;
 import com.google.android.things.pio.PeripheralManagerService;
 

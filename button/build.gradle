@@ -44,8 +44,8 @@ task sourceJar(type: Jar) {
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            groupId 'com.google.android.things.driver'
-            artifactId 'button'
+            groupId 'com.google.android.things.contrib'
+            artifactId 'driver-button'
             version packageVersion
             artifacts = configurations.archives.artifacts
             artifact sourceJar

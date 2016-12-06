@@ -15,7 +15,7 @@
  limitations under the License.
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.google.android.things.driver.tm1637">
+    package="com.google.android.things.contrib.driver.tm1637">
     <application>
         <uses-library android:name="com.google.android.things"/>
     </application>
