@@ -44,5 +44,6 @@ package com.google.android.things.contrib.driver.tm1637;
 class Font {
     static final byte DATA[] =
             {0x3f, 0x06, 0x5b, 0x4f, 0x66, 0x6d, 0x7d, 0x07, 0x7f, 0x6f};
-    static final int COLON = 0x80;
+    static final byte COLON = (byte) 0x80;
+    static final byte HYPHEN = (byte) 0x40;
 }
