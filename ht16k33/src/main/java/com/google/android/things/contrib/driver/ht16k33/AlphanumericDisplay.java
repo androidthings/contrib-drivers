@@ -16,12 +16,16 @@
 
 package com.google.android.things.contrib.driver.ht16k33;
 
+import android.text.TextUtils;
+
 import com.google.android.things.pio.I2cDevice;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
 public class AlphanumericDisplay extends Ht16k33 {
+
+    private static final short DOT = (short) (1 << 14);
     private ByteBuffer mBuffer = ByteBuffer.allocate(8);
 
     /**
@@ -47,7 +51,7 @@ public class AlphanumericDisplay extends Ht16k33 {
      */
     public void clear() throws IOException {
         for (int i = 0; i < 4; i++) {
-            writeColumn(i, (short)0x0000);
+            writeColumn(i, (short) 0);
         }
     }
 
@@ -60,9 +64,9 @@ public class AlphanumericDisplay extends Ht16k33 {
     public void display(char c, int index, boolean dot) throws IOException {
         int val = Font.DATA[c];
         if (dot) {
-            val |= 1 << 14;
+            val |= DOT;
         }
-        writeColumn(index, (short)val);
+        writeColumn(index, (short) val);
     }
 
     /**
@@ -76,9 +80,8 @@ public class AlphanumericDisplay extends Ht16k33 {
         display(String.format("%5s", n));
     }
 
-
     /**
-     * Display a integer number.
+     * Display an integer number.
      * @param n number value
      */
     public void display(int n) throws IOException {
@@ -91,29 +94,46 @@ public class AlphanumericDisplay extends Ht16k33 {
      * @param s string value
      */
     public void display(String s) throws IOException {
+        if (TextUtils.isEmpty(s)) {
+            clear();
+            return;
+        }
+
         mBuffer.clear();
         mBuffer.mark();
-        short n = 0;
+        short n = (short) 0;
+        char prevChar = (char) 0;
         for (char c : s.toCharArray()) {
             // truncate string to the size of the display
             if (mBuffer.position() == mBuffer.limit()) {
                 break;
             }
             if (c == '.') {
-                // add dot LED flag to the previous character.
-                n |= 1 << 14;
-                mBuffer.reset();
+                if (prevChar == '.') {
+                    mBuffer.putShort(DOT);
+                } else {
+                    // add dot LED flag to the previous character.
+                    n |= DOT;
+                    mBuffer.reset();
+                    mBuffer.putShort(n);
+                }
+            } else {
+                // extract character data from font.
+                n = (short) Font.DATA[c];
+                mBuffer.mark();
                 mBuffer.putShort(n);
-                continue;
             }
-            // extract character data from font.
-            n = (short)Font.DATA[c];
-            mBuffer.mark();
-            mBuffer.putShort(n);
+            prevChar = c;
         }
+
+        // clear the rest of the display
+        while (mBuffer.position() < mBuffer.capacity()) {
+            mBuffer.put((byte) 0);
+        }
+
         mBuffer.flip();
         // write display memory.
-        for (int i = 0; i < mBuffer.limit()/2; i++) {
+        for (int i = 0; i < mBuffer.limit() / 2; i++) {
             writeColumn(i, mBuffer.getShort());
         }
     }

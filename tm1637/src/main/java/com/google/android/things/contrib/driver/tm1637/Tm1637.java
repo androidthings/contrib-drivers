@@ -16,22 +16,43 @@
 
 package com.google.android.things.contrib.driver.tm1637;
 
+import android.support.annotation.VisibleForTesting;
+
 import java.io.Closeable;
 import java.io.IOException;
 
+/**
+ * Driver for a Tm1637 seven-segment display with 4 digits. Usually it's preferable to use a
+ * {@link NumericDisplay} instead.
+ */
 public class Tm1637 implements Closeable {
+
     private static final int TM1637_ADDR = 0x40;
     private static final int TM1637_REG = 0xc0;
     private static final int TM1637_CMD = 0x88;
-    private static final int TM1637_BRIGHTNESS_MAX = 0x07;
-    private static final int TM1637_DATA_LENGTH_MAX = 4;
+
+    /**
+     * The maximum brightness of the display
+     */
+    public static final int MAX_BRIGHTNESS = 0x07;
+
+    /**
+     * The maximum number of bytes that can be written at a time
+     */
+    public static final int MAX_DATA_LENGTH = 4;
 
     I2cBitBangDevice mDevice;
+
     /**
      * Create a new driver for a TM1637 peripheral connected on the given GPIO pins.
      */
     public Tm1637(String dataPin, String clockPin) throws IOException {
         mDevice = new I2cBitBangDevice(TM1637_ADDR, dataPin, clockPin);
+    }
+
+    @VisibleForTesting
+    /* package */ Tm1637(I2cBitBangDevice device) throws IOException {
+        mDevice = device;
     }
 
     /**
@@ -50,14 +71,17 @@ public class Tm1637 implements Closeable {
 
     /**
      * Set LED display brightness.
-     * @param value brigthness value between 0 and {@link #TM1637_BRIGHTNESS_MAX}
+     * @param value brigthness value between 0 and {@link #MAX_BRIGHTNESS}
      */
     public void setBrightness(int value) throws IOException {
-        if (value < 0 || value > TM1637_BRIGHTNESS_MAX) {
-            throw new IllegalArgumentException("brightness must be between 0 and " +
-                    TM1637_BRIGHTNESS_MAX);
+        if (mDevice == null) {
+            throw new IllegalStateException("Device not opened");
         }
-        mDevice.write(new byte[]{(byte)(TM1637_CMD|(byte)value)}, 1);
+        if (value < 0 || value > MAX_BRIGHTNESS) {
+            throw new IllegalArgumentException("brightness must be between 0 and " +
+                    MAX_BRIGHTNESS);
+        }
+        mDevice.write(new byte[]{(byte) (TM1637_CMD | (byte) value)}, 1);
     }
 
     /**
@@ -65,17 +89,19 @@ public class Tm1637 implements Closeable {
      * @param value brigthness value between 0 and 1.0f
      */
     public void setBrightness(float value) throws IOException {
-        int val = Math.round(value*TM1637_BRIGHTNESS_MAX);
+        int val = Math.round(value * MAX_BRIGHTNESS);
         setBrightness(val);
     }
 
     /**
-     * Write 4 bytes of LED data.
+     * Write up to {@link #MAX_DATA_LENGTH} bytes of LED data.
      */
     public void writeData(byte[] data) throws IOException {
-        if (data.length > TM1637_DATA_LENGTH_MAX) {
-            throw new IllegalArgumentException("data size should be less than " +
-                    TM1637_DATA_LENGTH_MAX);
+        if (mDevice == null) {
+            throw new IllegalStateException("Device not opened");
+        }
+        if (data.length > MAX_DATA_LENGTH) {
+            throw new IllegalArgumentException("data size should be less than " + MAX_DATA_LENGTH);
         }
         mDevice.writeRegBuffer(TM1637_REG, data, data.length);
     }
