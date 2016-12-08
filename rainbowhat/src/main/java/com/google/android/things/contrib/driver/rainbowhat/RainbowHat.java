@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.androidthings.driver.rainbowhat;
+package com.google.android.things.contrib.driver.rainbowhat;
 
 import android.support.annotation.StringDef;
 
@@ -29,7 +29,6 @@ import com.google.android.things.contrib.driver.pwmspeaker.Speaker;
 import com.google.android.things.pio.Gpio;
 import com.google.android.things.pio.PeripheralManagerService;
 
-import java.io.Closeable;
 import java.io.IOException;
 
 /**

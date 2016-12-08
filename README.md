@@ -6,7 +6,7 @@ Sample peripheral drivers for Android Things.
 NOTE: these drivers are not production-ready. They are offered as sample
 implementations of Android Things user space drivers for commomn peripherals
 as part of the Developer Preview release. There is no guarantee
-of correctness or robustness.
+of correctness, completeness or robustness.
 
 
 How to use a driver
@@ -14,17 +14,21 @@ How to use a driver
 
 For your convenience, drivers in this repository are also published to JCenter
 as Maven artifacts. Look at their artifact and group ID in their build.gradle
-and add them as dependencies in your own project.
+and add them as dependencies to your own project.
 
-For example, to use the `button` driver, version `0.4`, simply add the line
+For example, to use the `button` driver, version `0.1`, simply add the line
 below to your project's `build.gradle`:
 
 
 ```
 dependencies {
-    compile 'com.google.androidthings.driver:button:0.4'
+    compile 'com.google.android.things.contrib:driver-button:0.1'
 }
 ```
+
+Check the [driver-samples](github.com/androidthings/driver-samples) repository
+for sample applications using these drivers.
+
 
 
 License
