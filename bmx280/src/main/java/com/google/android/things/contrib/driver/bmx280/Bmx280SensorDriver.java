@@ -178,8 +178,7 @@ public class Bmx280SensorDriver implements AutoCloseable {
         private boolean isEnabled() {
             return mEnabled;
         }
-    };
-
+    }
 
     private class TemperatureUserDriver extends UserSensorDriver {
         // DRIVER parameters
@@ -229,6 +228,6 @@ public class Bmx280SensorDriver implements AutoCloseable {
         private boolean isEnabled() {
             return mEnabled;
         }
-    };
+    }
 
 }

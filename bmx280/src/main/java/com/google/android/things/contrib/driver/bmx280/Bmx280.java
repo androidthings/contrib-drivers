@@ -23,6 +23,8 @@ import com.google.android.things.pio.I2cDevice;
 import com.google.android.things.pio.PeripheralManagerService;
 
 import java.io.IOException;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
 /**
  * Driver for the BMP/BME 280 temperature sensor.
@@ -83,9 +85,9 @@ public class Bmx280 implements AutoCloseable {
     /**
      * Power mode.
      */
+    @Retention(RetentionPolicy.SOURCE)
     @IntDef({MODE_SLEEP, MODE_FORCED, MODE_NORMAL})
     public @interface Mode {}
-
     public static final int MODE_SLEEP = 0;
     public static final int MODE_FORCED = 1;
     public static final int MODE_NORMAL = 2;
@@ -93,6 +95,7 @@ public class Bmx280 implements AutoCloseable {
     /**
      * Oversampling multiplier.
      */
+    @Retention(RetentionPolicy.SOURCE)
     @IntDef({OVERSAMPLING_SKIPPED, OVERSAMPLING_1X})
     public @interface Oversampling {}
     public static final int OVERSAMPLING_SKIPPED = 0;
@@ -186,14 +189,16 @@ public class Bmx280 implements AutoCloseable {
         mPressureCalibrationData[8] = (short) mDevice.readRegWord(BMP280_REG_PRESS_CALIB_9);
     }
 
-
-
     /**
      * Set the power mode of the sensor.
      * @param mode power mode.
      * @throws IOException
      */
     public void setMode(@Mode int mode) throws IOException {
+        if (mDevice == null) {
+            throw new IllegalStateException("I2C device not open");
+        }
+
         int regCtrl = mDevice.readRegByte(BMP280_REG_CTRL) & 0xff;
         if (mode == MODE_SLEEP) {
             regCtrl &= ~BMP280_POWER_MODE_MASK;
@@ -210,6 +215,10 @@ public class Bmx280 implements AutoCloseable {
      * @throws IOException
      */
     public void setTemperatureOversampling(@Oversampling int oversampling) throws IOException {
+        if (mDevice == null) {
+            throw new IllegalStateException("I2C device not open");
+        }
+
         int regCtrl = mDevice.readRegByte(BMP280_REG_CTRL) & 0xff;
         if (oversampling == OVERSAMPLING_SKIPPED) {
             regCtrl &= ~BMP280_OVERSAMPLING_TEMPERATURE_MASK;
@@ -226,13 +235,15 @@ public class Bmx280 implements AutoCloseable {
      * @throws IOException
      */
     public void setPressureOversampling(@Oversampling int oversampling) throws IOException {
+        if (mDevice == null) {
+            throw new IllegalStateException("I2C device not open");
+        }
+
         int regCtrl = mDevice.readRegByte(BMP280_REG_CTRL) & 0xff;
         if (oversampling == OVERSAMPLING_SKIPPED) {
             regCtrl &= ~BMP280_OVERSAMPLING_PRESSURE_MASK;
-            mEnabled = false;
         } else {
             regCtrl |= 1 << BMP280_OVERSAMPLING_PRESSURE_BITSHIFT;
-            mEnabled = true;
         }
         mDevice.writeRegByte(BMP280_REG_CTRL, (byte)(regCtrl));
         mPressureOversampling = oversampling;
@@ -314,8 +325,9 @@ public class Bmx280 implements AutoCloseable {
      */
     private int readSample(int address) throws IOException, IllegalStateException {
         if (mDevice == null) {
-            throw new IllegalStateException("I2C device is already closed");
+            throw new IllegalStateException("I2C device not open");
         }
+
         synchronized (mBuffer) {
             mDevice.readRegBuffer(address, mBuffer, 3);
             // msb[7:0] lsb[7:0] xlsb[7:4]
