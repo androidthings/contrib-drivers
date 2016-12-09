@@ -4,7 +4,7 @@ Android Things user-space drivers
 Sample peripheral drivers for Android Things.
 
 NOTE: these drivers are not production-ready. They are offered as sample
-implementations of Android Things user space drivers for commomn peripherals
+implementations of Android Things user space drivers for common peripherals
 as part of the Developer Preview release. There is no guarantee
 of correctness, completeness or robustness.
 
