@@ -97,10 +97,6 @@ public class Bmx280 implements AutoCloseable {
     public @interface Oversampling {}
     public static final int OVERSAMPLING_SKIPPED = 0;
     public static final int OVERSAMPLING_1X = 1;
-    public static final int OVERSAMPLING_2X = 2;
-    public static final int OVERSAMPLING_4X = 3;
-    public static final int OVERSAMPLING_8X = 4;
-    public static final int OVERSAMPLING_16X = 5;
 
     // Registers
     private static final int BMP280_REG_TEMP_CALIB_1 = 0x88;
