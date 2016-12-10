@@ -16,6 +16,9 @@
 
 package com.google.android.things.contrib.driver.apa102;
 
+import android.graphics.Color;
+
+import com.google.android.things.contrib.driver.apa102.Apa102.Mode;
 import com.google.android.things.pio.SpiDevice;
 
 import org.junit.Rule;
@@ -31,6 +34,9 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
 
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(android.graphics.Color.class)
 public class Apa102Test {
@@ -43,6 +49,42 @@ public class Apa102Test {
 
     @Rule
     public ExpectedException mExpectedException = ExpectedException.none();
+
+    @Test
+    public void close() throws IOException {
+        Apa102 leds = new Apa102(mSpiDevice, Apa102.Mode.BGR, Apa102.Direction.NORMAL);
+        leds.close();
+        Mockito.verify(mSpiDevice).close();
+    }
+
+    @Test
+    public void close_safeToCallTwice() throws IOException {
+        Apa102 leds = new Apa102(mSpiDevice, Apa102.Mode.BGR, Apa102.Direction.NORMAL);
+        leds.close();
+        leds.close(); // should not throw
+    }
+
+    @Test
+    public void setBrightness() throws IOException {
+        Apa102 leds = new Apa102(mSpiDevice, Apa102.Mode.BGR, Apa102.Direction.NORMAL);
+        final int brightness = 10;
+        leds.setBrightness(brightness);
+        assertEquals(brightness, leds.getBrightness());
+    }
+
+    @Test
+    public void setBrightness_throwsIfTooSmall() throws IOException {
+        Apa102 leds = new Apa102(mSpiDevice, Apa102.Mode.BGR, Apa102.Direction.NORMAL);
+        mExpectedException.expect(IllegalArgumentException.class);
+        leds.setBrightness(-1);
+    }
+
+    @Test
+    public void setBrightness_throwsIfTooLarge() throws IOException {
+        Apa102 leds = new Apa102(mSpiDevice, Apa102.Mode.BGR, Apa102.Direction.NORMAL);
+        mExpectedException.expect(IllegalArgumentException.class);
+        leds.setBrightness(Apa102.MAX_BRIGHTNESS + 1);
+    }
 
     @Test
     public void write() throws IOException {
@@ -82,5 +124,38 @@ public class Apa102Test {
                 (byte)(0xE0|brightness),
                 (byte)(colors[0]&0xff), (byte)(colors[0]>>8&0xff), (byte)(colors[0]>>16&0xff)
         )), Mockito.eq(headerSize + colors.length*4 + endframeSize));
+    }
+
+    @Test
+    public void write_throwsIfClosed() throws IOException {
+        Apa102 leds = new Apa102(mSpiDevice, Apa102.Mode.BGR, Apa102.Direction.NORMAL);
+        leds.close();
+        mExpectedException.expect(IllegalStateException.class);
+        leds.write(new int[] {0xff0000, 0x00ff00, 0x0000ff});
+    }
+
+    @Test
+    public void getApaColorData() {
+        ColorMock.mockStatic();
+
+        final byte brightness = 15;
+        final byte r = (byte) 0x33;
+        final byte g = (byte) 0xB5;
+        final byte b = (byte) 0xE5;
+        // #HOLOYOLO
+        final int color = Color.argb(0xFF, r & 0xFF, g & 0xFF, b & 0xFF); // suppress sign extension
+
+        assertArrayEquals(new byte[]{brightness, b, g, r},
+                Apa102.getApaColorData(color, brightness, Mode.BGR));
+        assertArrayEquals(new byte[]{brightness, b, r, g},
+                Apa102.getApaColorData(color, brightness, Mode.BRG));
+        assertArrayEquals(new byte[]{brightness, g, b, r},
+                Apa102.getApaColorData(color, brightness, Mode.GBR));
+        assertArrayEquals(new byte[]{brightness, g, r, b},
+                Apa102.getApaColorData(color, brightness, Mode.GRB));
+        assertArrayEquals(new byte[]{brightness, r, b, g},
+                Apa102.getApaColorData(color, brightness, Mode.RBG));
+        assertArrayEquals(new byte[]{brightness, r, g, b},
+                Apa102.getApaColorData(color, brightness, Mode.RGB));
     }
 }
