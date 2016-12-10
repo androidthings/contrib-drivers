@@ -22,6 +22,8 @@ import com.google.android.things.pio.I2cDevice;
 import com.google.android.things.pio.PeripheralManagerService;
 
 import java.io.IOException;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
 /**
  * Driver for the MMA7660FC 1.5g accelerometer.
@@ -39,7 +41,7 @@ public class Mma7660Fc implements AutoCloseable {
 
     // acceleration lookup table from:
     // http://garden.seeedstudio.com/images/e/ee/MMA7660FC.pdf
-    private static float[] DRIVER_ACC_LOOKUP_G = {
+    private static final float[] DRIVER_ACC_LOOKUP_G = {
             0.000f, 0.047f, 0.094f, 0.141f, 0.188f, 0.234f, 0.281f, 0.328f,
             0.375f, 0.422f, 0.469f, 0.516f, 0.563f, 0.609f, 0.656f, 0.703f,
             0.750f, 0.797f, 0.844f, 0.891f, 0.938f, 0.984f, 1.031f, 1.078f,
@@ -53,6 +55,7 @@ public class Mma7660Fc implements AutoCloseable {
     /**
      * Sampling rate of the measurement.
      */
+    @Retention(RetentionPolicy.SOURCE)
     @IntDef({RATE_120HZ, RATE_64HZ, RATE_32HZ, RATE_16HZ, RATE_8HZ, RATE_4HZ, RATE_2HZ, RATE_1HZ})
     public @interface SamplingRate {}
 
@@ -73,6 +76,7 @@ public class Mma7660Fc implements AutoCloseable {
     /**
      * Power mode.
      */
+    @Retention(RetentionPolicy.SOURCE)
     @IntDef({MODE_STANDBY, MODE_ACTIVE})
     public @interface Mode {}
 
