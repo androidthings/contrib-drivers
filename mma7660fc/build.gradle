@@ -15,9 +15,6 @@
  */
 
 apply plugin: 'com.android.library'
-apply plugin: 'maven-publish'
-
-def packageVersion = '0.1'
 
 android {
     compileSdkVersion 24
@@ -33,31 +30,5 @@ android {
 
 dependencies {
     compile 'com.android.support:support-annotations:24.2.0'
-    provided 'com.google.android.things:androidthings:0.1-preview'
-}
-
-task sourceJar(type: Jar) {
-    classifier = 'sources'
-    from android.sourceSets.main.java.sourceFiles
-}
-
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            groupId 'com.google.android.things.contrib'
-            artifactId 'driver-mma7660fc'
-            version packageVersion
-            artifacts = configurations.archives.artifacts
-            artifact sourceJar
-        }
-    }
-    repositories {
-        maven {
-            url BRILLO_REPOSITORY
-            credentials(AwsCredentials) {
-                accessKey AWS_ACCESS_KEY
-                secretKey AWS_SECRET_KEY
-            }
-        }
-    }
+    provided 'com.google.android.things:androidthings:0.1-devpreview'
 }

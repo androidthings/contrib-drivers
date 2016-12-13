@@ -15,9 +15,6 @@
  */
 
 apply plugin: 'com.android.library'
-apply plugin: 'maven-publish'
-
-def packageVersion = '0.1'
 
 android {
     compileSdkVersion 24
@@ -32,35 +29,9 @@ android {
 }
 
 dependencies {
-    provided 'com.google.android.things:androidthings:0.1-preview'
+    provided 'com.google.android.things:androidthings:0.1-devpreview'
     testCompile 'junit:junit:4.12'
     testCompile 'org.mockito:mockito-all:1.10.19'
     testCompile 'org.powermock:powermock-module-junit4:1.6.6'
     testCompile 'org.powermock:powermock-api-mockito:1.6.6'
-}
-
-task sourceJar(type: Jar) {
-    classifier = 'sources'
-    from android.sourceSets.main.java.sourceFiles
-}
-
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            groupId 'com.google.android.things.contrib'
-            artifactId 'driver-apa102'
-            version packageVersion
-            artifacts = configurations.archives.artifacts
-            artifact sourceJar
-        }
-    }
-    repositories {
-        maven {
-            url BRILLO_REPOSITORY
-            credentials(AwsCredentials) {
-                accessKey AWS_ACCESS_KEY
-                secretKey AWS_SECRET_KEY
-            }
-        }
-    }
 }
