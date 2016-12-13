@@ -32,7 +32,7 @@ import com.google.android.things.contrib.driver.mma7660fc.Mma7660fc;
 mma7660fc mMma7660fc;
 
 try {
-    mMma7660fc = new Mma7660fc("i2cBusName");
+    mMma7660fc = new Mma7660fc(i2cBusName);
     mMma7660fc.setMode(Mma7660fc.MODE_ACTIVE);
 } catch (IOException e) {
     // couldn't configure the device...

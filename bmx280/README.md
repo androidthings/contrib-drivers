@@ -74,7 +74,7 @@ mSensorManager.registerDynamicSensorCallback(new SensorManager.DynamicSensorCall
 });
 
 try {
-    mSensorDriver = new Bmx280SensorDriver("i2cBusName");
+    mSensorDriver = new Bmx280SensorDriver(i2cBusName);
     mSensorDriver.registerTemperatureSensor();
 } catch (IOException e) {
     // Error configuring sensor
