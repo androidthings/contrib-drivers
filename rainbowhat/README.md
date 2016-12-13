@@ -1,7 +1,8 @@
 Rainbow Hat driver for Android Things
 =====================================
 
-This driver provide easy access to the peripherals available on the [Rainbow Hat for Android Things](https://shop.pimoroni.com/products/rainbow-hat-for-android-things):
+This driver provides easy access to the peripherals available on the [Rainbow Hat for Android
+Things][product]:
 - BMP280 temperature sensor (I2C)
 - HT16K33 segment display (I2C)
 - Capacitive buttons (GPIO)
@@ -22,8 +23,8 @@ How to use the driver
 
 ### Gradle dependency
 
-To use the `rainbowhat` driver, simply add the line
-below to your project's `build.gradle`, where `<version>` matches the last version of the driver available on [jcenter](https://bintray.com/google/androidthings/contrib-driver-rainbowhat/_latestVersion)
+To use the `rainbowhat` driver, simply add the line below to your project's `build.gradle`,
+where `<version>` matches the last version of the driver available on [jcenter][jcenter].
 
 ```
 dependencies {
@@ -34,12 +35,12 @@ dependencies {
 ### Sample usage
 
 
-```
+```java
 // import the RainbowHat driver
 import com.google.android.things.driver.rainbowhat.RainbowHat
 ```
 
-```
+```java
 // Light up the Red LED.
 Gpio led = RainbowHat.openLed(RainbowHat.LED_RED);
 led.setValue(true);
@@ -47,7 +48,7 @@ led.setValue(true);
 led.close();
 ```
 
-```
+```java
 // Display a string on the segment display.
 AlphanumericDisplay segment = RainbowHat.openDisplay();
 segment.setBrightness(Ht16k33.HT16K33_BRIGHTNESS_MAX);
@@ -57,7 +58,7 @@ segment.setEnabled(true);
 segment.close();
 ```
 
-```
+```java
 // Play a note on the buzzer.
 Speaker buzzer = RainbowHat.openBuzzer();
 buzzer.play(440);
@@ -67,7 +68,7 @@ buzzer.stop();
 buzzer.close();
 ```
 
-```
+```java
 // Log the current temperature
 Bmx280 sensor = RainbowHat.openSensor();
 sensor.setTemperatureOversampling(Bmx280.OVERSAMPLING_1X);
@@ -76,7 +77,7 @@ Log.d(TAG, "temperature:" + sensor.readTemperature());
 sensor.close();
 ```
 
-```
+```java
 // Display the temperature on the segment display.
 Bmx280 sensor = RainbowHat.openSensor();
 sensor.setTemperatureOversampling(Bmx280.OVERSAMPLING_1X);
@@ -89,7 +90,7 @@ sensor.close();
 segment.close();
 ```
 
-```
+```java
 // Light up the rainbow
 Apa102 ledstrip = RainbowHat.openLedStrip();
 ledstrip.setBrightness(31);
@@ -102,7 +103,7 @@ ledstrip.write(rainbow);
 ledstrip.close();
 ```
 
-```
+```java
 // Detect button press.
 Button button = RainbowHat.openButton(RainbowHat.BUTTON_A);
 button.setOnButtonEventListener(new Button.OnButtonEventListener() {
@@ -115,9 +116,12 @@ button.setOnButtonEventListener(new Button.OnButtonEventListener() {
 button.close();
 ```
 
-```
+```java
 // Get native Android 'A' key events when button 'A' is pressed.
-ButtonInputDriver inputDriver = RainbowHat.createButtonInputDriver(RainbowHat.BUTTON_A, KeyEvent.KEYCODE_A);
+ButtonInputDriver inputDriver = RainbowHat.createButtonInputDriver(
+        RainbowHat.BUTTON_A,    // button on the hat
+        KeyEvent.KEYCODE_A      // keyCode to send
+);
 inputDriver.register();
 
 // In your Activity.
@@ -137,7 +141,7 @@ public boolean onKeyUp(int keyCode, KeyEvent event) {
 }
 ```
 
-```
+```java
 // Continously report temperature.
 final SensorManager sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
 sensorManager.registerDynamicSensorCallback(new SensorManager.DynamicSensorCallback() {
@@ -180,3 +184,6 @@ distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
 WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
 License for the specific language governing permissions and limitations under
 the License.
+
+[product]: https://shop.pimoroni.com/products/rainbow-hat-for-android-things
+[jcenter]: https://bintray.com/google/androidthings/contrib-driver-rainbowhat
