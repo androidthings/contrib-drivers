@@ -62,7 +62,7 @@ through the standard Android APIs:
 ButtonInputDriver mInputDriver;
 
 try {
-    mInputDriver = new ButtonInputDriver("gpioPinName",
+    mInputDriver = new ButtonInputDriver(gpioPinName,
             Button.LogicState.PRESSED_WHEN_HIGH,
             KeyEvent.KEYCODE_A // the keycode to send
     );

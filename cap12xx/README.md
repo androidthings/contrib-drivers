@@ -34,9 +34,9 @@ Cap12xx mCapTouchControl;
 
 try {
     mCapTouchControl = new Cap12xx(
-            "i2cBusName",                 // required I2C
-            "gpioPinName",                // optional GPIO for interrupt alerts
-            Cap12xx.Configuration.CAP1208 // choose whichever matches your chip
+            i2cBusName,                     // required I2C
+            gpioPinName,                    // optional GPIO for interrupt alerts
+            Cap12xx.Configuration.CAP1208   // choose whichever matches your chip
     );
     mCapTouchControl.setOnCapTouchListener(new Cap12xx.OnCapTouchListener() {
         @Override
@@ -85,7 +85,7 @@ try {
     // couldn't configure the input driver...
 }
 
-// Override key event callbacks in yoru Activity:
+// Override key event callbacks in your Activity:
 
 @Override
 public boolean onKeyDown(int keyCode, KeyEvent event) {
