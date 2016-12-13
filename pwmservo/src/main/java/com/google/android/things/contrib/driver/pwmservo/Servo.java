@@ -29,8 +29,8 @@ public class Servo implements AutoCloseable {
 
     public static final double DEFAULT_FREQUENCY_HZ = 50;
 
-    private static final long DEFAULT_MIN_PULSE_DURATION_MS = 1;
-    private static final long DEFAULT_MAX_PULSE_DURATION_MS = 2;
+    private static final double DEFAULT_MIN_PULSE_DURATION_MS = 1;
+    private static final double DEFAULT_MAX_PULSE_DURATION_MS = 2;
     private static final double DEFAULT_MIN_ANGLE_DEG = 0.0;
     private static final double DEFAULT_MAX_ANGLE_DEG = 180.0;
 
