@@ -60,14 +60,14 @@ version)](https://bintray.com/google/androidthings/contrib-driver-ht16k33/_lates
 'com.google.android.things.contrib:driver-mma7660fc:<version>'`<br>[(see latest
 version)](https://bintray.com/google/androidthings/contrib-driver-mma7660fc/_latestVersion)
 |[sample](https://github.com/androidthings/contrib-drivers/tree/master/mma7660fc)
-[driver-pwm-servo](pwmservo) | PWM servo |`compile
-'com.google.android.things.contrib:driver-pwm-servo:<version>'`<br>[(see latest
-version)](https://bintray.com/google/androidthings/contrib-driver-pwm-servo/_latestVersion)
+[driver-pwmservo](pwmservo) | PWM servo |`compile
+'com.google.android.things.contrib:driver-pwmservo:<version>'`<br>[(see latest
+version)](https://bintray.com/google/androidthings/contrib-driver-pwmservo/_latestVersion)
 |[sample](https://github.com/androidthings/contrib-drivers/tree/master/pwmservo)
-[driver-pwm-speaker](pwmspeaker) | PWM speaker/buzzer |`compile
-'com.google.android.things.contrib:driver-pwm-speaker:<version>'`<br>[(see
+[driver-pwmspeaker](pwmspeaker) | PWM speaker/buzzer |`compile
+'com.google.android.things.contrib:driver-pwmspeaker:<version>'`<br>[(see
 latest
-version)](https://bintray.com/google/androidthings/contrib-driver-pwm-speaker/_latestVersion)
+version)](https://bintray.com/google/androidthings/contrib-driver-pwmspeaker/_latestVersion)
 |[sample](https://github.com/androidthings/contrib-drivers/tree/master/pwmspeaker)
 [driver-rainbowhat](rainbowhat) | metadriver for the Rainbow HAT |`compile
 'com.google.android.things.contrib:driver-rainbowhat:<version>'`<br>[(see latest
