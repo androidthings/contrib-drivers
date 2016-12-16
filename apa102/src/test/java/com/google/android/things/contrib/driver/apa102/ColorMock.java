@@ -23,28 +23,41 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
 
+import static org.mockito.Matchers.anyInt;
+
 public class ColorMock {
     public static void mockStatic() {
         PowerMockito.mockStatic(Color.class);
-        Mockito.when(Color.red(Mockito.anyInt())).thenAnswer(new Answer() {
+        Mockito.when(Color.red(anyInt())).thenAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) throws Throwable {
                 int c = invocation.getArgumentAt(0, Integer.class);
-                return c >> 16 & 0xff;
+                return (c >> 16) & 0xff;
             }
         });
-        Mockito.when(Color.green(Mockito.anyInt())).thenAnswer(new Answer() {
+        Mockito.when(Color.green(anyInt())).thenAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) throws Throwable {
                 int c = invocation.getArgumentAt(0, Integer.class);
-                return c >> 8 & 0xff;
+                return (c >> 8) & 0xff;
             }
         });
-        Mockito.when(Color.blue(Mockito.anyInt())).thenAnswer(new Answer() {
+        Mockito.when(Color.blue(anyInt())).thenAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) throws Throwable {
                 int c = invocation.getArgumentAt(0, Integer.class);
                 return c & 0xff;
+            }
+        });
+
+        Mockito.when(Color.argb(anyInt(), anyInt(), anyInt(), anyInt())).thenAnswer(new Answer() {
+            @Override
+            public Integer answer(InvocationOnMock invocation) throws Throwable {
+                int a = invocation.getArgumentAt(0, Integer.class);
+                int r = invocation.getArgumentAt(1, Integer.class);
+                int g = invocation.getArgumentAt(2, Integer.class);
+                int b = invocation.getArgumentAt(3, Integer.class);
+                return (a << 24) | (r << 16) | (g << 8) | b;
             }
         });
     }

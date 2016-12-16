@@ -17,6 +17,7 @@
 package com.google.android.things.contrib.driver.apa102;
 
 import android.graphics.Color;
+import android.support.annotation.VisibleForTesting;
 
 import com.google.android.things.pio.PeripheralManagerService;
 import com.google.android.things.pio.SpiDevice;
@@ -48,16 +49,24 @@ public class Apa102 implements AutoCloseable {
         BGR
     }
 
+    /**
+     * The direction to apply colors when writing LED data
+     */
     public enum Direction {
         NORMAL,
         REVERSED,
     }
 
+    /**
+     * The maximum brightness level
+     */
+    public static final int MAX_BRIGHTNESS = 31;
+
     // RGB LED strip configuration that must be provided by the caller.
     private Mode mLedMode;
 
     // RGB LED strip settings that have sensible defaults.
-    private byte mLedBrightness = (byte) (0xE0 | 12); // 0 ... 31
+    private int mLedBrightness = MAX_BRIGHTNESS >> 1; // default to half
 
     // Direction of the led strip;
     private Direction mDirection;
@@ -114,6 +123,7 @@ public class Apa102 implements AutoCloseable {
      * @param device {@link SpiDevice} where the LED strip is attached to.
      * @param ledMode The {@link Mode} indicating the red/green/blue byte ordering for the device.
      */
+    @VisibleForTesting
     /*package*/ Apa102(SpiDevice device, Mode ledMode, Direction direction) throws IOException {
         mLedMode = ledMode;
         mDirection = direction;
@@ -131,13 +141,21 @@ public class Apa102 implements AutoCloseable {
 
     /**
      * Sets the brightness for all LEDs in the strip.
-     * @param ledBrightness The brightness of the LED strip (0 ... 31).
+     * @param ledBrightness The brightness of the LED strip, between 0 and {@link #MAX_BRIGHTNESS}.
      */
     public void setBrightness(int ledBrightness) {
-        if (ledBrightness < 0 || ledBrightness > 31) {
-            throw new IllegalArgumentException("Brightness needs to be between 0 and 31");
+        if (ledBrightness < 0 || ledBrightness > MAX_BRIGHTNESS) {
+            throw new IllegalArgumentException("Brightness needs to be between 0 and "
+                    + MAX_BRIGHTNESS);
         }
-        mLedBrightness = (byte) (0xE0 | ledBrightness); // Less brightness possible
+        mLedBrightness = ledBrightness;
+    }
+
+    /**
+     * Get the current brightness level
+     */
+    public int getBrightness() {
+        return mLedBrightness;
     }
 
     /**
@@ -146,17 +164,22 @@ public class Apa102 implements AutoCloseable {
      * @throws IOException
      */
     public void write(int[] colors) throws IOException {
+        if (mDevice == null) {
+            throw new IllegalStateException("SPI device not open");
+        }
+
         byte[] ledData = new byte[(APA102_PACKET_LENGTH * (2 + colors.length))];
 
         // Add the RGB LED start bits (0 ... 0)
         System.arraycopy(APA_START_DATA, 0, ledData, 0, APA102_PACKET_LENGTH);
 
         // Compute the packets to send.
+        byte brightness = (byte) (0xE0 | mLedBrightness); // Less brightness possible
         for (int i = 0; i < colors.length; i++) {
             int position = ((i + 1) * APA102_PACKET_LENGTH);
             int di = mDirection == Direction.NORMAL ? i : colors.length - i - 1;
-            System.arraycopy(getApaColorData(colors[di]), 0, ledData, position,
-                    APA102_PACKET_LENGTH);
+            byte[] colorData = getApaColorData(colors[di], brightness, mLedMode);
+            System.arraycopy(colorData, 0, ledData, position, APA102_PACKET_LENGTH);
         }
 
         // Add the RGB LED end bits
@@ -184,25 +207,26 @@ public class Apa102 implements AutoCloseable {
      * @param color The {@link Color} to retrieve the protocol packet for.
      * @return APA102 packet corresponding to the current brightness and given {@link Color}.
      */
-    private byte[] getApaColorData(int color) {
+    @VisibleForTesting
+    static byte[] getApaColorData(int color, byte brightness, Mode ledMode) {
         int r = Color.red(color);
         int g = Color.green(color);
         int b = Color.blue(color);
 
-        switch(mLedMode) {
+        switch(ledMode) {
             case RBG:
-                return new byte[] {mLedBrightness, (byte) r, (byte) b, (byte) g};
+                return new byte[] {brightness, (byte) r, (byte) b, (byte) g};
             case BGR:
-                return new byte[] {mLedBrightness, (byte) b, (byte) g, (byte) r};
+                return new byte[] {brightness, (byte) b, (byte) g, (byte) r};
             case BRG:
-                return new byte[] {mLedBrightness, (byte) b, (byte) r, (byte) g};
+                return new byte[] {brightness, (byte) b, (byte) r, (byte) g};
             case GRB:
-                return new byte[] {mLedBrightness, (byte) g, (byte) r, (byte) b};
+                return new byte[] {brightness, (byte) g, (byte) r, (byte) b};
             case GBR:
-                return new byte[] {mLedBrightness, (byte) g, (byte) b, (byte) r};
+                return new byte[] {brightness, (byte) g, (byte) b, (byte) r};
             default:
                 // RGB
-                return new byte[] {mLedBrightness, (byte) r, (byte) g, (byte) b};
+                return new byte[] {brightness, (byte) r, (byte) g, (byte) b};
         }
     }
 }
