@@ -14,16 +14,21 @@
  * limitations under the License.
  */
 
-include ':apa102'
-include ':button'
-include ':bmx280'
-include ':cap12xx'
-include ':gps'
-include ':ht16k33'
-include ':mma7660fc'
-include ':pwmservo'
-include ':pwmspeaker'
-include ':tm1637'
-include ':ssd1306'
-include ':rainbowhat'
-include ':sensehat'
+package com.google.android.things.contrib.driver.sensehat;
+
+import java.io.IOException;
+
+/**
+ * Driver factory for the Sense Hat.
+ */
+@SuppressWarnings({"unused", "WeakerAccess"})
+public class SenseHat {
+    public static final int I2C_ADDRESS =  0x46;
+    public static final String BUS_DISPLAY = "I2C1";
+    public static final int DISPLAY_WIDTH = LedMatrix.WIDTH;
+    public static final int DISPLAY_HEIGHT = LedMatrix.HEIGHT;
+
+    public static LedMatrix openDisplay() throws IOException {
+        return new LedMatrix(BUS_DISPLAY);
+    }
+}
