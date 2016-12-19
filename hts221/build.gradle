@@ -14,17 +14,24 @@
  * limitations under the License.
  */
 
-include ':apa102'
-include ':button'
-include ':bmx280'
-include ':cap12xx'
-include ':gps'
-include ':ht16k33'
-include ':hts221'
-include ':mma7660fc'
-include ':pwmservo'
-include ':pwmspeaker'
-include ':tm1637'
-include ':ssd1306'
-include ':rainbowhat'
-include ':sensehat'
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion 24
+    buildToolsVersion '24.0.3'
+
+    defaultConfig {
+        minSdkVersion 24
+        targetSdkVersion 24
+        versionCode 1
+        versionName "1.0"
+    }
+}
+
+dependencies {
+    provided 'com.google.android.things:androidthings:0.1-devpreview'
+    compile 'com.android.support:support-annotations:24.2.0'
+
+    testCompile 'junit:junit:4.12'
+    testCompile 'org.mockito:mockito-all:1.10.19'
+}
