@@ -129,6 +129,8 @@ public class Hts221SensorDriver implements AutoCloseable {
         if ((mTemperatureUserDriver == null || !mTemperatureUserDriver.isEnabled()) &&
                 (mHumidityUserDriver == null || !mHumidityUserDriver.isEnabled())) {
             mDevice.setMode(Hts221.MODE_POWER_DOWN);
+        } else {
+            mDevice.setMode(Hts221.MODE_ACTIVE);
         }
     }
 

@@ -30,6 +30,7 @@ import org.mockito.junit.MockitoRule;
 
 import java.io.IOException;
 
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.byteThat;
 import static org.mockito.Matchers.eq;
 
@@ -92,8 +93,11 @@ public class Hts221Test {
     public void setMode() throws IOException {
         Mockito.when(mI2c.readRegByte(0x0F)).thenReturn((byte) 0xBC);
         Hts221 hts221 = new Hts221(mI2c);
+
+        Mockito.reset(mI2c);
+
         hts221.setMode(Hts221.MODE_ACTIVE);
-        Mockito.verify(mI2c).writeRegByte(eq(0x20), byteThat(new BitsMatcher((byte) Hts221.MODE_ACTIVE)));
+        Mockito.verify(mI2c).writeRegByte(eq(0x20), byteThat(new BitsMatcher((byte) 0x80)));
     }
 
     @Test
@@ -136,6 +140,8 @@ public class Hts221Test {
     public void setOutputDataRate() throws IOException {
         Mockito.when(mI2c.readRegByte(0x0F)).thenReturn((byte) 0xBC);
         Hts221 hts221 = new Hts221(mI2c);
+
+        Mockito.reset(mI2c);
 
         // One-shot
         hts221.setOutputDataRate(Hts221.HTS221_ODR_ONE_SHOT);
@@ -202,8 +208,7 @@ public class Hts221Test {
         Hts221 hts221 = new Hts221(mI2c);
         Mockito.when(mI2c.readRegByte(0x27)).thenReturn((byte) 0x02);
         hts221.readHumidity();
-        Mockito.verify(mI2c).readRegByte(eq(0x28));
-        Mockito.verify(mI2c).readRegByte(eq(0x29));
+        Mockito.verify(mI2c).readRegBuffer(eq(0x28 | 0x80), any(byte[].class), eq(2));
     }
 
     @Test
@@ -232,8 +237,7 @@ public class Hts221Test {
         Hts221 hts221 = new Hts221(mI2c);
         Mockito.when(mI2c.readRegByte(0x27)).thenReturn((byte) 0x01);
         hts221.readTemperature();
-        Mockito.verify(mI2c).readRegByte(eq(0x2A));
-        Mockito.verify(mI2c).readRegByte(eq(0x2B));
+        Mockito.verify(mI2c).readRegBuffer(eq(0x2A | 0x80), any(byte[].class), eq(2));
     }
 
     @Test

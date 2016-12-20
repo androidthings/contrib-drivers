@@ -165,8 +165,6 @@ public class Hts221 implements AutoCloseable {
     private int mMode;
     private boolean mBlockDataUpdate;
     private int mOutputDataRate;
-    private int mHumidityAverage;
-    private int mTemperatureAverage;
     private float[] mTemperatureCalibration, mHumidityCalibration; // Calibration parameters
 
     /**
@@ -427,11 +425,8 @@ public class Hts221 implements AutoCloseable {
      * @throws IOException
      */
     private int readRegister(int address) throws IOException {
-        synchronized (mBuffer) {
-            mBuffer[0] = mDevice.readRegByte(address); // LSB
-            mBuffer[1] = mDevice.readRegByte(address + 1); // MSB
-            return ((mBuffer[1] & 0xFF) << 8) | (mBuffer[0] & 0xFF);
-        }
+        mDevice.readRegBuffer(address | 0x80, mBuffer, 2);
+        return ((mBuffer[1] & 0xFF) << 8) | (mBuffer[0] & 0xFF);
     }
 
     /**
