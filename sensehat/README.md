@@ -1,10 +1,13 @@
-Sense Hat driver for Android Things
+Sense HAT driver for Android Things
 =====================================
 
-This driver provides easy access to the peripherals available on the Raspberry Pi [Sense Hat][product]:
-- 8x8 LED matrix
-- TODO: 5 buttons joystick
-- TODO: Sensors
+This driver provides easy access to the peripherals available on the Raspberry Pi [Sense HAT][product]:
+-
+- 8×8 RGB LED matrix
+- 5-button miniature joystick
+- ST LPS25H barometric pressure and temperature sensor
+- ST HTS221 relative humidity and temperature sensor
+- TODO: ST LSM9DS1 inertial measurement sensor
 
 
 NOTE: these drivers are not production-ready. They are offered as sample

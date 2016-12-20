@@ -26,6 +26,10 @@ import android.graphics.Shader;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.filters.SmallTest;
 import android.support.test.runner.AndroidJUnit4;
+import android.util.Log;
+
+import com.google.android.things.contrib.driver.hts221.Hts221;
+import com.google.android.things.contrib.driver.lps25h.Lps25h;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,6 +39,7 @@ import java.io.IOException;
 @RunWith(AndroidJUnit4.class)
 @SmallTest
 public class SenseHatDeviceTest {
+
     @Test
     public void senseHat_DisplayColor() throws IOException {
         // Color the LED matrix.
@@ -68,4 +73,27 @@ public class SenseHatDeviceTest {
         // Close the display when done.
         display.close();
     }
+
+    @Test
+    public void senseHat_ReadPressureSensor() throws IOException {
+        // Prints LPS25H barometric pressure and temperature sensor readings to LogCat
+        Lps25h lps25h = SenseHat.openPressureSensor();
+        float pressure = lps25h.readPressure();
+        Log.i("LPS25H", String.format("Barometric Pressure: %.1f", pressure) + " hPa");
+        float temperature = lps25h.readTemperature();
+        Log.i("LPS25H", String.format("Temperature: %.1f", temperature) + " °C");
+        lps25h.close();
+    }
+
+    @Test
+    public void senseHat_ReadHumiditySensor() throws IOException {
+        // Prints HTS221 relative humidity and temperature sensor readings to LogCat
+        Hts221 hts221 = SenseHat.openHumiditySensor();
+        float humidity = hts221.readHumidity();
+        Log.i("HTS221", String.format("Relative Humidity: %.1f", humidity) + " %");
+        float temperature = hts221.readTemperature();
+        Log.i("HTS221", String.format("Temperature: %.1f", temperature) + " °C");
+        hts221.close();
+    }
+
 }
