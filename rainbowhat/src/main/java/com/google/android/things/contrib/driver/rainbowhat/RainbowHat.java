@@ -52,6 +52,7 @@ public class RainbowHat {
     public static final String LED_RED = "BCM6";
     public static final String LED_GREEN = "BCM19";
     public static final String LED_BLUE = "BCM26";
+    public static final int LEDSTRIP_LENGTH = 7;
 
     public static Bmx280 openSensor() throws IOException {
         return new Bmx280(BUS_SENSOR);
