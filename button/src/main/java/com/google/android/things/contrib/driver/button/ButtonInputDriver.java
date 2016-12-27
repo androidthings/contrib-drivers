@@ -83,7 +83,7 @@ public class ButtonInputDriver implements AutoCloseable {
      */
     public void unregister() {
         if (mDriver != null) {
-            UserDriverManager.getManager().registerInputDriver(mDriver);
+            UserDriverManager.getManager().unregisterInputDriver(mDriver);
             mDriver = null;
         }
     }
