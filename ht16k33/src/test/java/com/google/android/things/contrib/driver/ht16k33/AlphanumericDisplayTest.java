@@ -170,6 +170,17 @@ public class AlphanumericDisplayTest {
     }
 
     @Test
+    public void displayString_appendDotsOk() throws IOException {
+        TextUtilsMock.mockStatic();
+        AlphanumericDisplay display = new AlphanumericDisplay(mI2c);
+        display.display("E.T.L.A.");
+        Mockito.verify(mI2c).writeRegWord(0, (short) (Font.DATA['E'] | (1 << 14)));
+        Mockito.verify(mI2c).writeRegWord(2, (short) (Font.DATA['T'] | (1 << 14)));
+        Mockito.verify(mI2c).writeRegWord(4, (short) (Font.DATA['L'] | (1 << 14)));
+        Mockito.verify(mI2c).writeRegWord(6, (short) (Font.DATA['A'] | (1 << 14)));
+    }
+
+    @Test
     public void displayString_clearsIfNullOrEmpty() throws IOException {
         TextUtilsMock.mockStatic();
         AlphanumericDisplay display = new AlphanumericDisplay(mI2c);

@@ -102,23 +102,17 @@ public class AlphanumericDisplay extends Ht16k33 {
         mBuffer.clear();
         mBuffer.mark();
         short n = (short) 0;
-        char prevChar = (char) 0;
+        char prevChar = '.';
         for (char c : s.toCharArray()) {
+            if (c == '.' && prevChar != '.') {
+                // add dot LED flag to the previous character.
+                n |= DOT;
+                mBuffer.reset();
+                mBuffer.putShort(n);
             // truncate string to the size of the display
-            if (mBuffer.position() == mBuffer.limit()) {
+            } else if (mBuffer.position() == mBuffer.limit()) {
                 break;
-            }
-            if (c == '.') {
-                if (prevChar == '.') {
-                    mBuffer.putShort(DOT);
-                } else {
-                    // add dot LED flag to the previous character.
-                    n |= DOT;
-                    mBuffer.reset();
-                    mBuffer.putShort(n);
-                }
             } else {
-                // extract character data from font.
                 n = (short) Font.DATA[c];
                 mBuffer.mark();
                 mBuffer.putShort(n);
