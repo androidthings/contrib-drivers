@@ -13,12 +13,12 @@ How to use the driver
 
 ### Gradle dependency
 
-To use the `pwm-speaker` driver, simply add the line below to your project's `build.gradle`,
+To use the `pwmspeaker` driver, simply add the line below to your project's `build.gradle`,
 where `<version>` matches the last version of the driver available on [jcenter][jcenter].
 
 ```
 dependencies {
-    compile 'com.google.android.things.contrib:driver-pwm-speaker:<version>'
+    compile 'com.google.android.things.contrib:driver-pwmspeaker:<version>'
 }
 ```
 
@@ -74,4 +74,4 @@ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
 License for the specific language governing permissions and limitations under
 the License.
 
-[jcenter]: https://bintray.com/google/androidthings/contrib-driver-pwm-speaker/_latestVersion
+[jcenter]: https://bintray.com/google/androidthings/contrib-driver-pwmspeaker/_latestVersion
