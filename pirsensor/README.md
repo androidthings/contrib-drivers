@@ -33,9 +33,9 @@ PIRSensor mSensor;
 
 try {
     mSensor = new PIRSensor(gpioPinName);
-    mButton.setOnPIREventListener(new OnPIREventListener() {
+    mSensor.setOnPIREventListener(new OnPIREventListener() {
         @Override
-        public void onSensorEvent(PIRSensor button, boolean detected) {
+        public void onSensorEvent(PIRSensor sensor, boolean detected) {
             // do something awesome
         }
     });
@@ -48,7 +48,7 @@ try {
 try {
     mSensor.close();
 } catch (IOException e) {
-    // error closing button
+    // error closing sensor
 }
 ```
 
@@ -72,4 +72,4 @@ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
 License for the specific language governing permissions and limitations under
 the License.
 
-[jcenter]: https://bintray.com/google/androidthings/contrib-driver-button/_latestVersion
+[jcenter]: https://bintray.com/google/androidthings/contrib-driver-pirsensor/_latestVersion
