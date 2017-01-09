@@ -41,7 +41,7 @@ public class Ssd1306 implements Closeable {
      * I2C address for this peripheral
      */
     public static final int I2C_ADDRESS = 0x3C;
-    public static final int I2C_ADDRESS_SECONDARY = 0x3D;
+    public static final int I2C_ADDRESS_ALT = 0x3D;
 
     // Protocol constants
     private static final int COMMAND_ACTIVATE_SCROLL = 0x2F;
@@ -110,7 +110,7 @@ public class Ssd1306 implements Closeable {
     /**
      * Create a new Ssd1306 driver connected to the named I2C bus and address
      * @param i2cName I2C bus name the display is connected to
-     * @param i2cAddress I2C address the display is connected to
+     * @param i2cAddress I2C address of the display
      * @throws IOException
      */
     public Ssd1306(String i2cName, int i2cAddress) throws IOException {
