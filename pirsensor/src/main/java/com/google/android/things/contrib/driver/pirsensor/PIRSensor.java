@@ -44,9 +44,9 @@ public class PIRSensor implements AutoCloseable {
          * Called when a Movement was detected or the sensor reset (LOW)
          *
          * @param sensor the PIR Sensor for which the event occurred
-         * @param hasData true if the Button is now pressed
+         * @param detected true if a movement was is detected
          */
-        void onSensorEvent(PIRSensor sensor, boolean hasData);
+        void onSensorEvent(PIRSensor sensor, boolean detected);
     }
 
     /**
@@ -73,6 +73,11 @@ public class PIRSensor implements AutoCloseable {
        connect(sensorGpio);
     }
 
+    /**
+     * Configure the GPIO PIN as an INPUT to read the sensor data
+     * @param sensorGpio
+     * @throws IOException
+     */
     private void connect(Gpio sensorGpio) throws IOException {
         mSensorGpio = sensorGpio;
         mSensorGpio.setDirection(Gpio.DIRECTION_IN);
