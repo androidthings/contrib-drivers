@@ -33,8 +33,8 @@ Servo mServo;
 
 try {
     mServo = new Servo(pwmPinName);
-    mServo.setPulseWidthDurationRange(1, 2); // according to your servo's specifications
-    mServo.setAngleRange(0, 180);            // according to your servo's specifications
+    mServo.setPulseDurationRange(1, 2); // according to your servo's specifications
+    mServo.setAngleRange(0, 180);       // according to your servo's specifications
     mServo.setEnabled(true);
 } catch (IOException e) {
     // couldn't configure the servo...
