@@ -37,7 +37,7 @@ dependencies {
 
 ```java
 // import the RainbowHat driver
-import com.google.android.things.driver.rainbowhat.RainbowHat
+import com.google.android.things.contrib.driver.rainbowhat.RainbowHat;
 ```
 
 ```java
