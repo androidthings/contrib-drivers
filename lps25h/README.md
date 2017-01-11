@@ -1,8 +1,7 @@
-HTS221 driver for Android Things
+LPS25H driver for Android Things
 ================================
 
-This driver supports STMicroelectronics [HTS221][product_hts221] capacitive digital sensor for
-relative humidity and temperature.
+This driver supports STMicroelectronics [LPS25H][product_lps25h] MEMS pressure sensor.
 
 NOTE: these drivers are not production-ready. They are offered as sample
 implementations of Android Things user space drivers for common peripherals
@@ -30,53 +29,53 @@ import com.google.android.things.contrib.driver.hts221.Lps25h;
 
 // Access the environmental sensor:
 
-Hts221 mHts221;
+Lps25h mLps25h;
 
 try {
-    mHts221 = new Hts221(i2cBusName);
+    mLps25h = new Lps25h(i2cBusName);
 } catch (IOException e) {
     // Couldn't configure the device...
 }
 
-// Read the current humidity:
+// Read the current pressure:
 
 try {
-    float humidity = mHts221.readHumidity();
+    float pressure = mLps25h.readPressure();
 } catch (IOException e) {
-    // Error reading humidity
+    // Error reading pressure
 }
 
 // Read the current temperature:
 
 try {
-    float temperature = mHts221.readTemperature();
+    float temperature = mLps25h.readTemperature();
 } catch (IOException e) {
     // Error reading temperature
 }
 
-// Close the environmental sensor when finished:
+// Close the pressure sensor when finished:
 
 try {
-    mHts221.close();
+    mLps25h.close();
 } catch (IOException e) {
     // Error closing sensor
 }
 ```
 
-If you need to read sensor values continuously, you can register the Hts221 with the system and
+If you need to read sensor values continuously, you can register the LPS25H with the system and
 listen for sensor values using the [Sensor APIs][sensors]:
 
 ```java
 SensorManager mSensorManager = getSystemService(Context.SENSOR_SERVICE);
-SensorEventListener mHumidityListener = ...;
+SensorEventListener mPressureListener = ...;
 SensorEventListener mTemperatureListener = ...;
-Hts221SensorDriver mSensorDriver;
+Lps25hSensorDriver mSensorDriver;
 
 mSensorManager.registerDynamicSensorCallback(new SensorManager.DynamicSensorCallback() {
     @Override
     public void onDynamicSensorConnected(Sensor sensor) {
-        if (sensor.getType() == Sensor.TYPE_RELATIVE_HUMIDITY) {
-            mSensorManager.registerListener(mHumidityListener, sensor,
+        if (sensor.getType() == Sensor.TYPE_PRESSURE) {
+            mSensorManager.registerListener(mPressureListener, sensor,
                     SensorManager.SENSOR_DELAY_NORMAL);
         } else if (sensor.getType() == Sensor.TYPE_AMBIENT_TEMPERATURE) {
             mSensorManager.registerListener(mTemperatureListener, sensor,
@@ -86,8 +85,8 @@ mSensorManager.registerDynamicSensorCallback(new SensorManager.DynamicSensorCall
 });
 
 try {
-    mSensorDriver = new Hts221SensorDriver(i2cBusName);
-    mSensorDriver.registerHumiditySensor();
+    mSensorDriver = new Lps25hSensorDriver(i2cBusName);
+    mSensorDriver.registerPressureSensor();
     mSensorDriver.registerTemperatureSensor();
 } catch (IOException e) {
     // Error configuring sensor
@@ -95,9 +94,9 @@ try {
 
 // Unregister and close the driver when finished:
 
-mSensorManager.unregisterListener(mHumidityListener);
+mSensorManager.unregisterListener(mPressureListener);
 mSensorManager.unregisterListener(mTemperatureListener);
-mSensorDriver.unregisterHumiditySensor();
+mSensorDriver.unregisterPressureSensor();
 mSensorDriver.unregisterTemperatureSensor();
 try {
     mSensorDriver.close();
@@ -126,6 +125,6 @@ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
 License for the specific language governing permissions and limitations under
 the License.
 
-[product_hts221]: http://www.st.com/en/mems-and-sensors/lps25h.html
+[product_lps25h]: http://www.st.com/en/mems-and-sensors/lps25h.html
 [jcenter]: https://bintray.com/google/androidthings/contrib-driver-lps25h/_latestVersion
 [sensors]: https://developer.android.com/guide/topics/sensors/sensors_overview.html

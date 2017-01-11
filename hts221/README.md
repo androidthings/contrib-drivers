@@ -63,7 +63,7 @@ try {
 }
 ```
 
-If you need to read sensor values continuously, you can register the Hts221 with the system and
+If you need to read sensor values continuously, you can register the HTS221 with the system and
 listen for sensor values using the [Sensor APIs][sensors]:
 
 ```java
