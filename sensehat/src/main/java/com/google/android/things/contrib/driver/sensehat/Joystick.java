@@ -45,7 +45,10 @@ public class Joystick implements AutoCloseable {
 
     private static final int JOYSTICK_REG_KEYS = 0xF2;
 
-    private I2cDevice mI2c;
+    private PeripheralManagerService mPioService;
+
+    private String mI2cBus;
+    private int mI2cAddress;
     private Gpio mInterruptGpio;
     private OnButtonEventListener mListener;
     private int mPrevKey;
@@ -73,11 +76,10 @@ public class Joystick implements AutoCloseable {
      * @throws IOException
      */
     public Joystick(String bus, int address, String interruptPin) throws IOException {
-        PeripheralManagerService pioService = new PeripheralManagerService();
-        I2cDevice i2c = pioService.openI2cDevice(bus, address);
-        Gpio interruptGpio = pioService.openGpio(interruptPin);
+        mPioService = new PeripheralManagerService();
+        Gpio interruptGpio = mPioService.openGpio(interruptPin);
         try {
-            connect(i2c, interruptGpio);
+            connect(bus, address, interruptGpio);
         } catch (IOException | RuntimeException e) {
             close();
             throw e;
@@ -88,12 +90,13 @@ public class Joystick implements AutoCloseable {
      * Constructor invoked from unit tests.
      */
     @VisibleForTesting
-    /*package*/ Joystick(I2cDevice i2c, Gpio interruptGpio) throws IOException {
-        connect(i2c, interruptGpio);
+    /*package*/ Joystick(String bus, int address, Gpio interruptGpio) throws IOException {
+        connect(bus, address, interruptGpio);
     }
 
-    private void connect(I2cDevice i2c, Gpio interruptGpio) throws IOException {
-        mI2c = i2c;
+    private void connect(String bus, int address, Gpio interruptGpio) throws IOException {
+        mI2cBus = bus;
+        mI2cAddress = address;
         mInterruptGpio = interruptGpio;
         mInterruptGpio.setDirection(Gpio.DIRECTION_IN);
         mInterruptGpio.setEdgeTriggerType(Gpio.EDGE_BOTH);
@@ -109,7 +112,9 @@ public class Joystick implements AutoCloseable {
             try {
                 boolean trigger = gpio.getValue();
                 if (trigger) {
-                    int key = mI2c.readRegByte(JOYSTICK_REG_KEYS) & 0x7F;
+                    I2cDevice i2c = mPioService.openI2cDevice(mI2cBus, mI2cAddress);
+                    int key = i2c.readRegByte(JOYSTICK_REG_KEYS) & 0x7F;
+                    i2c.close();
                     if (key == KEY_RELEASED) {
                         performButtonEvent(mPrevKey, false);
                     } else {
@@ -142,14 +147,6 @@ public class Joystick implements AutoCloseable {
     @Override
     public void close() throws IOException {
         mListener = null;
-
-        if (mI2c != null) {
-            try {
-                mI2c.close();
-            } finally {
-                mI2c = null;
-            }
-        }
 
         if (mInterruptGpio != null) {
             mInterruptGpio.unregisterGpioCallback(mInterruptCallback);

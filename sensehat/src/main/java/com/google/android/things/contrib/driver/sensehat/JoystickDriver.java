@@ -112,7 +112,7 @@ public class JoystickDriver implements AutoCloseable {
             @Override
             public void onButtonEvent(int key, boolean pressed) {
                 int keyAction = pressed ? KeyEvent.ACTION_DOWN : KeyEvent.ACTION_UP;
-                int keyCode;
+                int keyCode = -1;
                 switch (key) {
                     case Joystick.KEY_PRESSED_UP:
                         keyCode = KEY_CODE_UP;
@@ -130,11 +130,13 @@ public class JoystickDriver implements AutoCloseable {
                         keyCode = KEY_CODE_ENTER;
                         break;
                     default:
-                        throw new IllegalArgumentException("Invalid key code");
+                        break;
                 }
-                inputDriver.emit(new KeyEvent[]{
-                        new KeyEvent(keyAction, keyCode)
-                });
+                if (keyCode != -1) {
+                    inputDriver.emit(new KeyEvent[]{
+                            new KeyEvent(keyAction, keyCode)
+                    });
+                }
             }
         });
 
