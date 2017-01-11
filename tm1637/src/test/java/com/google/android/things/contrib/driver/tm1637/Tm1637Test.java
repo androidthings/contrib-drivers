@@ -27,6 +27,7 @@ import java.io.IOException;
 
 import static org.mockito.AdditionalMatchers.aryEq;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.times;
 
 public class Tm1637Test {
 
@@ -135,5 +136,6 @@ public class Tm1637Test {
         Tm1637 tm1637 = new Tm1637(mDevice);
         tm1637.close();
         tm1637.close(); // should not throw
+        Mockito.verify(mDevice, times(1)).close();
     }
 }

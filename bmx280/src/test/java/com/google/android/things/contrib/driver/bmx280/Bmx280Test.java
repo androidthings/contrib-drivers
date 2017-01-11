@@ -33,6 +33,7 @@ import java.io.IOException;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.byteThat;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.times;
 
 public class Bmx280Test {
 
@@ -89,6 +90,7 @@ public class Bmx280Test {
         Bmx280 bmx280 = new Bmx280(mI2c);
         bmx280.close();
         bmx280.close(); // should not throw
+        Mockito.verify(mI2c, times(1)).close();
     }
 
     @Test
