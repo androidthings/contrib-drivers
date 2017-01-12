@@ -16,6 +16,11 @@
 
 package com.google.android.things.contrib.driver.sensehat;
 
+import com.google.android.things.contrib.driver.hts221.Hts221;
+import com.google.android.things.contrib.driver.hts221.Hts221SensorDriver;
+import com.google.android.things.contrib.driver.lps25h.Lps25h;
+import com.google.android.things.contrib.driver.lps25h.Lps25hSensorDriver;
+
 import java.io.IOException;
 
 /**
@@ -23,12 +28,49 @@ import java.io.IOException;
  */
 @SuppressWarnings({"unused", "WeakerAccess"})
 public class SenseHat {
-    public static final int I2C_ADDRESS =  0x46;
-    public static final String BUS_DISPLAY = "I2C1";
+
+    public static final String I2C_BUS = "I2C1";
+    public static final int I2C_ADDRESS = 0x46;
+
     public static final int DISPLAY_WIDTH = LedMatrix.WIDTH;
     public static final int DISPLAY_HEIGHT = LedMatrix.HEIGHT;
 
+    public static final String JOYSTICK_INTERRUPT = "BCM23"; // Interrupt pin for joystick events
+
+    // 8×8 RGB LED matrix
+
     public static LedMatrix openDisplay() throws IOException {
-        return new LedMatrix(BUS_DISPLAY);
+        return new LedMatrix(I2C_BUS);
     }
+
+    // 5-button miniature joystick
+
+    public static Joystick openJoystick() throws IOException {
+        return new Joystick(I2C_BUS, I2C_ADDRESS, JOYSTICK_INTERRUPT);
+    }
+
+    public static JoystickDriver createJoystickDriver() throws IOException {
+        return new JoystickDriver(I2C_BUS, I2C_ADDRESS, JOYSTICK_INTERRUPT);
+    }
+
+    // ST LPS25H barometric pressure and temperature sensor
+
+    public static Lps25h openPressureSensor() throws IOException {
+        return new Lps25h(I2C_BUS);
+    }
+
+    public static Lps25hSensorDriver createPressureSensorDriver() throws IOException {
+        return new Lps25hSensorDriver(I2C_BUS);
+    }
+
+    // ST HTS221 relative humidity and temperature sensor
+
+    public static Hts221 openHumiditySensor() throws IOException {
+        return new Hts221(I2C_BUS);
+    }
+
+    public static Hts221SensorDriver createHumiditySensorDriver() throws IOException {
+        return new Hts221SensorDriver(I2C_BUS);
+    }
+
 }

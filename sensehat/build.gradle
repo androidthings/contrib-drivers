@@ -33,6 +33,9 @@ dependencies {
     provided 'com.google.android.things:androidthings:0.1-devpreview'
     androidTestCompile 'com.android.support.test:runner:0.5'
     androidTestCompile 'com.android.support.test:rules:0.5'
+
+    compile project(':hts221')
+    compile project(':lps25h')
 }
 
 android {
