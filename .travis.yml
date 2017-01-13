@@ -9,4 +9,5 @@ android:
     - android-24
     - extra-android-support
     - extra-android-m2repository
-
+script:
+  ./gradlew check
