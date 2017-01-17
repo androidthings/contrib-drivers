@@ -36,6 +36,7 @@ import java.io.IOException;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.times;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(android.graphics.Color.class)
@@ -62,6 +63,7 @@ public class Apa102Test {
         Apa102 leds = new Apa102(mSpiDevice, Apa102.Mode.BGR, Apa102.Direction.NORMAL);
         leds.close();
         leds.close(); // should not throw
+        Mockito.verify(mSpiDevice, times(1)).close();
     }
 
     @Test

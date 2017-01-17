@@ -60,7 +60,7 @@ segment.close();
 
 ```java
 // Play a note on the buzzer.
-Speaker buzzer = RainbowHat.openBuzzer();
+Speaker buzzer = RainbowHat.openPiezo();
 buzzer.play(440);
 // Stop the buzzer.
 buzzer.stop();
