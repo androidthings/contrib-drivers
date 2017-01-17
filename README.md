@@ -1,4 +1,4 @@
-Android Things user-space drivers
+Android Things user-space drivers [![Build Status](https://travis-ci.org/androidthings/contrib-drivers.svg?branch=master)](https://travis-ci.org/androidthings/contrib-drivers) 
 =================================
 
 Sample peripheral drivers for Android Things.
