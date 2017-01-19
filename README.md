@@ -44,6 +44,7 @@ Driver | Type | Usage (add to your gradle dependencies) | Sample code
 [driver-rainbowhat](rainbowhat) | metadriver for the Rainbow HAT |`compile 'com.google.android.things.contrib:driver-rainbowhat:<version>'`<br>[(see latest version)](https://bintray.com/google/androidthings/contrib-driver-rainbowhat/_latestVersion) |[sample](https://github.com/androidthings/weatherstation)
 [driver-ssd1306](ssd1306) | OLED display |`compile 'com.google.android.things.contrib:driver-ssd1306:<version>'`<br>[(see latest version)](https://bintray.com/google/androidthings/contrib-driver-ssd1306/_latestVersion) |[sample](https://github.com/androidthings/drivers-samples/tree/master/ssd1306)
 [driver-tm1637](tm1637) | 4-digit numeric segment display |`compile 'com.google.android.things.contrib:driver-tm1637:<version>'`<br>[(see latest version)](https://bintray.com/google/androidthings/contrib-driver-tm1637/_latestVersion) |[sample](https://github.com/androidthings/drivers-samples/tree/master/tm1637)
+[driver-sensehat](sensehat) | metadriver for the Sense HAT |`compile 'com.google.android.things.contrib:driver-sensehat:<version>'`<br>[(see latest version)](https://bintray.com/google/androidthings/contrib-driver-sensehat/_latestVersion) | [sample usage](https://github.com/androidthings/contrib-drivers/tree/master/sensehat#sample-usage)
 
 
 License
