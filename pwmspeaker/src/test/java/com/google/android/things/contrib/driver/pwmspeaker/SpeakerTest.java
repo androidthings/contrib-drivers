@@ -68,6 +68,16 @@ public class SpeakerTest {
     }
 
     @Test
+    public void playWithDurationStop() throws IOException, InterruptedException {
+        Speaker speaker = new Speaker(mPwm);
+
+        speaker.play(440, 100);
+        Mockito.verify(mPwm).setPwmFrequencyHz(440);
+        Mockito.verify(mPwm).setEnabled(true);
+        Mockito.verify(mPwm).setEnabled(false);
+    }
+
+    @Test
     public void stop_throwsIfClosed() throws IOException {
         Speaker speaker = new Speaker(mPwm);
         speaker.close();
