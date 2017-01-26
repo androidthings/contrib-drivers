@@ -101,7 +101,10 @@ public class Button implements AutoCloseable {
     /**
      * Local callback to monitor GPIO edge events.
      */
-    private GpioCallback mInterruptCallback = new GpioCallback() {
+    private GpioCallback mInterruptCallback = new InterruptCallback();
+
+    @VisibleForTesting
+    /*package*/ class InterruptCallback extends GpioCallback {
         @Override
         public boolean onGpioEdge(Gpio gpio) {
             try {
@@ -126,7 +129,7 @@ public class Button implements AutoCloseable {
 
             return true;
         }
-    };
+    }
 
     /**
      * Set the listener to be called when a button event occurred.
@@ -149,11 +152,16 @@ public class Button implements AutoCloseable {
      */
     public void setDebounceDelay(long delay) {
         if (delay < 0) {
-            throw new IllegalArgumentException("Debounce delay must be positive.");
+            throw new IllegalArgumentException("Debounce delay cannot be negative.");
         }
         // Clear any pending events
         removeDebounceCallback();
         mDebounceDelay = delay;
+    }
+
+    @VisibleForTesting
+    long getDebounceDelay() {
+        return mDebounceDelay;
     }
 
     /**
@@ -178,7 +186,8 @@ public class Button implements AutoCloseable {
     /**
      * Invoke button event callback
      */
-    private void performButtonEvent(boolean state) {
+    @VisibleForTesting
+    /*package*/ void performButtonEvent(boolean state) {
         if (mListener != null) {
             mListener.onButtonEvent(this, state);
         }

@@ -33,7 +33,7 @@ dependencies {
 
 ```
 // import the SenseHat driver
-import com.google.android.things.driver.sensehat.SenseHat;
+import com.google.android.things.contrib.driver.sensehat.SenseHat;
 ```
 ```
 // Color the LED matrix.

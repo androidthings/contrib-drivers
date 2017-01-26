@@ -29,6 +29,7 @@ import java.io.IOException;
 
 import static org.mockito.AdditionalMatchers.aryEq;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.times;
 
 public class Mma7660FcTest {
 
@@ -53,6 +54,7 @@ public class Mma7660FcTest {
         Mma7660Fc driver = new Mma7660Fc(mI2c);
         driver.close();
         driver.close(); // should not throw
+        Mockito.verify(mI2c, times(1)).close();
     }
 
     @Test

@@ -44,7 +44,7 @@ allprojects {
 apply from: 'build.gradle'
 apply plugin: 'maven-publish'
 
-def packageVersion = '0.1'
+def packageVersion = '0.2'
 
 task sourceJar(type: Jar) {
     classifier = 'sources'

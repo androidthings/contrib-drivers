@@ -78,7 +78,7 @@ public class RainbowHat {
         return new Button(pin, BUTTON_LOGIC_STATE);
     }
 
-    static ButtonInputDriver createButtonInputDriver(@ButtonPin String pin, int keycode) throws IOException {
+    public static ButtonInputDriver createButtonInputDriver(@ButtonPin String pin, int keycode) throws IOException {
         return new ButtonInputDriver(pin, BUTTON_LOGIC_STATE, keycode);
     }
 
