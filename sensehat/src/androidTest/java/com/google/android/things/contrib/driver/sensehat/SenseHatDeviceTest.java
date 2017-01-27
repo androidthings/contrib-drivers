@@ -43,35 +43,41 @@ public class SenseHatDeviceTest {
     @Test
     public void senseHat_DisplayColor() throws IOException {
         // Color the LED matrix.
-        LedMatrix display = SenseHat.openDisplay();
-
+        SenseHat senseHat = new SenseHat();
+        LedMatrix display = senseHat.openDisplay();
         display.draw(Color.MAGENTA);
+
         // Close the display when done.
-        display.close();
+        senseHat.close();
     }
 
     @Test
     public void senseHat_DisplayDrawable() throws IOException {
         Context context = InstrumentationRegistry.getTargetContext();
+
         // Display a drawable on the LED matrix.
-        LedMatrix display = SenseHat.openDisplay();
+        SenseHat senseHat = new SenseHat();
+        LedMatrix display = senseHat.openDisplay();
         display.draw(context.getDrawable(android.R.drawable.ic_secure));
+
         // Close the display when done.
-        display.close();
+        senseHat.close();
     }
 
     @Test
     public void senseHat_DisplayGradient() throws IOException {
         // Display a gradient on the LED matrix.
-        LedMatrix display = SenseHat.openDisplay();
+        SenseHat senseHat = new SenseHat();
+        LedMatrix display = senseHat.openDisplay();
         Bitmap bitmap = Bitmap.createBitmap(SenseHat.DISPLAY_WIDTH, SenseHat.DISPLAY_HEIGHT, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
         Paint paint = new Paint();
         paint.setShader(new RadialGradient(4, 4, 4, Color.RED, Color.BLUE, Shader.TileMode.CLAMP));
         canvas.drawRect(0, 0, canvas.getWidth(), canvas.getHeight(), paint);
         display.draw(bitmap);
+
         // Close the display when done.
-        display.close();
+        senseHat.close();
     }
 
     @Test

@@ -21,7 +21,6 @@ import android.util.Log;
 
 import com.google.android.things.pio.Gpio;
 import com.google.android.things.pio.GpioCallback;
-import com.google.android.things.pio.I2cDevice;
 import com.google.android.things.pio.PeripheralManagerService;
 
 import java.io.IOException;
@@ -32,7 +31,7 @@ import java.io.IOException;
  * @see <a href="https://github.com/raspberrypi/linux/blob/24e62728b3fc4f118c8ae17b374bce189bb188fc/drivers/input/joystick/rpisense-js.c">Sense HAT joystick Linux kernel driver</a>
  */
 @SuppressWarnings({"unused", "WeakerAccess"})
-public class Joystick implements AutoCloseable {
+public class Joystick {
 
     private static final String TAG = "SenseHatJoystick";
 
@@ -45,10 +44,6 @@ public class Joystick implements AutoCloseable {
 
     private static final int JOYSTICK_REG_KEYS = 0xF2;
 
-    private PeripheralManagerService mPioService;
-
-    private String mI2cBus;
-    private int mI2cAddress;
     private Gpio mInterruptGpio;
     private OnButtonEventListener mListener;
     private int mPrevKey;
@@ -70,16 +65,14 @@ public class Joystick implements AutoCloseable {
     /**
      * Creates a new joystick driver.
      *
-     * @param bus          the I2C bus the joystick controller is connected to
-     * @param address      the joystick controller I2C device slave address
      * @param interruptPin the interrupt GPIO pin the joystick controller is connected to
      * @throws IOException
      */
-    public Joystick(String bus, int address, String interruptPin) throws IOException {
-        mPioService = new PeripheralManagerService();
-        Gpio interruptGpio = mPioService.openGpio(interruptPin);
+    public Joystick(String interruptPin) throws IOException {
+        PeripheralManagerService pioService = new PeripheralManagerService();
+        Gpio interruptGpio = pioService.openGpio(interruptPin);
         try {
-            connect(bus, address, interruptGpio);
+            connect(interruptGpio);
         } catch (IOException | RuntimeException e) {
             close();
             throw e;
@@ -90,13 +83,11 @@ public class Joystick implements AutoCloseable {
      * Constructor invoked from unit tests.
      */
     @VisibleForTesting
-    /*package*/ Joystick(String bus, int address, Gpio interruptGpio) throws IOException {
-        connect(bus, address, interruptGpio);
+    /*package*/ Joystick(Gpio interruptGpio) throws IOException {
+        connect(interruptGpio);
     }
 
-    private void connect(String bus, int address, Gpio interruptGpio) throws IOException {
-        mI2cBus = bus;
-        mI2cAddress = address;
+    private void connect(Gpio interruptGpio) throws IOException {
         mInterruptGpio = interruptGpio;
         mInterruptGpio.setDirection(Gpio.DIRECTION_IN);
         mInterruptGpio.setEdgeTriggerType(Gpio.EDGE_BOTH);
@@ -112,9 +103,7 @@ public class Joystick implements AutoCloseable {
             try {
                 boolean trigger = gpio.getValue();
                 if (trigger) {
-                    I2cDevice i2c = mPioService.openI2cDevice(mI2cBus, mI2cAddress);
-                    int key = i2c.readRegByte(JOYSTICK_REG_KEYS) & 0x7F;
-                    i2c.close();
+                    int key = SenseHat.i2cDevice.readRegByte(JOYSTICK_REG_KEYS) & 0x7F;
                     if (key == KEY_RELEASED) {
                         performButtonEvent(mPrevKey, false);
                     } else {
@@ -144,8 +133,7 @@ public class Joystick implements AutoCloseable {
      *
      * @throws IOException
      */
-    @Override
-    public void close() throws IOException {
+    protected void close() throws IOException {
         mListener = null;
 
         if (mInterruptGpio != null) {

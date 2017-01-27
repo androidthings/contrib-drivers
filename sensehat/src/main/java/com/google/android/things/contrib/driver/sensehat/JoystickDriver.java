@@ -28,8 +28,8 @@ import java.io.IOException;
  * User-space driver to process button events from the Raspberry Pi Sense HAT joystick and forward
  * them to the Android input framework.
  */
-@SuppressWarnings("WeakerAccess")
-public class JoystickDriver implements AutoCloseable {
+@SuppressWarnings({"unused", "WeakerAccess"})
+public class JoystickDriver {
 
     // Driver parameters
     private static final String DRIVER_NAME = "SenseHatJoystick";
@@ -49,15 +49,13 @@ public class JoystickDriver implements AutoCloseable {
      * Creates a new framework input driver for the joystick. The driver emits
      * {@link KeyEvent} with the directional pad key codes when registered.
      *
-     * @param bus          the I2C bus the joystick controller is connected to
-     * @param address      the joystick controller I2C device slave address
      * @param interruptPin the interrupt GPIO pin the joystick controller is connected to
      * @return the new input driver instance
      * @throws IOException
      * @see #register
      */
-    public JoystickDriver(String bus, int address, String interruptPin) throws IOException {
-        mDevice = new Joystick(bus, address, interruptPin);
+    public JoystickDriver(String interruptPin) throws IOException {
+        mDevice = new Joystick(interruptPin);
     }
 
     /**
@@ -65,8 +63,7 @@ public class JoystickDriver implements AutoCloseable {
      *
      * @throws IOException
      */
-    @Override
-    public void close() throws IOException {
+    protected void close() throws IOException {
         unregister();
         if (mDevice != null) {
             try {

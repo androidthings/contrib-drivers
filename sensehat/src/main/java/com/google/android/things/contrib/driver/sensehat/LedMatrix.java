@@ -21,54 +21,19 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 
-import com.google.android.things.pio.I2cDevice;
-import com.google.android.things.pio.PeripheralManagerService;
-
 import java.io.IOException;
 
 /**
  * Driver for Raspberry Pi Sense HAT 8×8 RGB LED matrix.
  */
-public class LedMatrix implements AutoCloseable {
+public class LedMatrix {
 
     public static final int WIDTH = 8;
     public static final int HEIGHT = 8;
 
     private static final int BUFFER_SIZE = WIDTH * HEIGHT * 3 + 1;
 
-    private I2cDevice mDevice;
     private byte[] mBuffer = new byte[BUFFER_SIZE];
-
-    /**
-     * Creates a new LED matrix driver connected on the given I2C bus.
-     *
-     * @param bus I2C bus the sensor is connected to
-     * @throws IOException
-     */
-    public LedMatrix(String bus) throws IOException {
-        PeripheralManagerService pioService = new PeripheralManagerService();
-        mDevice = pioService.openI2cDevice(bus, SenseHat.I2C_ADDRESS);
-    }
-
-    /* package */ LedMatrix(I2cDevice device) {
-        mDevice = device;
-    }
-
-    /**
-     * Closes the driver and its underlying device.
-     *
-     * @throws IOException
-     */
-    @Override
-    public void close() throws IOException {
-        if (mDevice != null) {
-            try {
-                mDevice.close();
-            } finally {
-                mDevice = null;
-            }
-        }
-    }
 
     /**
      * Draws the given color to the LED matrix.
@@ -89,7 +54,7 @@ public class LedMatrix implements AutoCloseable {
                 mBuffer[1 + x + WIDTH * 2 + 3 * WIDTH * y] = b;
             }
         }
-        mDevice.write(mBuffer, mBuffer.length);
+        SenseHat.i2cDevice.write(mBuffer, mBuffer.length);
     }
 
     /**
@@ -123,7 +88,7 @@ public class LedMatrix implements AutoCloseable {
                 mBuffer[1 + x + WIDTH * 2 + 3 * WIDTH * y] = (byte) ((int) (Color.blue(p) * a) >> 3);
             }
         }
-        mDevice.write(mBuffer, mBuffer.length);
+        SenseHat.i2cDevice.write(mBuffer, mBuffer.length);
     }
 
 }
