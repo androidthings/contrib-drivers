@@ -50,7 +50,7 @@ try {
 try {
     mSpeaker.stop();
 } catch (IOException e) {
-    // error setting speaker
+    // error stopping speaker
 }
 
 // Close the speaker when finished:
