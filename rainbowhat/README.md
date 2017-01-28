@@ -92,7 +92,7 @@ segment.close();
 
 ```java
 // Light up the rainbow
-Apa102 ledstrip = RainbowHat.openLedStrip();
+Apa102 ledstrip = RainbowHatopenLedStrip(Apa102.Direction.NORMAL);
 ledstrip.setBrightness(31);
 int[] rainbow = new int[RainbowHat.LEDSTRIP_LENGTH];
 for (int i = 0; i < rainbow.length; i++) {
