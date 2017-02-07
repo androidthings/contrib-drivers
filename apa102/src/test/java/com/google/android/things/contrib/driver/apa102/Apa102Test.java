@@ -89,6 +89,45 @@ public class Apa102Test {
     }
 
     @Test
+    public void setDirection() throws IOException {
+        Apa102 leds = new Apa102(mSpiDevice, Apa102.Mode.BGR, Apa102.Direction.NORMAL);
+        leds.setDirection(Apa102.Direction.REVERSED);
+        assertEquals(Apa102.Direction.REVERSED, leds.getDirection());
+    }
+
+    @Test
+    public void setDirection_allowsChangeOfDirection() throws IOException {
+        ColorMock.mockStatic();
+        Apa102 leds = new Apa102(mSpiDevice, Apa102.Mode.BGR, Apa102.Direction.NORMAL);
+        final int brightness = 15;
+        leds.setBrightness(brightness);
+        final int[] colors = {0xff0000, 0x00ff00, 0x0000ff};
+        leds.write(colors);
+        int headerSize = 4;
+        int endframeSize = 4;
+        Mockito.verify(mSpiDevice).write(Mockito.argThat(BytesMatcher.contains(
+                (byte)(0xE0|brightness),
+                (byte)(colors[0]&0xff), (byte)(colors[0]>>8&0xff), (byte)(colors[0]>>16&0xff),
+                (byte)(0xE0|brightness),
+                (byte)(colors[1]&0xff), (byte)(colors[1]>>8&0xff), (byte)(colors[1]>>16&0xff),
+                (byte)(0xE0|brightness),
+                (byte)(colors[2]&0xff), (byte)(colors[2]>>8&0xff), (byte)(colors[2]>>16&0xff)
+        )), Mockito.eq(headerSize + colors.length*4 + endframeSize));
+
+        leds.setDirection(Apa102.Direction.REVERSED);
+
+        leds.write(colors);
+        Mockito.verify(mSpiDevice).write(Mockito.argThat(BytesMatcher.contains(
+                (byte)(0xE0|brightness),
+                (byte)(colors[2]&0xff), (byte)(colors[2]>>8&0xff), (byte)(colors[2]>>16&0xff),
+                (byte)(0xE0|brightness),
+                (byte)(colors[1]&0xff), (byte)(colors[1]>>8&0xff), (byte)(colors[1]>>16&0xff),
+                (byte)(0xE0|brightness),
+                (byte)(colors[0]&0xff), (byte)(colors[0]>>8&0xff), (byte)(colors[0]>>16&0xff)
+        )), Mockito.eq(headerSize + colors.length*4 + endframeSize));
+    }
+
+    @Test
     public void write() throws IOException {
         ColorMock.mockStatic();
         Apa102 leds = new Apa102(mSpiDevice, Apa102.Mode.BGR, Apa102.Direction.NORMAL);

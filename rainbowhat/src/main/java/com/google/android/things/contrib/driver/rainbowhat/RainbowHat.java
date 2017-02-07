@@ -89,7 +89,7 @@ public class RainbowHat {
         return ledGpio;
     }
 
-    public static Apa102 openLedStrip(Apa102.Direction direction) throws IOException {
-        return new Apa102(BUS_LEDSTRIP, Apa102.Mode.BGR, direction);
+    public static Apa102 openLedStrip() throws IOException {
+        return new Apa102(BUS_LEDSTRIP, Apa102.Mode.BGR);
     }
 }

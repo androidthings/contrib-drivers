@@ -159,6 +159,21 @@ public class Apa102 implements AutoCloseable {
     }
 
     /**
+     * Sets the direction of the LED strip.
+     * @param direction The direction of the LED strip, corresponding to {@link Direction}.
+     */
+    public void setDirection(Direction direction) {
+        mDirection = direction;
+    }
+
+    /**
+     * Get the current {@link Direction}
+     */
+    public Direction getDirection() {
+        return mDirection;
+    }
+
+    /**
      * Writes the current RGB Led data to the peripheral bus.
      * @param colors An array of integers corresponding to a {@link Color}.
      * @throws IOException
@@ -175,9 +190,10 @@ public class Apa102 implements AutoCloseable {
 
         // Compute the packets to send.
         byte brightness = (byte) (0xE0 | mLedBrightness); // Less brightness possible
+        final Direction currentDirection = mDirection; // Avoids reading changes of mDirection during loop
         for (int i = 0; i < colors.length; i++) {
             int position = ((i + 1) * APA102_PACKET_LENGTH);
-            int di = mDirection == Direction.NORMAL ? i : colors.length - i - 1;
+            int di = currentDirection == Direction.NORMAL ? i : colors.length - i - 1;
             byte[] colorData = getApaColorData(colors[di], brightness, mLedMode);
             System.arraycopy(colorData, 0, ledData, position, APA102_PACKET_LENGTH);
         }
