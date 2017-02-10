@@ -41,7 +41,7 @@ class BitwiseUtil {
      * Return true if the provided bit index is set in the given value.
      */
     static boolean isBitSet(byte value, int bitIndex) {
-        return (value & (1 << bitIndex)) != 0;
+        return ((value & (1 << bitIndex)) & 0xFF) != 0;
     }
 
     /**
@@ -49,9 +49,6 @@ class BitwiseUtil {
      * the provided bitmask and return the updated value.
      */
     static byte applyBitRange(byte base, int value, int bitmask) {
-        base &= ~bitmask;
-        base |= value & bitmask;
-
-        return base;
+        return (byte) (base & ~bitmask | (value & bitmask));
     }
 }

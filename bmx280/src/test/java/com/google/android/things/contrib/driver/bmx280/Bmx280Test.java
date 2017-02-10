@@ -16,6 +16,7 @@
 
 package com.google.android.things.contrib.driver.bmx280;
 
+
 import static com.google.android.things.contrib.driver.testutils.BitsMatcher.hasBitsSet;
 
 import static org.mockito.Matchers.any;
