@@ -18,6 +18,8 @@ package com.google.android.things.contrib.driver.hts221;
 
 import com.google.android.things.pio.I2cDevice;
 
+import static com.google.android.things.contrib.driver.testutils.BitsMatcher.hasBitsSet;
+
 import junit.framework.Assert;
 
 import org.junit.Rule;
@@ -97,7 +99,7 @@ public class Hts221Test {
         Mockito.reset(mI2c);
 
         hts221.setMode(Hts221.MODE_ACTIVE);
-        Mockito.verify(mI2c).writeRegByte(eq(0x20), byteThat(new BitsMatcher((byte) 0x80)));
+        Mockito.verify(mI2c).writeRegByte(eq(0x20), byteThat(hasBitsSet((byte) 0x80)));
     }
 
     @Test
@@ -117,13 +119,13 @@ public class Hts221Test {
 
         // Disable BDU
         hts221.setBlockDataUpdate(false);
-        Mockito.verify(mI2c).writeRegByte(eq(0x20), byteThat(new BitsMatcher((byte) 0x00)));
+        Mockito.verify(mI2c).writeRegByte(eq(0x20), byteThat(hasBitsSet((byte) 0x00)));
 
         Mockito.reset(mI2c);
 
         // Enable BDU
         hts221.setBlockDataUpdate(true);
-        Mockito.verify(mI2c).writeRegByte(eq(0x20), byteThat(new BitsMatcher((byte) 0x04)));
+        Mockito.verify(mI2c).writeRegByte(eq(0x20), byteThat(hasBitsSet((byte) 0x04)));
     }
 
     @Test
@@ -145,25 +147,25 @@ public class Hts221Test {
 
         // One-shot
         hts221.setOutputDataRate(Hts221.HTS221_ODR_ONE_SHOT);
-        Mockito.verify(mI2c).writeRegByte(eq(0x20), byteThat(new BitsMatcher((byte) 0x00)));
+        Mockito.verify(mI2c).writeRegByte(eq(0x20), byteThat(hasBitsSet((byte) 0x00)));
 
         Mockito.reset(mI2c);
 
         // 1 Hz
         hts221.setOutputDataRate(Hts221.HTS221_ODR_1_HZ);
-        Mockito.verify(mI2c).writeRegByte(eq(0x20), byteThat(new BitsMatcher((byte) 0x01)));
+        Mockito.verify(mI2c).writeRegByte(eq(0x20), byteThat(hasBitsSet((byte) 0x01)));
 
         Mockito.reset(mI2c);
 
         // 7 Hz
         hts221.setOutputDataRate(Hts221.HTS221_ODR_7_HZ);
-        Mockito.verify(mI2c).writeRegByte(eq(0x20), byteThat(new BitsMatcher((byte) 0x02)));
+        Mockito.verify(mI2c).writeRegByte(eq(0x20), byteThat(hasBitsSet((byte) 0x02)));
 
         Mockito.reset(mI2c);
 
         // 12.5 Hz
         hts221.setOutputDataRate(Hts221.HTS221_ODR_12_5_HZ);
-        Mockito.verify(mI2c).writeRegByte(eq(0x20), byteThat(new BitsMatcher((byte) 0x03)));
+        Mockito.verify(mI2c).writeRegByte(eq(0x20), byteThat(hasBitsSet((byte) 0x03)));
     }
 
     @Test
@@ -183,13 +185,13 @@ public class Hts221Test {
 
         // AVGH_64 + AVGT_2
         hts221.setAveragedSamples(Hts221.AV_CONF_AVGH_64, Hts221.AV_CONF_AVGT_2);
-        Mockito.verify(mI2c).writeRegByte(eq(0x10), byteThat(new BitsMatcher((byte) 0x04)));
+        Mockito.verify(mI2c).writeRegByte(eq(0x10), byteThat(hasBitsSet((byte) 0x04)));
 
         Mockito.reset(mI2c);
 
         // AVGH_512 + AVGT_256
         hts221.setAveragedSamples(Hts221.AV_CONF_AVGH_512, Hts221.AV_CONF_AVGT_256);
-        Mockito.verify(mI2c).writeRegByte(eq(0x10), byteThat(new BitsMatcher((byte) 0x3F)));
+        Mockito.verify(mI2c).writeRegByte(eq(0x10), byteThat(hasBitsSet((byte) 0x3F)));
     }
 
     @Test
@@ -259,5 +261,5 @@ public class Hts221Test {
         mExpectedException.expectMessage("I2C device is already closed");
         hts221.readTemperature();
     }
-    
+
 }

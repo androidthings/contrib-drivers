@@ -18,6 +18,8 @@ package com.google.android.things.contrib.driver.lps25h;
 
 import com.google.android.things.pio.I2cDevice;
 
+import static com.google.android.things.contrib.driver.testutils.BitsMatcher.hasBitsSet;
+
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -67,7 +69,7 @@ public class Lps25hTest {
         Mockito.reset(mI2c);
 
         lps25h.setMode(Lps25h.MODE_ACTIVE);
-        Mockito.verify(mI2c).writeRegByte(eq(0x20), byteThat(new BitsMatcher((byte) 0x80)));
+        Mockito.verify(mI2c).writeRegByte(eq(0x20), byteThat(hasBitsSet((byte) 0x80)));
     }
 
     @Test
@@ -87,13 +89,13 @@ public class Lps25hTest {
 
         // Disable BDU
         lps25h.setBlockDataUpdate(false);
-        Mockito.verify(mI2c).writeRegByte(eq(0x20), byteThat(new BitsMatcher((byte) 0x00)));
+        Mockito.verify(mI2c).writeRegByte(eq(0x20), byteThat(hasBitsSet((byte) 0x00)));
 
         Mockito.reset(mI2c);
 
         // Enable BDU
         lps25h.setBlockDataUpdate(true);
-        Mockito.verify(mI2c).writeRegByte(eq(0x20), byteThat(new BitsMatcher((byte) 0x04)));
+        Mockito.verify(mI2c).writeRegByte(eq(0x20), byteThat(hasBitsSet((byte) 0x04)));
     }
 
     @Test
@@ -115,31 +117,31 @@ public class Lps25hTest {
 
         // One-shot
         lps25h.setOutputDataRate(Lps25h.LPS25H_ODR_ONE_SHOT);
-        Mockito.verify(mI2c).writeRegByte(eq(0x20), byteThat(new BitsMatcher((byte) (0x00 << 4))));
+        Mockito.verify(mI2c).writeRegByte(eq(0x20), byteThat(hasBitsSet((byte) (0x00 << 4))));
 
         Mockito.reset(mI2c);
 
         // 1 Hz
         lps25h.setOutputDataRate(Lps25h.LPS25H_ODR_1_HZ);
-        Mockito.verify(mI2c).writeRegByte(eq(0x20), byteThat(new BitsMatcher((byte) (0x01 << 4))));
+        Mockito.verify(mI2c).writeRegByte(eq(0x20), byteThat(hasBitsSet((byte) (0x01 << 4))));
 
         Mockito.reset(mI2c);
 
         // 7 Hz
         lps25h.setOutputDataRate(Lps25h.LPS25H_ODR_7_HZ);
-        Mockito.verify(mI2c).writeRegByte(eq(0x20), byteThat(new BitsMatcher((byte) (0x02 << 4))));
+        Mockito.verify(mI2c).writeRegByte(eq(0x20), byteThat(hasBitsSet((byte) (0x02 << 4))));
 
         Mockito.reset(mI2c);
 
         // 12.5 Hz
         lps25h.setOutputDataRate(Lps25h.LPS25H_ODR_12_5_HZ);
-        Mockito.verify(mI2c).writeRegByte(eq(0x20), byteThat(new BitsMatcher((byte) (0x03 << 4))));
+        Mockito.verify(mI2c).writeRegByte(eq(0x20), byteThat(hasBitsSet((byte) (0x03 << 4))));
 
         Mockito.reset(mI2c);
 
         // 25 Hz
         lps25h.setOutputDataRate(Lps25h.LPS25H_ODR_25_HZ);
-        Mockito.verify(mI2c).writeRegByte(eq(0x20), byteThat(new BitsMatcher((byte) (0x04 << 4))));
+        Mockito.verify(mI2c).writeRegByte(eq(0x20), byteThat(hasBitsSet((byte) (0x04 << 4))));
     }
 
     @Test
@@ -161,13 +163,13 @@ public class Lps25hTest {
 
         // AVGP_32 + AVGT_16
         lps25h.setAveragedSamples(Lps25h.RES_CONF_AVGP_32, Lps25h.RES_CONF_AVGT_16);
-        Mockito.verify(mI2c).writeRegByte(eq(0x10), byteThat(new BitsMatcher((byte) 0x05)));
+        Mockito.verify(mI2c).writeRegByte(eq(0x10), byteThat(hasBitsSet((byte) 0x05)));
 
         Mockito.reset(mI2c);
 
         // AVGP_512 + AVGT_64
         lps25h.setAveragedSamples(Lps25h.RES_CONF_AVGP_512, Lps25h.RES_CONF_AVGT_64);
-        Mockito.verify(mI2c).writeRegByte(eq(0x10), byteThat(new BitsMatcher((byte) 0x08)));
+        Mockito.verify(mI2c).writeRegByte(eq(0x10), byteThat(hasBitsSet((byte) 0x08)));
     }
 
     @Test
@@ -237,5 +239,5 @@ public class Lps25hTest {
         mExpectedException.expectMessage("I2C device is already closed");
         lps25h.readTemperature();
     }
-    
+
 }
