@@ -29,3 +29,5 @@ include ':tm1637'
 include ':ssd1306'
 include ':rainbowhat'
 include ':sensehat'
+
+include ':testingutils'
