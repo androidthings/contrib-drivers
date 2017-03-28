@@ -11,6 +11,10 @@ of correctness, completeness or robustness.
 How to use the driver
 ---------------------
 
+NOTE: on Raspberry Pi 3 you need to disable the serial debugging console using
+the following [instructions][pi3-instructions] in order for the driver to be
+able to access the UART port.
+
 ### Gradle dependency
 
 To use the `gps` driver, simply add the line below to your project's `build.gradle`,
@@ -107,3 +111,4 @@ the License.
 
 [jcenter]: https://bintray.com/google/androidthings/contrib-driver-gps/_latestVersion
 [location]: https://developer.android.com/training/location/index.html
+[pi3-instructions]: https://developer.android.com/things/hardware/raspberrypi.html#disabling_the_console

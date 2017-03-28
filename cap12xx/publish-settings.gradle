@@ -1,0 +1,3 @@
+rootProject.buildFileName = '../publish.gradle'
+include 'testingutils'
+project(':testingutils').projectDir = new File(settingsDir, '../testingutils')

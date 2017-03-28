@@ -16,6 +16,14 @@
 
 package com.google.android.things.contrib.driver.bmx280;
 
+
+import static com.google.android.things.contrib.driver.testutils.BitsMatcher.hasBitsSet;
+
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.byteThat;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.times;
+
 import com.google.android.things.pio.I2cDevice;
 
 import junit.framework.Assert;
@@ -29,11 +37,6 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import java.io.IOException;
-
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.byteThat;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.times;
 
 public class Bmx280Test {
 
@@ -98,13 +101,13 @@ public class Bmx280Test {
         Bmx280 bmx280 = new Bmx280(mI2c);
         bmx280.setMode(Bmx280.MODE_NORMAL);
         Mockito.verify(mI2c).writeRegByte(eq(0xF4),
-                byteThat(new BitsMatcher((byte) (Bmx280.MODE_NORMAL))));
+                byteThat(hasBitsSet((byte) (Bmx280.MODE_NORMAL))));
 
         Mockito.reset(mI2c);
 
         bmx280.setMode(Bmx280.MODE_SLEEP);
         Mockito.verify(mI2c).writeRegByte(eq(0xF4),
-                byteThat(new BitsMatcher((byte) (Bmx280.MODE_SLEEP))));
+                byteThat(hasBitsSet((byte) (Bmx280.MODE_SLEEP))));
     }
 
     @Test
@@ -120,14 +123,14 @@ public class Bmx280Test {
         Bmx280 bmx280 = new Bmx280(mI2c);
         bmx280.setTemperatureOversampling(Bmx280.OVERSAMPLING_1X);
         Mockito.verify(mI2c).writeRegByte(eq(0xF4),
-                byteThat(new BitsMatcher((byte) (Bmx280.OVERSAMPLING_1X << 5))));
+                byteThat(hasBitsSet((byte) (Bmx280.OVERSAMPLING_1X << 5))));
 
         Mockito.reset(mI2c);
 
         bmx280.setTemperatureOversampling(Bmx280.OVERSAMPLING_SKIPPED);
         //noinspection PointlessBitwiseExpression
         Mockito.verify(mI2c).writeRegByte(eq(0xF4),
-                byteThat(new BitsMatcher((byte) (Bmx280.OVERSAMPLING_SKIPPED << 5))));
+                byteThat(hasBitsSet((byte) (Bmx280.OVERSAMPLING_SKIPPED << 5))));
     }
 
     @Test
@@ -143,14 +146,14 @@ public class Bmx280Test {
         Bmx280 bmx280 = new Bmx280(mI2c);
         bmx280.setPressureOversampling(Bmx280.OVERSAMPLING_1X);
         Mockito.verify(mI2c).writeRegByte(eq(0xF4),
-                byteThat(new BitsMatcher((byte) (Bmx280.OVERSAMPLING_1X << 2))));
+                byteThat(hasBitsSet((byte) (Bmx280.OVERSAMPLING_1X << 2))));
 
         Mockito.reset(mI2c);
 
         bmx280.setPressureOversampling(Bmx280.OVERSAMPLING_SKIPPED);
         //noinspection PointlessBitwiseExpression
         Mockito.verify(mI2c).writeRegByte(eq(0xF4),
-                byteThat(new BitsMatcher((byte) (Bmx280.OVERSAMPLING_SKIPPED << 2))));
+                byteThat(hasBitsSet((byte) (Bmx280.OVERSAMPLING_SKIPPED << 2))));
     }
 
     @Test

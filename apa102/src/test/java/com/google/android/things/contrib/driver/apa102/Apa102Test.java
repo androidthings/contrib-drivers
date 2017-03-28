@@ -16,6 +16,10 @@
 
 package com.google.android.things.contrib.driver.apa102;
 
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.times;
+
 import android.graphics.Color;
 
 import com.google.android.things.contrib.driver.apa102.Apa102.Mode;
@@ -33,10 +37,6 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
-
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.times;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(android.graphics.Color.class)
@@ -117,7 +117,7 @@ public class Apa102Test {
         leds.setDirection(Apa102.Direction.REVERSED);
 
         leds.write(colors);
-        Mockito.verify(mSpiDevice).write(Mockito.argThat(BytesMatcher.contains(
+        Mockito.verify(mSpiDevice, times(2)).write(Mockito.argThat(BytesMatcher.contains(
                 (byte)(0xE0|brightness),
                 (byte)(colors[2]&0xff), (byte)(colors[2]>>8&0xff), (byte)(colors[2]>>16&0xff),
                 (byte)(0xE0|brightness),
@@ -176,7 +176,7 @@ public class Apa102Test {
     }
 
     @Test
-    public void getApaColorData() {
+    public void copyApaColorData() {
         ColorMock.mockStatic();
 
         final byte brightness = 15;
@@ -186,17 +186,30 @@ public class Apa102Test {
         // #HOLOYOLO
         final int color = Color.argb(0xFF, r & 0xFF, g & 0xFF, b & 0xFF); // suppress sign extension
 
-        assertArrayEquals(new byte[]{brightness, b, g, r},
-                Apa102.getApaColorData(color, brightness, Mode.BGR));
-        assertArrayEquals(new byte[]{brightness, b, r, g},
-                Apa102.getApaColorData(color, brightness, Mode.BRG));
-        assertArrayEquals(new byte[]{brightness, g, b, r},
-                Apa102.getApaColorData(color, brightness, Mode.GBR));
-        assertArrayEquals(new byte[]{brightness, g, r, b},
-                Apa102.getApaColorData(color, brightness, Mode.GRB));
-        assertArrayEquals(new byte[]{brightness, r, b, g},
-                Apa102.getApaColorData(color, brightness, Mode.RBG));
-        assertArrayEquals(new byte[]{brightness, r, g, b},
-                Apa102.getApaColorData(color, brightness, Mode.RGB));
+        final byte[] dest = new byte[4];
+        Apa102.copyApaColorData(brightness, color, Mode.BGR, dest, 0);
+        assertArrayEquals(new byte[]{brightness, b, g, r}, dest);
+        Apa102.copyApaColorData(brightness, color, Mode.BRG, dest, 0);
+        assertArrayEquals(new byte[]{brightness, b, r, g}, dest);
+        Apa102.copyApaColorData(brightness, color, Mode.GBR, dest, 0);
+        assertArrayEquals(new byte[]{brightness, g, b, r}, dest);
+        Apa102.copyApaColorData(brightness, color, Mode.GRB, dest, 0);
+        assertArrayEquals(new byte[]{brightness, g, r, b}, dest);
+        Apa102.copyApaColorData(brightness, color, Mode.RBG, dest, 0);
+        assertArrayEquals(new byte[]{brightness, r, b, g}, dest);
+        Apa102.copyApaColorData(brightness, color, Mode.RGB, dest, 0);
+        assertArrayEquals(new byte[]{brightness, r, g, b}, dest);
+    }
+
+    @Test
+    public void copyApaColorData_throwsIfNullArray() {
+        mExpectedException.expect(IllegalArgumentException.class);
+        Apa102.copyApaColorData((byte) 0, 0, Mode.BGR, null, 0);
+    }
+
+    @Test
+    public void copyApaColorData_throwsIfArrayTooSmall() {
+        mExpectedException.expect(IllegalArgumentException.class);
+        Apa102.copyApaColorData((byte) 0, 0, Mode.BGR, new byte[3], 0);
     }
 }

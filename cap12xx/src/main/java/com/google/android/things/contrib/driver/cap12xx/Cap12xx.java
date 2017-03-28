@@ -132,6 +132,7 @@ public class Cap12xx implements AutoCloseable {
     private static final int REG_INPUT_EN      = 0x21;
     private static final int REG_INPUT_CFG     = 0x22;
     private static final int REG_INPUT_CFG2    = 0x23;
+    private static final int REG_SAMPLING_CFG  = 0x24;
     private static final int REG_INTERRUPT_EN  = 0x27;
     private static final int REG_REPEAT_EN     = 0x28;
     private static final int REG_MTOUCH_CFG    = 0x2A;
@@ -139,33 +140,49 @@ public class Cap12xx implements AutoCloseable {
 
     private I2cDevice mDevice;
     private Gpio mAlertPin;
-    private Configuration mChipConfiguration;
+    private final Configuration mChipConfiguration;
 
     private Handler mInputHandler;
     private OnCapTouchListener mCapTouchListener;
     private boolean[] mInputStatus;
 
+    // used for reading input status
+    private byte[] mInputDeltas;
+    private byte[] mInputThresholds;
+
+    /**
+     * @deprecated Use {@link #Cap12xx(String, String, Configuration)} instead.
+     */
+    @Deprecated
+    public Cap12xx(Context context, String i2cName, String alertName, Configuration chip) throws IOException {
+        this(i2cName, alertName, chip, null);
+    }
+
     /**
      * Create a new Cap12xx controller.
      *
-     * @param context Current context, used for loading resources.
      * @param i2cName I2C port name where the controller is attached. Cannot be null.
      * @param alertName optional GPIO pin name connected to the controller's
      *                  alert interrupt signal. Can be null.
      * @param chip identifier for the connected controller device chip.
      * @throws IOException
      */
-    public Cap12xx(Context context,
-                   String i2cName,
-                   String alertName,
-                   Configuration chip) throws IOException {
-        this(context, i2cName, alertName, chip, null);
+    public Cap12xx(String i2cName, String alertName, Configuration chip) throws IOException {
+        this(i2cName, alertName, chip, null);
+    }
+
+    /**
+     * @deprecated Use {@link #Cap12xx(String, String, Configuration, Handler)} instead.
+     */
+    @Deprecated
+    public Cap12xx(Context context, String i2cName, String alertName, Configuration chip,
+            Handler handler) throws IOException {
+        this(i2cName, alertName, chip, handler);
     }
 
     /**
      * Create a new Cap12xx controller.
      *
-     * @param context Current context, used for loading resources.
      * @param i2cName I2C port name where the controller is attached. Cannot be null.
      * @param alertName optional GPIO pin name connected to the controller's
      *                  alert interrupt signal. Can be null.
@@ -173,11 +190,9 @@ public class Cap12xx implements AutoCloseable {
      * @param handler optional {@link Handler} for software polling and callback events.
      * @throws IOException
      */
-    public Cap12xx(Context context,
-                   String i2cName,
-                   String alertName,
-                   Configuration chip,
-                   Handler handler) throws IOException {
+    public Cap12xx(String i2cName, String alertName, Configuration chip, Handler handler)
+            throws IOException {
+        mChipConfiguration = chip;
         try {
             PeripheralManagerService manager = new PeripheralManagerService();
             I2cDevice device = manager.openI2cDevice(i2cName, I2C_ADDRESS);
@@ -200,9 +215,8 @@ public class Cap12xx implements AutoCloseable {
      * Constructor invoked from unit tests.
      */
     @VisibleForTesting
-    /*package*/ Cap12xx(I2cDevice i2cDevice,
-                        Gpio alertPin,
-                        Configuration chip) throws IOException {
+    /*package*/ Cap12xx(I2cDevice i2cDevice, Gpio alertPin, Configuration chip) throws IOException {
+        mChipConfiguration = chip;
         init(i2cDevice, alertPin, chip, null);
     }
 
@@ -220,12 +234,14 @@ public class Cap12xx implements AutoCloseable {
 
         mDevice = i2cDevice;
         mAlertPin = alertPin;
-        mChipConfiguration = chip;
 
         // Create handler for polling and callbacks
         mInputHandler = new Handler(handler == null
                 ? Looper.myLooper() : handler.getLooper());
         mInputStatus = new boolean[mChipConfiguration.channelCount];
+
+        mInputDeltas = new byte[mChipConfiguration.channelCount];
+        mInputThresholds = new byte[mChipConfiguration.channelCount];
 
         if (mAlertPin != null) {
             // Configure hardware interrupt trigger
@@ -243,6 +259,9 @@ public class Cap12xx implements AutoCloseable {
         setMultitouchInputMax(mChipConfiguration.maxTouch); // Enable multitouch
         setRepeatRate(REPEAT_NORMAL);
         setSensitivity(SENSITIVITY_NORMAL);
+
+        // These configs are not exposed yet. Reduce cycle time to 35ms and sampling time to 640us.
+        mDevice.writeRegByte(REG_SAMPLING_CFG, (byte) 0b00110100);
     }
 
     /**
@@ -316,13 +335,10 @@ public class Cap12xx implements AutoCloseable {
                     + mChipConfiguration.maxTouch);
         }
 
-        // Enable multitouch blocking to cap touches at the maximum value
         byte value = mDevice.readRegByte(REG_MTOUCH_CFG);
+        // Enable multitouch blocking to cap touches at the maximum value
         value = BitwiseUtil.setBit(value, 7);   // Enable MULT_BLK
-        mDevice.writeRegByte(REG_MTOUCH_CFG, value);
-
         // Configure the maximum number of touch points
-        value = mDevice.readRegByte(REG_MTOUCH_CFG);
         count = (count - 1) << 2;
         value = BitwiseUtil.applyBitRange(value, count, 0x0C); // B_MULT_T bits
         mDevice.writeRegByte(REG_MTOUCH_CFG, value);
@@ -334,8 +350,25 @@ public class Cap12xx implements AutoCloseable {
      * @throws IOException
      */
     public boolean readInterruptFlag() throws IOException {
+        return readInterruptFlag(false);
+    }
+
+    /**
+     * Return whether the interrupt bit on the controller is currently active. If {@code clear} is
+     * true and the interrupt bit is currently active, this will also clear the interrupt bit.
+     *
+     * @param clear True to clear the interrupt bit if it's set on the controller, false to leave
+     *              the interrupt bit unchanged.
+     * @throws IOException
+     */
+    public boolean readInterruptFlag(boolean clear) throws IOException {
         byte value = mDevice.readRegByte(REG_MAIN_CONTROL);
-        return BitwiseUtil.isBitSet(value, 0); // INT bit
+        boolean flag = BitwiseUtil.isBitSet(value, 0); // INT bit
+        if (flag && clear) {
+            value = BitwiseUtil.clearBit(value, 0); // Clear the INT bit
+            mDevice.writeRegByte(REG_MAIN_CONTROL, value);
+        }
+        return flag;
     }
 
     /**
@@ -457,16 +490,14 @@ public class Cap12xx implements AutoCloseable {
      */
     private byte readInputStatus() throws IOException {
         byte statusFlags = mDevice.readRegByte(REG_INPUT_STATUS);
-        byte[] deltas = new byte[mChipConfiguration.channelCount];
-        byte[] thresholds = new byte[mChipConfiguration.channelCount];
-        mDevice.readRegBuffer(REG_INPUT_DELTA, deltas, deltas.length);
-        mDevice.readRegBuffer(REG_INPUT_THRESH, thresholds, thresholds.length);
+        mDevice.readRegBuffer(REG_INPUT_DELTA, mInputDeltas, mInputDeltas.length);
+        mDevice.readRegBuffer(REG_INPUT_THRESH, mInputThresholds, mInputThresholds.length);
 
         for (int i = 0; i < mChipConfiguration.channelCount; i++) {
             // Check if input was active during interrupt
             if (BitwiseUtil.isBitSet(statusFlags, i)) {
                 // Check if sense is high enough to register a touch
-                if (deltas[i] >= thresholds[i]) {
+                if (mInputDeltas[i] >= mInputThresholds[i]) {
                     // Input pressed this cycle
                     statusFlags = BitwiseUtil.setBit(statusFlags, i);
                 } else {
@@ -483,7 +514,10 @@ public class Cap12xx implements AutoCloseable {
      * Callback invoked when the optional alert pin of the
      * touch controller signals an interrupt.
      */
-    private GpioCallback mAlertPinCallback = new GpioCallback() {
+    private GpioCallback mAlertPinCallback = new AlertCallback();
+
+    @VisibleForTesting
+    /*package*/ class AlertCallback extends GpioCallback {
         @Override
         public boolean onGpioEdge(Gpio gpio) {
             handleInterrupt();
@@ -513,9 +547,10 @@ public class Cap12xx implements AutoCloseable {
      * optional alert pin to read the current input channel
      * status from the controller.
      */
-    private void handleInterrupt() {
+    @VisibleForTesting
+    /*package*/ void handleInterrupt() {
         try {
-            if (readInterruptFlag()) {
+            if (readInterruptFlag(true)) {
                 // Update status result
                 final byte inputStatus = readInputStatus();
                 for (int i = 0; i < mChipConfiguration.channelCount; i++) {
@@ -526,9 +561,6 @@ public class Cap12xx implements AutoCloseable {
                 if (mCapTouchListener != null) {
                     mCapTouchListener.onCapTouchEvent(this, mInputStatus);
                 }
-
-                // Clear interrupt
-                clearInterruptFlag();
             }
         } catch (IOException e) {
             Log.w(TAG, "Unable to process interrupt event", e);

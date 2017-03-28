@@ -15,6 +15,11 @@
  */
 package com.google.android.things.contrib.driver.button;
 
+import static junit.framework.Assert.assertEquals;
+
+import static org.mockito.Matchers.any;
+import static org.mockito.internal.verification.VerificationModeFactory.times;
+
 import android.view.ViewConfiguration;
 
 import com.google.android.things.contrib.driver.button.Button.InterruptCallback;
@@ -35,13 +40,6 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertFalse;
-import static junit.framework.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ViewConfiguration.class, Button.class, Gpio.class})
@@ -100,25 +98,21 @@ public class ButtonTest {
     @Test
     public void setButtonEventListener() throws IOException {
         Button button = new Button(mGpio, LogicState.PRESSED_WHEN_HIGH);
-        final AtomicBoolean verifyPressed = new AtomicBoolean();
+        // Add listener
+        OnButtonEventListener mockListener = Mockito.mock(OnButtonEventListener.class);
+        button.setOnButtonEventListener(mockListener);
 
-        button.setOnButtonEventListener(new OnButtonEventListener() {
-            @Override
-            public void onButtonEvent(Button b, boolean pressed) {
-                verifyPressed.set(pressed);
-            }
-        });
-
+        // Perform button events and check the listener is called
         button.performButtonEvent(true);
-        assertTrue(verifyPressed.get());
+        Mockito.verify(mockListener, times(1)).onButtonEvent(button, true);
         button.performButtonEvent(false);
-        assertFalse(verifyPressed.get());
+        Mockito.verify(mockListener, times(1)).onButtonEvent(button, false);
 
-        // remove listener
+        // Remove listener
         button.setOnButtonEventListener(null);
-        verifyPressed.set(false);
+        // Perform button events and check the listener is NOT called
         button.performButtonEvent(true);
-        assertFalse(verifyPressed.get()); // should not have been changed by the listener
+        Mockito.verifyNoMoreInteractions(mockListener);
     }
 
 }

@@ -40,9 +40,17 @@ try {
 // Make it play:
 
 try {
-    mSpeaker.play(440 /* tone */, 3000L /* duration */);
+    mSpeaker.play(440 /* tone */);
 } catch (IOException e) {
     // error setting speaker
+}
+
+// Stop a currently playing tone:
+
+try {
+    mSpeaker.stop();
+} catch (IOException e) {
+    // error stopping speaker
 }
 
 // Close the speaker when finished:
