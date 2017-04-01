@@ -75,7 +75,7 @@ public class Apa102 implements AutoCloseable {
     // Device SPI Configuration constants
     private static final int SPI_BPW = 8; // Bits per word
     private static final int SPI_FREQUENCY = 1000000;
-    private static final int SPI_MODE = 2;
+    private static final int SPI_MODE = SpiDevice.MODE2;
 
     // Protocol constants for APA102c
     private static final int APA_PACKET_LENGTH = 4;
