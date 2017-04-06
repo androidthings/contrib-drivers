@@ -29,7 +29,7 @@ android {
 }
 
 dependencies {
-    provided 'com.google.android.things:androidthings:0.2-devpreview'
+    provided 'com.google.android.things:androidthings:0.3-devpreview'
     compile 'com.android.support:support-annotations:24.2.0'
 
     testCompile 'junit:junit:4.12'
