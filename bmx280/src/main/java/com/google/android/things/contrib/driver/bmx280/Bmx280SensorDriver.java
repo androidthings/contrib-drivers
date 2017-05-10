@@ -144,7 +144,7 @@ public class Bmx280SensorDriver implements AutoCloseable {
 
         private UserSensor getUserSensor() {
             if (mUserSensor == null) {
-                mUserSensor = UserSensor.builder()
+                mUserSensor = new UserSensor.Builder()
                         .setType(Sensor.TYPE_PRESSURE)
                         .setName(DRIVER_NAME)
                         .setVendor(DRIVER_VENDOR)
@@ -194,7 +194,7 @@ public class Bmx280SensorDriver implements AutoCloseable {
 
         private UserSensor getUserSensor() {
             if (mUserSensor == null) {
-                mUserSensor = UserSensor.builder()
+                mUserSensor = new UserSensor.Builder()
                         .setType(Sensor.TYPE_AMBIENT_TEMPERATURE)
                         .setName(DRIVER_NAME)
                         .setVendor(DRIVER_VENDOR)

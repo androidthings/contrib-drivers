@@ -233,7 +233,7 @@ public class Cap12xxInputDriver implements AutoCloseable {
      * uses to emit input events based on the driver's event codes list.
      */
     private InputDriver buildInputDriver() {
-        return InputDriver.builder(InputDevice.SOURCE_CLASS_BUTTON)
+        return new InputDriver.Builder(InputDevice.SOURCE_CLASS_BUTTON)
                 .setName(DRIVER_NAME)
                 .setVersion(DRIVER_VERSION)
                 .setKeys(mKeycodes)

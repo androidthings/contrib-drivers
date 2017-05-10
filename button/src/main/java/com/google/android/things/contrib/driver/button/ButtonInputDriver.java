@@ -95,7 +95,7 @@ public class ButtonInputDriver implements AutoCloseable {
     }
 
     static InputDriver build(Button button, final int keyCode) {
-        final InputDriver inputDriver = InputDriver.builder(InputDevice.SOURCE_CLASS_BUTTON)
+        final InputDriver inputDriver = new InputDriver.Builder(InputDevice.SOURCE_CLASS_BUTTON)
                 .setName(DRIVER_NAME)
                 .setVersion(DRIVER_VERSION)
                 .setKeys(new int[]{keyCode})

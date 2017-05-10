@@ -46,7 +46,7 @@ android {
 
 dependencies {
     compile 'com.android.support:support-annotations:24.2.0'
-    provided 'com.google.android.things:androidthings:0.3-devpreview'
+    provided 'com.google.android.things:androidthings:0.4-devpreview'
 
     testCompile project(':testingutils')
     testCompile 'org.powermock:powermock-module-junit4:1.6.6'
