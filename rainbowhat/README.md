@@ -11,6 +11,8 @@ Things][product]:
 - Piezo Buzzer (PWM)
 - Servo header (PWM)
 
+The pin/bus mapping and helper methods provided by this driver are only
+compatible with the following boards: Raspberry Pi 3 and NXP Pico i.MX7D.
 
 NOTE: these drivers are not production-ready. They are offered as sample
 implementations of Android Things user space drivers for common peripherals

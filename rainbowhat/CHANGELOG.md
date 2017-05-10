@@ -1,8 +1,13 @@
 # Change Log
 
-## [0.3] - 2017-05-09
+## [0.4] - 2017-05-17
+### Added
+- support for NXP IMX7UL Pico pinout
+- methods for direct led and button addressing
+
+## [0.3] - 2017-05-13
 ### Updated
-- supporlibrary bumped to 0.4
+- supportlibrary bumped to 0.4
 
 ## [0.2] - 2017-01-18
 ### Added
