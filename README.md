@@ -33,6 +33,7 @@ Current contrib drivers
 <!-- DRIVER_LIST_START -->
 Driver | Type | Usage (add to your gradle dependencies) | Note
 :---:|:---:| --- | ---
+[driver-adcv2x](adcv2x) | Sparkfun ADC Block for Intel Edison | `compile 'com.google.android.things.contrib:driver-adcv2x:unknown'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/adcv2x)
 [driver-apa102](apa102) | RGB LED strip | `compile 'com.google.android.things.contrib:driver-apa102:0.2'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/apa102) [changelog](apa102/CHANGELOG.md)
 [driver-bmx280](bmx280) | temperature and pressure sensor | `compile 'com.google.android.things.contrib:driver-bmx280:0.1'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/bmx280)
 [driver-button](button) | push button over GPIO | `compile 'com.google.android.things.contrib:driver-button:0.2'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/button) [changelog](button/CHANGELOG.md)
