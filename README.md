@@ -33,20 +33,20 @@ Current contrib drivers
 <!-- DRIVER_LIST_START -->
 Driver | Type | Usage (add to your gradle dependencies) | Note
 :---:|:---:| --- | ---
-[driver-adcv2x](adcv2x) | Sparkfun ADC Block for Intel Edison | `compile 'com.google.android.things.contrib:driver-adcv2x:unknown'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/adcv2x)
-[driver-apa102](apa102) | RGB LED strip | `compile 'com.google.android.things.contrib:driver-apa102:0.2'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/apa102) [changelog](apa102/CHANGELOG.md)
-[driver-bmx280](bmx280) | temperature and pressure sensor | `compile 'com.google.android.things.contrib:driver-bmx280:0.1'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/bmx280)
-[driver-button](button) | push button over GPIO | `compile 'com.google.android.things.contrib:driver-button:0.2'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/button) [changelog](button/CHANGELOG.md)
-[driver-cap12xx](cap12xx) | capacitive touch buttons | `compile 'com.google.android.things.contrib:driver-cap12xx:0.1'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/cap12xx)
-[driver-gps](gps) | GPS | `compile 'com.google.android.things.contrib:driver-gps:0.2'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/gps) [changelog](gps/CHANGELOG.md)
-[driver-ht16k33](ht16k33) | 7-digit alphanumeric segment display | `compile 'com.google.android.things.contrib:driver-ht16k33:0.2'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/ht16k33) [changelog](ht16k33/CHANGELOG.md)
-[driver-mma7660fc](mma7660fc) | accelerometer sensor | `compile 'com.google.android.things.contrib:driver-mma7660fc:0.1'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/mma7660fc)
-[driver-pwmservo](pwmservo) | PWM servo | `compile 'com.google.android.things.contrib:driver-pwmservo:0.1'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/pwmservo)
-[driver-pwmspeaker](pwmspeaker) | PWM speaker/buzzer | `compile 'com.google.android.things.contrib:driver-pwmspeaker:0.1'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/pwmspeaker)
-[driver-rainbowhat](rainbowhat) | metadriver for the Rainbow HAT | `compile 'com.google.android.things.contrib:driver-rainbowhat:0.2'` | [sample](https://github.com/androidthings/weatherstation) [changelog](rainbowhat/CHANGELOG.md)
-[driver-sensehat](sensehat) | metadriver for the Sense HAT | `compile 'com.google.android.things.contrib:driver-sensehat:0.1'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/sensehat)
-[driver-ssd1306](ssd1306) | OLED display | `compile 'com.google.android.things.contrib:driver-ssd1306:0.2'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/ssd1306) [changelog](ssd1306/CHANGELOG.md)
-[driver-tm1637](tm1637) | 4-digit numeric segment display | `compile 'com.google.android.things.contrib:driver-tm1637:0.1'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/tm1637)
+[driver-adcv2x](adcv2x) | Sparkfun ADC Block for Intel Edison | `compile 'com.google.android.things.contrib:driver-adcv2x:0.2'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/adcv2x) [changelog](adcv2x/CHANGELOG.md)
+[driver-apa102](apa102) | RGB LED strip | `compile 'com.google.android.things.contrib:driver-apa102:0.3'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/apa102) [changelog](apa102/CHANGELOG.md)
+[driver-bmx280](bmx280) | temperature and pressure sensor | `compile 'com.google.android.things.contrib:driver-bmx280:0.2'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/bmx280) [changelog](bmx280/CHANGELOG.md)
+[driver-button](button) | push button over GPIO | `compile 'com.google.android.things.contrib:driver-button:0.3'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/button) [changelog](button/CHANGELOG.md)
+[driver-cap12xx](cap12xx) | capacitive touch buttons | `compile 'com.google.android.things.contrib:driver-cap12xx:0.3'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/cap12xx) [changelog](cap12xx/CHANGELOG.md)
+[driver-gps](gps) | GPS | `compile 'com.google.android.things.contrib:driver-gps:0.3'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/gps) [changelog](gps/CHANGELOG.md)
+[driver-ht16k33](ht16k33) | 7-digit alphanumeric segment display | `compile 'com.google.android.things.contrib:driver-ht16k33:0.3'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/ht16k33) [changelog](ht16k33/CHANGELOG.md)
+[driver-mma7660fc](mma7660fc) | accelerometer sensor | `compile 'com.google.android.things.contrib:driver-mma7660fc:0.2'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/mma7660fc) [changelog](mma7660fc/CHANGELOG.md)
+[driver-pwmservo](pwmservo) | PWM servo | `compile 'com.google.android.things.contrib:driver-pwmservo:0.2'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/pwmservo) [changelog](pwmservo/CHANGELOG.md)
+[driver-pwmspeaker](pwmspeaker) | PWM speaker/buzzer | `compile 'com.google.android.things.contrib:driver-pwmspeaker:0.2'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/pwmspeaker) [changelog](pwmspeaker/CHANGELOG.md)
+[driver-rainbowhat](rainbowhat) | metadriver for the Rainbow HAT | `compile 'com.google.android.things.contrib:driver-rainbowhat:0.3'` | [sample](https://github.com/androidthings/weatherstation) [changelog](rainbowhat/CHANGELOG.md)
+[driver-sensehat](sensehat) | metadriver for the Sense HAT | `compile 'com.google.android.things.contrib:driver-sensehat:0.2'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/sensehat) [changelog](sensehat/CHANGELOG.md)
+[driver-ssd1306](ssd1306) | OLED display | `compile 'com.google.android.things.contrib:driver-ssd1306:0.3'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/ssd1306) [changelog](ssd1306/CHANGELOG.md)
+[driver-tm1637](tm1637) | 4-digit numeric segment display | `compile 'com.google.android.things.contrib:driver-tm1637:0.2'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/tm1637) [changelog](tm1637/CHANGELOG.md)
 <!-- DRIVER_LIST_END -->
 
 License
