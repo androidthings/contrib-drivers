@@ -22,10 +22,10 @@ import com.google.android.things.pio.PeripheralManagerService;
 import java.io.IOException;
 
 /**
- * Based on CPP Impl:
+ * ADC driver based on C++ implementation
  * https://github.com/sparkfun/SparkFun_ADC_Block_for_Edison_CPP_Library/blob/master/SparkFunADS1015.cpp
  *
- * with lots and lots of bs byte->short->unsigned errors because JAVA.
+ * With lots of byte to short to unsigned conversions.
  */
 
 public class Adcv2x implements AutoCloseable {
