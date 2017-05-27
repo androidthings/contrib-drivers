@@ -85,6 +85,21 @@ public class Speaker implements AutoCloseable {
     }
 
     /**
+     * Play the specified frequency. Plays for the given duration, after which it calls {@link #stop()} itself.
+     *
+     * @param frequency the frequency to play in Hz
+     * @param duration  the duration of the sound in millis
+     * @throws IOException
+     * @throws IllegalStateException if the device is closed
+     * @throws InterruptedException  if any thread has interrupted the thread used for the {@param duration} of the play
+     */
+    public void play(double frequency, long duration) throws IOException, IllegalStateException, InterruptedException {
+        play(frequency);
+        Thread.sleep(duration);
+        stop();
+    }
+
+    /**
      * Stop a currently playing frequency
      *
      * @throws IOException
