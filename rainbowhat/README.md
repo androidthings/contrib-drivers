@@ -107,15 +107,12 @@ ledstrip.close();
 
 ```java
 // Detect button press.
-Button button = RainbowHat.openButton(RainbowHat.BUTTON_A);
-button.setOnButtonEventListener(new Button.OnButtonEventListener() {
-    @Override
-    public void onButtonEvent(Button button, boolean pressed) {
+Button buttonA = RainbowHat.openButton(RainbowHat.BUTTON_A);
+buttonA.setOnButtonEventListener((button, pressed) -> {
         Log.d(TAG, "button A pressed:" + pressed);
-    }
 });
 // Close the device when done.
-button.close();
+buttonA.close();
 ```
 
 ```java
