@@ -55,6 +55,20 @@ public class Bmx280SensorDriver implements AutoCloseable {
     }
 
     /**
+     * Create a new framework sensor driver connected on the given bus and address.
+     * The driver emits {@link android.hardware.Sensor} with pressure and temperature data when
+     * registered.
+     * @param bus I2C bus the sensor is connected to.
+     * @param address I2C address of the sensor.
+     * @throws IOException
+     * @see #registerPressureSensor()
+     * @see #registerTemperatureSensor()
+     */
+    public Bmx280SensorDriver(String bus, int address) throws IOException {
+        mDevice = new Bmx280(bus, address);
+    }
+
+    /**
      * Close the driver and the underlying device.
      * @throws IOException
      */
