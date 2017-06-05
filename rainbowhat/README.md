@@ -44,7 +44,7 @@ import com.google.android.things.contrib.driver.rainbowhat.RainbowHat;
 
 ```java
 // Light up the Red LED.
-Gpio led = RainbowHat.openLed(RainbowHat.LED_RED);
+Gpio led = RainbowHat.openLedRed();
 led.setValue(true);
 // Close the device when done.
 led.close();
@@ -106,8 +106,8 @@ ledstrip.close();
 ```
 
 ```java
-// Detect button press.
-Button button = RainbowHat.openButton(RainbowHat.BUTTON_A);
+// Detect when button 'A' is pressed.
+Button button = RainbowHat.openButtonA();
 button.setOnButtonEventListener(new Button.OnButtonEventListener() {
     @Override
     public void onButtonEvent(Button button, boolean pressed) {
@@ -120,8 +120,7 @@ button.close();
 
 ```java
 // Get native Android 'A' key events when button 'A' is pressed.
-ButtonInputDriver inputDriver = RainbowHat.createButtonInputDriver(
-        RainbowHat.BUTTON_A,    // button on the hat
+ButtonInputDriver inputDriver = RainbowHat.createButtonAInputDriver(
         KeyEvent.KEYCODE_A      // keyCode to send
 );
 inputDriver.register();
