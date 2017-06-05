@@ -104,6 +104,7 @@ public class Apa102Test {
         final int[] colors = {0xff0000, 0x00ff00, 0x0000ff};
         leds.write(colors);
         int headerSize = 4;
+        int resetframeSize = 4;
         int endframeSize = 4;
         Mockito.verify(mSpiDevice).write(Mockito.argThat(BytesMatcher.contains(
                 (byte)(0xE0|brightness),
@@ -112,7 +113,7 @@ public class Apa102Test {
                 (byte)(colors[1]&0xff), (byte)(colors[1]>>8&0xff), (byte)(colors[1]>>16&0xff),
                 (byte)(0xE0|brightness),
                 (byte)(colors[2]&0xff), (byte)(colors[2]>>8&0xff), (byte)(colors[2]>>16&0xff)
-        )), Mockito.eq(headerSize + colors.length*4 + endframeSize));
+        )), Mockito.eq(headerSize + colors.length*4 + resetframeSize + endframeSize));
 
         leds.setDirection(Apa102.Direction.REVERSED);
 
@@ -124,7 +125,7 @@ public class Apa102Test {
                 (byte)(colors[1]&0xff), (byte)(colors[1]>>8&0xff), (byte)(colors[1]>>16&0xff),
                 (byte)(0xE0|brightness),
                 (byte)(colors[0]&0xff), (byte)(colors[0]>>8&0xff), (byte)(colors[0]>>16&0xff)
-        )), Mockito.eq(headerSize + colors.length*4 + endframeSize));
+        )), Mockito.eq(headerSize + colors.length*4 + resetframeSize + endframeSize));
     }
 
     @Test
@@ -136,6 +137,7 @@ public class Apa102Test {
         final int[] colors = {0xff0000, 0x00ff00, 0x0000ff};
         leds.write(colors);
         int headerSize = 4;
+        int resetframeSize = 4;
         int endframeSize = 4;
         Mockito.verify(mSpiDevice).write(Mockito.argThat(BytesMatcher.contains(
                 (byte)(0xE0|brightness),
@@ -144,7 +146,7 @@ public class Apa102Test {
                 (byte)(colors[1]&0xff), (byte)(colors[1]>>8&0xff), (byte)(colors[1]>>16&0xff),
                 (byte)(0xE0|brightness),
                 (byte)(colors[2]&0xff), (byte)(colors[2]>>8&0xff), (byte)(colors[2]>>16&0xff)
-        )), Mockito.eq(headerSize + colors.length*4 + endframeSize));
+        )), Mockito.eq(headerSize + colors.length*4 + resetframeSize + endframeSize));
     }
 
     @Test
@@ -156,6 +158,7 @@ public class Apa102Test {
         final int[] colors = {0xff0000, 0x00ff00, 0x0000ff};
         leds.write(colors);
         int headerSize = 4;
+        int resetframeSize = 4;
         int endframeSize = 4;
         Mockito.verify(mSpiDevice).write(Mockito.argThat(BytesMatcher.contains(
                 (byte)(0xE0|brightness),
@@ -164,7 +167,7 @@ public class Apa102Test {
                 (byte)(colors[1]&0xff), (byte)(colors[1]>>8&0xff), (byte)(colors[1]>>16&0xff),
                 (byte)(0xE0|brightness),
                 (byte)(colors[0]&0xff), (byte)(colors[0]>>8&0xff), (byte)(colors[0]>>16&0xff)
-        )), Mockito.eq(headerSize + colors.length*4 + endframeSize));
+        )), Mockito.eq(headerSize + colors.length*4 + resetframeSize + endframeSize));
     }
 
     @Test

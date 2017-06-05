@@ -78,9 +78,19 @@ public class Apa102 implements AutoCloseable {
     private static final int SPI_MODE = SpiDevice.MODE2;
 
     // Protocol constants for APA102c
-    private static final int APA_PACKET_LENGTH = 4;
+    // Start frame: 0x00000000
+    private static final int APA_START_FRAME_PACKET_LENGTH = 4;
+    // Color frame: 0xe{brightness}{color[0]}{color[1]}{color[2]}
+    private static final int APA_COLOR_PACKET_LENGTH = 4;
+    // Reset frame: 0x00000000 (for SK9822 variant)
+    // See: https://cpldcpu.com/2016/12/13/sk9822-a-clone-of-the-apa102/
+    private static final int APA_RESET_FRAME_PACKET_LENGTH = 4;
+    // End frame: 0x00000000 (up to 64 LEDs)
+    private static final int APA_END_FRAME_PACKET_LENGTH = 4;
+
     private static final byte APA_START_DATA_BYTE = (byte) 0x00;
-    private static final byte APA_END_DATA_BYTE = (byte) 0xFF;
+    private static final byte APA_RESET_DATA_BYTE = (byte) 0x00;
+    private static final byte APA_END_DATA_BYTE = (byte) 0x00;
 
     // For peripherals access
     private SpiDevice mDevice = null;
@@ -187,25 +197,39 @@ public class Apa102 implements AutoCloseable {
             throw new IllegalStateException("SPI device not open");
         }
 
-        final int size = APA_PACKET_LENGTH * (2 + colors.length);
+        final int size = APA_START_FRAME_PACKET_LENGTH
+                + APA_COLOR_PACKET_LENGTH * colors.length
+                + APA_RESET_FRAME_PACKET_LENGTH
+                + APA_END_FRAME_PACKET_LENGTH;
+
+        int pos = 0;
+
         if (mLedData == null || mLedData.length < size) {
             mLedData = new byte[size];
-            // Add the RGB LED start bits (0 ... 0)
-            Arrays.fill(mLedData, 0, APA_PACKET_LENGTH, APA_START_DATA_BYTE);
+            // Add start frame.
+            Arrays.fill(mLedData, 0, APA_START_FRAME_PACKET_LENGTH, APA_START_DATA_BYTE);
         }
+        pos += APA_START_FRAME_PACKET_LENGTH;
 
         // Compute the packets to send.
         byte brightness = (byte) (0xE0 | mLedBrightness); // Less brightness possible
         final Direction currentDirection = mDirection; // Avoids reading changes of mDirection during loop
         for (int i = 0; i < colors.length; i++) {
-            int position = ((i + 1) * APA_PACKET_LENGTH);
             int di = currentDirection == Direction.NORMAL ? i : colors.length - i - 1;
-            copyApaColorData(brightness, colors[di], mLedMode, mLedData, position);
+            copyApaColorData(brightness, colors[di], mLedMode, mLedData, pos);
+            pos += APA_COLOR_PACKET_LENGTH;
         }
 
-        // Add the RGB LED end bits
-        Arrays.fill(mLedData, size - APA_PACKET_LENGTH, size, APA_END_DATA_BYTE);
-
+        // Add reset frame.
+        Arrays.fill(mLedData, pos, pos + APA_RESET_FRAME_PACKET_LENGTH, APA_RESET_DATA_BYTE);
+        pos += APA_RESET_FRAME_PACKET_LENGTH;
+        // Add end frame.
+        Arrays.fill(mLedData, pos, pos + APA_END_FRAME_PACKET_LENGTH, APA_END_DATA_BYTE);
+        pos += APA_END_FRAME_PACKET_LENGTH;
+        if (pos != size) {
+            throw new IllegalStateException("end position: " + pos + " should match size: " + size);
+        }
+        // Write frames to device.
         mDevice.write(mLedData, size);
     }
 
