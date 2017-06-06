@@ -43,9 +43,11 @@ public class Bmx280 implements AutoCloseable {
      */
     public static final int CHIP_ID_BME280 = 0x60;
     /**
-     * I2C address for the sensor.
+     * Default I2C address for the sensor.
      */
-    public static final int I2C_ADDRESS = 0x77;
+    public static final int DEFAULT_I2C_ADDRESS = 0x77;
+    @Deprecated
+    public static final int I2C_ADDRESS = DEFAULT_I2C_ADDRESS;
 
     // Sensor constants from the datasheet.
     // https://cdn-shop.adafruit.com/datasheets/BST-BMP280-DS001-11.pdf
@@ -146,8 +148,18 @@ public class Bmx280 implements AutoCloseable {
      * @throws IOException
      */
     public Bmx280(String bus) throws IOException {
+        this(bus, DEFAULT_I2C_ADDRESS);
+    }
+
+    /**
+     * Create a new BMP/BME280 sensor driver connected on the given bus and address.
+     * @param bus I2C bus the sensor is connected to.
+     * @param address I2C address of the sensor.
+     * @throws IOException
+     */
+    public Bmx280(String bus, int address) throws IOException {
         PeripheralManagerService pioService = new PeripheralManagerService();
-        I2cDevice device = pioService.openI2cDevice(bus, I2C_ADDRESS);
+        I2cDevice device = pioService.openI2cDevice(bus, address);
         try {
             connect(device);
         } catch (IOException|RuntimeException e) {
