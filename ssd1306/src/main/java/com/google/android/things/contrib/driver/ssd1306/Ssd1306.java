@@ -34,8 +34,8 @@ public class Ssd1306 implements Closeable {
     private I2cDevice mI2cDevice;
 
     // Screen configuration constants.
-    private static final int LCDWIDTH = 128;
-    private static final int LCDHEIGHT = 64;
+    private static final int DEFAULT_WIDTH = 128;
+    private static final int DEFAULT_HEIGHT = 64;
 
     /**
      * I2C address for this peripheral
@@ -88,8 +88,6 @@ public class Ssd1306 implements Closeable {
             0, (byte) INIT_CHARGE_PUMP
     };
 
-    // Holds the i2c payload.
-    private final byte[] mBuffer = new byte[((LCDWIDTH * LCDHEIGHT) / 8) + 1];
 
     public enum ScrollMode {
         RightHorizontal,
@@ -97,6 +95,13 @@ public class Ssd1306 implements Closeable {
         VerticalRightHorizontal,
         VerticalLeftHorizontal
     }
+
+    // Screen dimension.
+    private int mWidth;
+    private int mHeight;
+
+    // Holds the i2c payload.
+    private byte[] mBuffer;
 
     /**
      * Create a new Ssd1306 driver connected to the named I2C bus
@@ -108,15 +113,40 @@ public class Ssd1306 implements Closeable {
     }
 
     /**
+     * Create a new Ssd1306 driver connected to the named I2C bus
+     * with the given dimensions.
+     * @param i2cName I2C bus name the display is connected to
+     * @param width display width in pixels.
+     * @param height display height in pixels.
+     * @throws IOException
+     */
+    public Ssd1306(String i2cName,  int width, int height) throws IOException {
+        this(i2cName, I2C_ADDRESS, width, height);
+    }
+
+    /**
      * Create a new Ssd1306 driver connected to the named I2C bus and address
      * @param i2cName I2C bus name the display is connected to
      * @param i2cAddress I2C address of the display
      * @throws IOException
      */
     public Ssd1306(String i2cName, int i2cAddress) throws IOException {
+        this(i2cName, i2cAddress, DEFAULT_WIDTH, DEFAULT_HEIGHT);
+    }
+
+    /**
+     * Create a new Ssd1306 driver connected to the named I2C bus and address
+     * with the given dimensions.
+     * @param i2cName I2C bus name the display is connected to
+     * @param i2cAddress I2C address of the display
+     * @param width display width in pixels.
+     * @param height display height in pixels.
+     * @throws IOException
+     */
+    public Ssd1306(String i2cName, int i2cAddress, int width, int height) throws IOException {
         I2cDevice device = new PeripheralManagerService().openI2cDevice(i2cName, i2cAddress);
         try {
-            init(device);
+            init(device, width, height);
         } catch (IOException | RuntimeException e) {
             try {
                 close();
@@ -132,7 +162,7 @@ public class Ssd1306 implements Closeable {
      * @throws IOException
      */
     /*package*/ Ssd1306(I2cDevice device) throws IOException {
-        init(device);
+        init(device, DEFAULT_WIDTH, DEFAULT_HEIGHT);
     }
 
     /**
@@ -140,10 +170,13 @@ public class Ssd1306 implements Closeable {
      * WARNING: If you change this code, power cycle your display before testing.
      * @throws IOException
      */
-    private void init(I2cDevice device) throws IOException {
+    private void init(I2cDevice device, int width, int height) throws IOException {
         mI2cDevice = device;
+        mWidth = width;
+        mHeight = height;
+        mBuffer = new byte[((mWidth * mHeight) / 8) + 1];
         BitmapHelper.bmpToBytes(mBuffer, DATA_OFFSET,
-                Bitmap.createBitmap(LCDWIDTH, LCDHEIGHT, Bitmap.Config.ARGB_8888),
+                Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888),
                 false);
         mBuffer[0] = (byte) COMMAND_START_LINE;
 
@@ -167,14 +200,14 @@ public class Ssd1306 implements Closeable {
      * @return the width of the display
      */
     public int getLcdWidth() {
-        return LCDWIDTH;
+        return mWidth;
     }
 
     /**
      * @return the height of the display
      */
     public int getLcdHeight() {
-        return LCDHEIGHT;
+        return mHeight;
     }
 
     /**
@@ -194,13 +227,13 @@ public class Ssd1306 implements Closeable {
      * @param on Set to true to enable the pixel; false to disable the pixel.
      */
     public void setPixel(int x, int y, boolean on) throws IllegalArgumentException {
-        if (x < 0 || y < 0 || x >= LCDWIDTH || y >= LCDHEIGHT) {
+        if (x < 0 || y < 0 || x >= mWidth || y >= mHeight) {
             throw new IllegalArgumentException("pixel out of bound:" + x + "," + y);
         }
         if (on) {
-            mBuffer[DATA_OFFSET + x + ((y / 8) * LCDWIDTH)] |= (1 << y % 8);
+            mBuffer[DATA_OFFSET + x + ((y / 8) * mWidth)] |= (1 << y % 8);
         } else {
-            mBuffer[DATA_OFFSET + x + ((y / 8) * LCDWIDTH)] &= ~(1 << y % 8);
+            mBuffer[DATA_OFFSET + x + ((y / 8) * mWidth)] &= ~(1 << y % 8);
         }
     }
 
