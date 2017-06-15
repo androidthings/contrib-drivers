@@ -1,5 +1,9 @@
 # Change Log
 
+## [0.4] - 2017-06-16
+### Fixed
+- fix framing packet (issue #31)
+
 ## [0.3] - 2017-05-09
 ### Updated
 - supportlibrary bumped to 0.4
