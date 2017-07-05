@@ -67,7 +67,7 @@ try {
             KeyEvent.KEYCODE_A // the keycode to send
     );
     mInputDriver.register();
-} catch () {
+} catch (IOException e) {
     // error configuring button...
 }
 
@@ -84,7 +84,7 @@ public boolean onKeyDown(int keyCode, KeyEvent event) {
 
 // Unregister and close the input driver when finished:
 
-mInputDriver.unregister;
+mInputDriver.unregister();
 try {
     mInputDriver.close();
 } catch (IOException e) {
