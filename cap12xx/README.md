@@ -100,7 +100,7 @@ public boolean onKeyDown(int keyCode, KeyEvent event) {
 
 // Unregister and close the input driver when finished:
 
-mInputDriver.unregister;
+mInputDriver.unregister();
 try {
     mInputDriver.close();
 } catch (IOException e) {
