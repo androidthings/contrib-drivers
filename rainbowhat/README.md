@@ -143,7 +143,7 @@ public boolean onKeyUp(int keyCode, KeyEvent event) {
 ```
 
 ```java
-// Continously report temperature.
+// Continuously report temperature.
 final SensorManager sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
 sensorManager.registerDynamicSensorCallback(new SensorManager.DynamicSensorCallback() {
     @Override
