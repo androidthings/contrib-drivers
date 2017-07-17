@@ -37,7 +37,6 @@ NmeaGpsModule mGpsModule;
 
 try {
     mGpsModule = new NmeaGpsModule(
-            this,           // context
             uartPortName,
             baudRate        // specified baud rate for your GPS peripheral
     );
