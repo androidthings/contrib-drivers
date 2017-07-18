@@ -16,11 +16,14 @@
 
 /**
  * To publish a driver to Maven local:
- *     ./gradlew -PPUBLISHING=true [driver_name]:clean [driver_name]:publishToMavenLocal
+ *     ./gradlew -PPUBLISHING [driver_name]:clean [driver_name]:publishToMavenLocal
  *
  * To publish a driver to Bintray:
  * Set environmental variables BINTRAY_USER and BINTRAY_API_KEY to proper values and run
- *     ./gradlew -PDRIVER_PUBLISHING=true [driver_name]:clean [driver_name]:bintrayUpload
+ *     ./gradlew -PPUBLISHING [driver_name]:clean [driver_name]:bintrayUpload
+ *
+ * Additionally, add the -PSNAPSHOT flag to replace artifact version names with "SNAPSHOT". Note
+ * that bintrayUpload tasks will not upload the artifact if this flag is used.
  */
 
 allprojects {
@@ -29,6 +32,7 @@ allprojects {
 }
 
 String publicationName = 'driverPublish'
+boolean snapshot = hasProperty "SNAPSHOT"
 
 subprojects {
     if (!project.findProperty("ARTIFACT_VERSION")) {
@@ -42,12 +46,14 @@ subprojects {
         from android.sourceSets.main.java.sourceFiles
     }
 
+    def artifactVersion = snapshot ? "SNAPSHOT" : ARTIFACT_VERSION
+
     publishing {
         publications {
             "$publicationName"(MavenPublication) {
                 groupId 'com.google.android.things.contrib'
                 artifactId "driver-$project.name"
-                version ARTIFACT_VERSION
+                version artifactVersion
                 artifact sourceJar
                 artifact("$buildDir/outputs/aar/$project.name-release.aar")
                 pom.withXml {
@@ -73,6 +79,7 @@ subprojects {
         publications = [publicationName]
 
         publish = true
+        dryRun = snapshot
 
         pkg {
             repo = 'androidthings'
@@ -80,7 +87,7 @@ subprojects {
             userOrg = 'google'
 
             version {
-                name = ARTIFACT_VERSION
+                name = artifactVersion
                 gpg {
                     sign = true
                 }
