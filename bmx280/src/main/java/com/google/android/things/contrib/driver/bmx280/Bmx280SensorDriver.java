@@ -211,8 +211,7 @@ public class Bmx280SensorDriver implements AutoCloseable {
         @Override
         public void setEnabled(boolean enabled) throws IOException {
             mEnabled = enabled;
-            mDevice.setPressureOversampling(
-                    enabled ? Bmx280.OVERSAMPLING_1X : Bmx280.OVERSAMPLING_SKIPPED);
+            syncSamplingState();
             maybeSleep();
         }
 
@@ -261,8 +260,7 @@ public class Bmx280SensorDriver implements AutoCloseable {
         @Override
         public void setEnabled(boolean enabled) throws IOException {
             mEnabled = enabled;
-            mDevice.setTemperatureOversampling(
-                    enabled ? Bmx280.OVERSAMPLING_1X : Bmx280.OVERSAMPLING_SKIPPED);
+            syncSamplingState();
             maybeSleep();
         }
 
@@ -311,13 +309,7 @@ public class Bmx280SensorDriver implements AutoCloseable {
         @Override
         public void setEnabled(boolean enabled) throws IOException {
             mEnabled = enabled;
-            if (enabled) {
-                // we need temperature oversampling enabled for reading humidity, but we don't want
-                // to disable it, because another UserDriver might be active.
-                mDevice.setTemperatureOversampling(Bmx280.OVERSAMPLING_1X);
-            }
-            mDevice.setHumidityOversampling(
-                    enabled ? Bmx280.OVERSAMPLING_1X : Bmx280.OVERSAMPLING_SKIPPED);
+            syncSamplingState();
             maybeSleep();
         }
 
@@ -326,4 +318,20 @@ public class Bmx280SensorDriver implements AutoCloseable {
         }
     }
 
+    private void syncSamplingState() throws IOException {
+        // pressure and humidity both depend on temperature sampling
+        boolean humidityEnabled = mHumidityUserDriver != null && mHumidityUserDriver.isEnabled();
+        boolean pressureEnabled = mPressureUserDriver != null && mPressureUserDriver.isEnabled();
+        boolean temperatureEnabled = humidityEnabled || pressureEnabled ||
+                mTemperatureUserDriver != null && mTemperatureUserDriver.isEnabled();
+
+        mDevice.setTemperatureOversampling(
+                temperatureEnabled ? Bmx280.OVERSAMPLING_1X : Bmx280.OVERSAMPLING_SKIPPED);
+        mDevice.setPressureOversampling(
+                pressureEnabled ? Bmx280.OVERSAMPLING_1X : Bmx280.OVERSAMPLING_SKIPPED);
+        if (mDevice.hasHumiditySensor()) {
+            mDevice.setHumidityOversampling(
+                    humidityEnabled ? Bmx280.OVERSAMPLING_1X : Bmx280.OVERSAMPLING_SKIPPED);
+        }
+    }
 }
