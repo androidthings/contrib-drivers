@@ -17,10 +17,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.google.android.things.contrib.driver.voicehat">
 
-  <!-- Used to record data using device microphone -->
-  <uses-permission android:name="android.permission.RECORD_AUDIO" />
-  <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
-
   <application>
     <uses-library android:name="com.google.android.things"/>
   </application>

@@ -29,6 +29,17 @@ import com.google.android.things.userdriver.UserDriverManager;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+/**
+ * This class provides a driver to use the VoiceHat, which enables connection to a microphone and
+ * speaker for audio input and output. In order to take full advantage of this feature, multiple
+ * permissions should be added to the application manifest:
+ *
+ * <pre>
+ * &lt;uses-permission android:name=&quot;android.permission.RECORD_AUDIO&quot; /&gt;
+ * &lt;uses-permission android:name=&quot;android.permission.MODIFY_AUDIO_SETTINGS&quot; /&gt;
+ * &lt;uses-permission android:name=&quot;com.google.android.things.permission.MANAGE_AUDIO_DRIVERS&quot; /&gt;
+ * </pre>
+ */
 public class VoiceHat implements AutoCloseable {
     private static final String TAG = VoiceHat.class.getSimpleName();
 
