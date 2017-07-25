@@ -245,11 +245,13 @@ public class Ssd1306 implements Closeable {
      */
     public void setContrast(int level) throws IOException, IllegalArgumentException {
         if (level < 0 || level > 255) {
-            throw new IllegalArgumentException("contrast out of bound:" + level);
+            throw new IllegalArgumentException("Invalid contrast " + String.valueOf(level) +
+                    ", level must be between 0 and 255");
         }
-        mI2cDevice.writeRegByte(0, (byte) COMMAND_CONTRAST_LEVEL );
-        mI2cDevice.writeRegByte(0, (byte) level );
+        mI2cDevice.writeRegByte(0, (byte) COMMAND_CONTRAST_LEVEL);
+        mI2cDevice.writeRegByte(0, (byte) level);
     }
+
 
     /**
      * Turns the display on and off.
