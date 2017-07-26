@@ -1,5 +1,6 @@
 package com.google.android.things.contrib.driver.zxsensor;
 
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.google.android.things.pio.PeripheralManagerService;
@@ -114,7 +115,10 @@ class ZxSensorUart implements ZxSensor {
         this.deviceErrorListener = errorListener;
     }
 
+    private UartDeviceCallback onUartBusHasData;
+
     public void startMonitoringGestures() {
+        onUartBusHasData = createCallback();
         try {
             mDevice.registerUartDeviceCallback(onUartBusHasData);
         } catch (IOException e) {
@@ -122,51 +126,59 @@ class ZxSensorUart implements ZxSensor {
         }
     }
 
-    private final UartDeviceCallback onUartBusHasData = new UartDeviceCallback() {
-        @Override
-        public boolean onUartDeviceDataAvailable(UartDevice uart) {
-            try {
-                byte[] buffer = new byte[4];
-                while (uart.read(buffer, buffer.length) > 0) {
-                    byte messageCode = buffer[0];
-                    switch (messageCode) {
-                        case (byte) 0xFF:
-                            handlePenUpMessage();
-                            break;
-                        case (byte) 0xFE:
-                            handleRangesMessage(buffer[1], buffer[2]);
-                            break;
-                        case (byte) 0xFA:
-                            handleXCoordinateMessage(buffer[1]);
-                            break;
-                        case (byte) 0xFB:
-                            handleZCoordinateMessage(buffer[1]);
-                            break;
-                        case (byte) 0xFC:
-                            handleGestureEventMessage(buffer[1], buffer[2], buffer[2]);
-                            break;
-                        case (byte) 0xF1:
-                            handleIdMessage(buffer[1], buffer[2], buffer[3]);
-                            break;
-                        default:
-                            // do nothing, fail silently
-                            break;
+    /**
+     * We create it like this because otherwise the class is untestable
+     *
+     * https://issuetracker.google.com/issues/37133681
+     */
+    @NonNull
+    private UartDeviceCallback createCallback() {
+        return new UartDeviceCallback() {
+            @Override
+            public boolean onUartDeviceDataAvailable(UartDevice uart) {
+                try {
+                    byte[] buffer = new byte[4];
+                    while (uart.read(buffer, buffer.length) > 0) {
+                        byte messageCode = buffer[0];
+                        switch (messageCode) {
+                            case (byte) 0xFF:
+                                handlePenUpMessage();
+                                break;
+                            case (byte) 0xFE:
+                                handleRangesMessage(buffer[1], buffer[2]);
+                                break;
+                            case (byte) 0xFA:
+                                handleXCoordinateMessage(buffer[1]);
+                                break;
+                            case (byte) 0xFB:
+                                handleZCoordinateMessage(buffer[1]);
+                                break;
+                            case (byte) 0xFC:
+                                handleGestureEventMessage(buffer[1], buffer[2], buffer[2]);
+                                break;
+                            case (byte) 0xF1:
+                                handleIdMessage(buffer[1], buffer[2], buffer[3]);
+                                break;
+                            default:
+                                // do nothing, fail silently
+                                break;
+                        }
                     }
+
+                } catch (IOException e) {
+                    throw new IllegalStateException("Cannot read device data.", e);
                 }
-
-            } catch (IOException e) {
-                throw new IllegalStateException("Cannot read device data.", e);
+                return true;
             }
-            return true;
-        }
 
-        @Override
-        public void onUartDeviceError(UartDevice uart, int error) {
-            if (deviceErrorListener != null) {
-                deviceErrorListener.onDeviceError(error);
+            @Override
+            public void onUartDeviceError(UartDevice uart, int error) {
+                if (deviceErrorListener != null) {
+                    deviceErrorListener.onDeviceError(error);
+                }
             }
-        }
-    };
+        };
+    }
 
     /**
      * Indicates that the reflector moved out

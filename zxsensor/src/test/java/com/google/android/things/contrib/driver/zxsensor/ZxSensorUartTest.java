@@ -1,14 +1,12 @@
 package com.google.android.things.contrib.driver.zxsensor;
 
 import com.google.android.things.pio.UartDevice;
-import com.google.android.things.pio.UartDeviceCallback;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 
 public class ZxSensorUartTest {
@@ -22,11 +20,39 @@ public class ZxSensorUartTest {
     }
 
     @Test
-    public void startMonitor_registersWithBus() throws Exception {
-        ZxSensorUart sensor = new ZxSensorUart("any", mockDevice);
+    public void baudRateMatchesDatasheet() throws Exception {
+        new ZxSensorUart("", mockDevice);
 
-        sensor.startMonitoringGestures();
+        verify(mockDevice).setBaudrate(115200);
+    }
 
-        verify(mockDevice).registerUartDeviceCallback(any(UartDeviceCallback.class));
+    @Test
+    public void commsDataSizeMatchesDatasheet() throws Exception {
+        new ZxSensorUart("", mockDevice);
+
+        verify(mockDevice).setDataSize(8);
+    }
+
+    @Test
+    public void parityBitMatchesDatasheet() throws Exception {
+        new ZxSensorUart("", mockDevice);
+
+        verify(mockDevice).setParity(UartDevice.PARITY_NONE);
+    }
+
+    @Test
+    public void stopBitMatchesDatasheet() throws Exception {
+        new ZxSensorUart("", mockDevice);
+
+        verify(mockDevice).setStopBits(1);
+    }
+
+    @Test
+    public void deviceIsClosedWhenClosing() throws Exception {
+        ZxSensorUart uart = new ZxSensorUart("", mockDevice);
+
+        uart.close();
+
+        verify(mockDevice).close();
     }
 }
