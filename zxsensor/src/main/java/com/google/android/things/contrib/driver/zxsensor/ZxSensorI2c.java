@@ -158,7 +158,6 @@ class ZxSensorI2c implements ZxSensor {
             mDataNotifyBus.setActiveType(Gpio.ACTIVE_HIGH);
             mDataNotifyBus.setDirection(Gpio.DIRECTION_IN);
             mDataNotifyBus.setEdgeTriggerType(Gpio.EDGE_RISING);
-            mDataNotifyBus.registerGpioCallback(onI2cDataAvailable);
         } catch (IOException e) {
             throw new IllegalStateException(dataNotifyPinName + " cannot be configured.", e);
         }
@@ -202,6 +201,7 @@ class ZxSensorI2c implements ZxSensor {
 
     public void startMonitoringGestures() {
         try {
+            mDataNotifyBus.registerGpioCallback(onI2cDataAvailable);
             mDevice.writeRegByte(DATA_READ_ENABLE, ENABLE_ALL);
         } catch (IOException e) {
             throw new IllegalStateException("Cannot listen for input from " + i2cBus, e);
@@ -370,6 +370,7 @@ class ZxSensorI2c implements ZxSensor {
 
     public void stopMonitoringGestures() {
         try {
+            mDataNotifyBus.unregisterGpioCallback(onI2cDataAvailable);
             mDevice.writeRegByte(DATA_READ_ENABLE, DISABLE_ALL);
         } catch (IOException e) {
             throw new IllegalStateException("Cannot listen for input from " + i2cBus, e);
@@ -387,6 +388,7 @@ class ZxSensorI2c implements ZxSensor {
         hoverListener = null;
         messageListener = null;
         gestureListener = null;
-        mDataNotifyBus.unregisterGpioCallback(onI2cDataAvailable);
+        mDevice.close();
+        mDataNotifyBus.close();
     }
 }
