@@ -1,5 +1,6 @@
 package com.google.android.things.contrib.driver.zxsensor;
 
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
@@ -144,6 +145,8 @@ class ZxSensorI2c implements ZxSensor {
     @Nullable
     private ZxSensor.GestureListener gestureListener;
 
+    private GpioCallback onI2cDataAvailable;
+
     ZxSensorI2c(String i2cBus, String gpioDataNotifyPin) throws IOException {
         this.i2cBus = i2cBus;
         this.dataNotifyPinName = gpioDataNotifyPin;
@@ -200,6 +203,7 @@ class ZxSensorI2c implements ZxSensor {
     }
 
     public void startMonitoringGestures() {
+        onI2cDataAvailable = createCallback();
         try {
             mDataNotifyBus.registerGpioCallback(onI2cDataAvailable);
             mDevice.writeRegByte(DATA_READ_ENABLE, ENABLE_ALL);
@@ -208,42 +212,50 @@ class ZxSensorI2c implements ZxSensor {
         }
     }
 
-    private final GpioCallback onI2cDataAvailable = new GpioCallback() {
-        @Override
-        public boolean onGpioEdge(Gpio gpio) {
-            try {
-                byte dataReadyConfiguration = mDevice.readRegByte(DATA_READY_CONFIG);
-                Log.d("TUT", "drc " + dataReadyConfiguration);
+    /**
+     * We create it like this because otherwise the class is untestable
+     * <p>
+     * https://issuetracker.google.com/issues/37133681
+     */
+    @NonNull
+    private GpioCallback createCallback() {
+        return new GpioCallback() {
+            @Override
+            public boolean onGpioEdge(Gpio gpio) {
+                try {
+                    byte dataReadyConfiguration = mDevice.readRegByte(DATA_READY_CONFIG);
+                    Log.d("TUT", "drc " + dataReadyConfiguration);
 
-                byte status = mDevice.readRegByte(STATUS);
-                Log.d("TUT", "Status " + status);
+                    byte status = mDevice.readRegByte(STATUS);
+                    Log.d("TUT", "Status " + status);
 
-                // (range) Position Data Available
-                if ((status & 0b00000001) == 0b00000001) {
-                    handleRanges();
+                    // (range) Position Data Available
+                    if ((status & 0b00000001) == 0b00000001) {
+                        handleRanges();
+                    }
+                    // Swipe Gesture Available
+                    if ((status & 0b00000100) == 0b00000100) {
+                        Log.d("TUT", "SWIPE GESTURE DATA AVAILABLE");
+                        handleGesture();
+                    }
+                    // Hover Gesture Available
+                    if ((status & 0b00001000) == 0b000001000) {
+                        Log.d("TUT", "HOVER GESTURE DATA AVAILABLE");
+                        handleGesture();
+                    }
+                    // Hover-Move Gesture Available
+                    if ((status & 0b00001000) == 0b000001000) {
+                        Log.d("TUT", "HOVER-Move GESTURE DATA AVAILABLE");
+                        handleGesture();
+                    }
+                } catch (IOException e) {
+                    throw new IllegalStateException("Cannot read device data.", e);
                 }
-                // Swipe Gesture Available
-                if ((status & 0b00000100) == 0b00000100) {
-                    Log.d("TUT", "SWIPE GESTURE DATA AVAILABLE");
-                    handleGesture();
-                }
-                // Hover Gesture Available
-                if ((status & 0b00001000) == 0b000001000) {
-                    Log.d("TUT", "HOVER GESTURE DATA AVAILABLE");
-                    handleGesture();
-                }
-                // Hover-Move Gesture Available
-                if ((status & 0b00001000) == 0b000001000) {
-                    Log.d("TUT", "HOVER-Move GESTURE DATA AVAILABLE");
-                    handleGesture();
-                }
-            } catch (IOException e) {
-                throw new IllegalStateException("Cannot read device data.", e);
+
+                return true;
             }
-
-            return true;
-        }
-    };
+        };
+    }
 
     private void handleRanges() throws IOException {
         Log.d("TUT", "RANGE POSITION DATA AVAILABLE");
