@@ -148,11 +148,19 @@ class ZxSensorI2c implements ZxSensor {
     private GpioCallback onI2cDataAvailable;
 
     ZxSensorI2c(String i2cBus, String gpioDataNotifyPin) throws IOException {
+        this(
+            i2cBus,
+            gpioDataNotifyPin,
+            new PeripheralManagerService().openI2cDevice(i2cBus, 0x10),
+            new PeripheralManagerService().openGpio(gpioDataNotifyPin)
+        );
+    }
+
+    ZxSensorI2c(String i2cBus, String dataNotifyPinName, I2cDevice mDevice, Gpio mDataNotifyBus) {
         this.i2cBus = i2cBus;
-        this.dataNotifyPinName = gpioDataNotifyPin;
-        PeripheralManagerService pioService = new PeripheralManagerService();
-        this.mDevice = pioService.openI2cDevice(i2cBus, 0x10);
-        this.mDataNotifyBus = pioService.openGpio(gpioDataNotifyPin);
+        this.dataNotifyPinName = dataNotifyPinName;
+        this.mDevice = mDevice;
+        this.mDataNotifyBus = mDataNotifyBus;
         configure();
     }
 
