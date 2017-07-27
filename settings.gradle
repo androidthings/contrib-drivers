@@ -29,5 +29,6 @@ include ':ssd1306'
 include ':rainbowhat'
 include ':sensehat'
 include ':voicehat'
+include ':zxgesturesensor'
 
 include ':testingutils'
