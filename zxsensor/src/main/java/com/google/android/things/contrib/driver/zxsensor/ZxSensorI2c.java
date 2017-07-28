@@ -11,7 +11,7 @@ import com.google.android.things.pio.PeripheralManagerService;
 
 import java.io.IOException;
 
-class ZxSensorI2c implements ZxSensor {
+public class ZxSensorI2c implements ZxSensor {
 
     /**
      * 7 ReadOnly HeartBeat: This bit will toggle every time the status register has been read
@@ -127,11 +127,11 @@ class ZxSensorI2c implements ZxSensor {
     private final Gpio mDataNotifyBus;
 
     @Nullable
-    private RangeListener rangeListener;
+    private ZxSensor.RangeListener rangeListener;
     @Nullable
-    private ZCoordinateListener zCoordinateListener;
+    private ZxSensor.ZCoordinateListener zCoordinateListener;
     @Nullable
-    private XCoordinateListener xCoordinateListener;
+    private ZxSensor.XCoordinateListener xCoordinateListener;
     @Nullable
     private ZxSensor.SwipeLeftListener swipeLeftListener;
     @Nullable
@@ -174,15 +174,15 @@ class ZxSensorI2c implements ZxSensor {
         }
     }
 
-    public void setRangeListener(@Nullable RangeListener rangeListener) {
+    public void setRangeListener(@Nullable ZxSensor.RangeListener rangeListener) {
         this.rangeListener = rangeListener;
     }
 
-    public void setzCoordinateListener(@Nullable ZCoordinateListener zCoordinateListener) {
+    public void setzCoordinateListener(@Nullable ZxSensor.ZCoordinateListener zCoordinateListener) {
         this.zCoordinateListener = zCoordinateListener;
     }
 
-    public void setxCoordinateListener(@Nullable XCoordinateListener xCoordinateListener) {
+    public void setxCoordinateListener(@Nullable ZxSensor.XCoordinateListener xCoordinateListener) {
         this.xCoordinateListener = xCoordinateListener;
     }
 
@@ -210,6 +210,7 @@ class ZxSensorI2c implements ZxSensor {
         this.gestureListener = gestureListener;
     }
 
+    @Override
     public void startMonitoringGestures() {
         onI2cDataAvailable = createCallback();
         try {
@@ -388,6 +389,7 @@ class ZxSensorI2c implements ZxSensor {
         }
     }
 
+    @Override
     public void stopMonitoringGestures() {
         try {
             mDataNotifyBus.unregisterGpioCallback(onI2cDataAvailable);

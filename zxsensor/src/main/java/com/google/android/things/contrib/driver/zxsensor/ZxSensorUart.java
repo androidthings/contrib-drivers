@@ -9,7 +9,7 @@ import com.google.android.things.pio.UartDeviceCallback;
 
 import java.io.IOException;
 
-class ZxSensorUart implements ZxSensor {
+public class ZxSensorUart implements ZxSensor {
 
     private final String bus;
     private final UartDevice mDevice;
@@ -117,6 +117,7 @@ class ZxSensorUart implements ZxSensor {
 
     private UartDeviceCallback onUartBusHasData;
 
+    @Override
     public void startMonitoringGestures() {
         onUartBusHasData = createCallback();
         try {
@@ -128,7 +129,7 @@ class ZxSensorUart implements ZxSensor {
 
     /**
      * We create it like this because otherwise the class is untestable
-     *
+     * <p>
      * https://issuetracker.google.com/issues/37133681
      */
     @NonNull
@@ -333,12 +334,13 @@ class ZxSensorUart implements ZxSensor {
         }
     }
 
+    @Override
     public void stopMonitoringGestures() {
         mDevice.unregisterUartDeviceCallback(onUartBusHasData);
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         idMessageListener = null;
         rangeListener = null;
         zCoordinateListener = null;

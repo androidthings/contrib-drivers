@@ -8,6 +8,13 @@ import java.io.IOException;
  */
 public interface ZxSensor extends AutoCloseable {
 
+    void startMonitoringGestures();
+
+    void stopMonitoringGestures();
+
+    @Override
+    void close();
+
     interface IdMessageListener {
         /**
          * This message is used for sensor type identification.
