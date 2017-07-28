@@ -136,11 +136,11 @@ public interface ZxSensor extends AutoCloseable {
     }
 
     class Factory {
-        public ZxSensorUart openViaUart(String uartBus) throws IOException {
+        public static ZxSensorUart openViaUart(String uartBus) throws IOException {
             return new ZxSensorUart(uartBus);
         }
 
-        public ZxSensorI2c openViaI2c(String i2cBus, String gpioDataNotifyPin) throws IOException {
+        public static ZxSensorI2c openViaI2c(String i2cBus, String gpioDataNotifyPin) throws IOException {
             return new ZxSensorI2c(i2cBus, gpioDataNotifyPin);
         }
     }
