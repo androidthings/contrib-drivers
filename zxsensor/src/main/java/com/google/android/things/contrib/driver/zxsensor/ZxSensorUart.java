@@ -354,6 +354,11 @@ public class ZxSensorUart implements ZxSensor {
         messageListener = null;
         gestureListener = null;
         deviceErrorListener = null;
-        mDevice.close();
+        try {
+            mDevice.close();
+        } catch (IOException e) {
+            throw new IllegalStateException("Could not close the UART: " + bus + " connection. " +
+                                                    "You may see errors if you do not power cycle the device.", e);
+        }
     }
 }

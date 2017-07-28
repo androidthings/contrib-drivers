@@ -149,10 +149,10 @@ public class ZxSensorI2c implements ZxSensor {
 
     ZxSensorI2c(String i2cBus, String gpioDataNotifyPin) throws IOException {
         this(
-            i2cBus,
-            gpioDataNotifyPin,
-            new PeripheralManagerService().openI2cDevice(i2cBus, 0x10),
-            new PeripheralManagerService().openGpio(gpioDataNotifyPin)
+                i2cBus,
+                gpioDataNotifyPin,
+                new PeripheralManagerService().openI2cDevice(i2cBus, 0x10),
+                new PeripheralManagerService().openGpio(gpioDataNotifyPin)
         );
     }
 
@@ -400,7 +400,7 @@ public class ZxSensorI2c implements ZxSensor {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         rangeListener = null;
         zCoordinateListener = null;
         xCoordinateListener = null;
@@ -410,7 +410,17 @@ public class ZxSensorI2c implements ZxSensor {
         hoverListener = null;
         messageListener = null;
         gestureListener = null;
-        mDevice.close();
-        mDataNotifyBus.close();
+        try {
+            mDevice.close();
+        } catch (IOException e) {
+            throw new IllegalStateException("Could not close the I2C: " + i2cBus + " connection. " +
+                                                    "You may see errors if you do not power cycle the device.", e);
+        }
+        try {
+            mDataNotifyBus.close();
+        } catch (IOException e) {
+            throw new IllegalStateException("Could not close the GPIO: " + dataNotifyPinName + " connection. " +
+                                                    "You may see errors if you do not power cycle the device.", e);
+        }
     }
 }
