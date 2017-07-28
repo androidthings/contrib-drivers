@@ -242,8 +242,13 @@ public class Ssd1306 implements Closeable {
      * Sets the contrast for the display.
      *
      * @param level The contrast level (0-255).
+     * @throws IllegalStateException
+     * @throws IllegalArgumentException
      */
     public void setContrast(int level) throws IOException, IllegalArgumentException {
+        if (mI2cDevice == null) {
+            throw new IllegalStateException("I2C Device not open");
+        }
         if (level < 0 || level > 255) {
             throw new IllegalArgumentException("Invalid contrast " + String.valueOf(level) +
                     ", level must be between 0 and 255");

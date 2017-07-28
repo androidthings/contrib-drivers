@@ -17,6 +17,9 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
 
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
+import static org.mockito.Mockito.withSettings;
+import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
 @RunWith(PowerMockRunner.class)
@@ -63,5 +66,13 @@ public class Ssd1306Test {
             Mockito.verify(mI2c, Mockito.never()).writeRegByte(0x00, (byte) 66);
             Mockito.reset(mExpectedException);
         }
+    }
+
+    @Test
+    public void nullmI2cDevice() throws IOException {
+        Ssd1306 ssd1306 = mock(Ssd1306.class, withSettings().defaultAnswer(CALLS_REAL_METHODS));
+        mExpectedException.expect(IllegalStateException.class);
+        mExpectedException.expectMessage("I2C Device not open");
+        ssd1306.setContrast(44);
     }
 }
