@@ -18,48 +18,53 @@ where `<version>` matches the last version of the driver available on [jcenter][
 
 ```
 dependencies {
-    compile 'com.google.android.things.contrib:driver-pwmspeaker:<version>'
+    compile 'com.google.android.things.contrib:driver-zxsensor:<version>'
 }
 ```
 
 ### Sample usage
 
 ```java
-import com.google.android.things.contrib.driver.pwmspeaker.Speaker;
+import com.google.android.things.contrib.driver.zxsensor.ZxSensor;
+import com.google.android.things.contrib.driver.zxsensor.ZxSensorUart;
 
-// Access the speaker:
+// Access the ZXSensor (choose I2C or UART) here we show UART:
 
-Speaker mSpeaker;
-
-try {
-    mSpeaker = new Speaker(pwmPinName);
-} catch (IOException e) {
-    // couldn't configure the speaker...
-}
-
-// Make it play:
+ZxSensorUart zxSensorUart;
 
 try {
-    mSpeaker.play(440 /* tone */);
+    zxSensorUart = ZxSensor.Factory.openViaUart(BoardDefaults.getUartPin());
 } catch (IOException e) {
-    // error setting speaker
+    throw new IllegalStateException("Can't open, did you use the correct pin name?", e);
 }
+zxSensorUart.setSwipeLeftListener(swipeLeftListener);
+zxSensorUart.setSwipeRightListener(swipeRightListener);
 
-// Stop a currently playing tone:
+ZxSensor.SwipeLeftListener swipeLeftListener = new ZxSensor.SwipeLeftListener() {
+        @Override
+        public void onSwipeLeft(int speed) {
+            Log.d("TUT", "Swipe left detected");
+        }
+    };
 
-try {
-    mSpeaker.stop();
-} catch (IOException e) {
-    // error stopping speaker
-}
+ZxSensor.SwipeRightListener swipeRightListener = new ZxSensor.SwipeRightListener() {
+        @Override
+        public void onSwipeRight(int speed) {
+            Log.d("TUT", "Swipe right detected");
+        }
+    };
 
-// Close the speaker when finished:
+// Start monitoring:
 
-try {
-    mSpeaker.close();
-} catch (IOException e) {
-    // error closing speaker
-}
+zxSensorUart.startMonitoringGestures();
+
+// Stop monitoring:
+
+zxSensorUart.stopMonitoringGestures();
+
+// Close the ZXSensor when finished:
+
+zxSensorUart.close();
 ```
 
 License
@@ -82,4 +87,4 @@ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
 License for the specific language governing permissions and limitations under
 the License.
 
-[jcenter]: https://bintray.com/google/androidthings/contrib-driver-pwmspeaker/_latestVersion
+[jcenter]: https://bintray.com/google/androidthings/contrib-driver-zxsensor/_latestVersion
