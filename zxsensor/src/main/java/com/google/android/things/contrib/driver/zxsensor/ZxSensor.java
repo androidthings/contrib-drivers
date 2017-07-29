@@ -76,10 +76,8 @@ public interface ZxSensor extends AutoCloseable {
          * interaction: the reflector moves in the
          * right direction over the sensor.
          * <p>
-         * Speed is reported as a normalized
-         * value between 1 to 10
          *
-         * @param speed 1 = slow 10 = fast
+         * @param speed a number corresponding to the speed of the gesture
          */
         void onSwipeRight(int speed);
     }
@@ -90,10 +88,8 @@ public interface ZxSensor extends AutoCloseable {
          * interaction: the reflector moves in the
          * left direction over the sensor.
          * <p>
-         * Speed is reported as a normalized
-         * value between 1 to 10
          *
-         * @param speed 1 = slow 10 = fast
+         * @param speed a number corresponding to the speed of the gesture
          */
         void onSwipeLeft(int speed);
     }
@@ -104,10 +100,8 @@ public interface ZxSensor extends AutoCloseable {
          * interaction: the reflector moves in a
          * downward direction over the sensor.
          * <p>
-         * Speed is reported as a normalized
-         * value between 1 to 10
          *
-         * @param speed 1 = slow 10 = fast
+         * @param speed a number corresponding to the speed of the gesture
          */
         void onSwipeDown(int speed);
     }

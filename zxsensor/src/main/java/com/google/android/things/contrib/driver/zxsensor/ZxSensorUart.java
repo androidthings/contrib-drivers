@@ -259,7 +259,7 @@ public class ZxSensorUart implements ZxSensor {
      *
      * @param gesture  code of the type of gesture
      * @param position position of the hover event
-     * @param speed    1 = slow, 10 = fast
+     * @param speed    a number corresponding to the speed of the gesture
      */
     private void handleGestureEventMessage(byte gesture, byte position, byte speed) {
         if (messageListener != null) {
