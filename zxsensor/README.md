@@ -1,7 +1,7 @@
 ZX Sensor driver for Android Things
 ===================================
 
-This driver supports speaker and piezo buzzer peripherals using the PWM protocol.
+This driver supports ZXSensor peripherals using the I2C and UART protocols.
 
 NOTE: these drivers are not production-ready. They are offered as sample
 implementations of Android Things user space drivers for common peripherals
