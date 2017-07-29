@@ -2,7 +2,6 @@ package com.google.android.things.contrib.driver.zxsensor;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.util.Log;
 
 import com.google.android.things.pio.Gpio;
 import com.google.android.things.pio.GpioCallback;
@@ -149,10 +148,10 @@ public class ZxSensorI2c implements ZxSensor {
 
     ZxSensorI2c(String i2cBus, String gpioDataNotifyPin) throws IOException {
         this(
-                i2cBus,
-                gpioDataNotifyPin,
-                new PeripheralManagerService().openI2cDevice(i2cBus, 0x10),
-                new PeripheralManagerService().openGpio(gpioDataNotifyPin)
+            i2cBus,
+            gpioDataNotifyPin,
+            new PeripheralManagerService().openI2cDevice(i2cBus, 0x10),
+            new PeripheralManagerService().openGpio(gpioDataNotifyPin)
         );
     }
 
@@ -232,11 +231,7 @@ public class ZxSensorI2c implements ZxSensor {
             @Override
             public boolean onGpioEdge(Gpio gpio) {
                 try {
-                    byte dataReadyConfiguration = mDevice.readRegByte(DATA_READY_CONFIG);
-                    Log.d("TUT", "drc " + dataReadyConfiguration);
-
                     byte status = mDevice.readRegByte(STATUS);
-                    Log.d("TUT", "Status " + status);
 
                     // (range) Position Data Available
                     if ((status & 0b00000001) == 0b00000001) {
@@ -244,17 +239,14 @@ public class ZxSensorI2c implements ZxSensor {
                     }
                     // Swipe Gesture Available
                     if ((status & 0b00000100) == 0b00000100) {
-                        Log.d("TUT", "SWIPE GESTURE DATA AVAILABLE");
                         handleGesture();
                     }
                     // Hover Gesture Available
                     if ((status & 0b00001000) == 0b000001000) {
-                        Log.d("TUT", "HOVER GESTURE DATA AVAILABLE");
                         handleGesture();
                     }
                     // Hover-Move Gesture Available
                     if ((status & 0b00001000) == 0b000001000) {
-                        Log.d("TUT", "HOVER-Move GESTURE DATA AVAILABLE");
                         handleGesture();
                     }
                 } catch (IOException e) {
@@ -267,9 +259,7 @@ public class ZxSensorI2c implements ZxSensor {
     }
 
     private void handleRanges() throws IOException {
-        Log.d("TUT", "RANGE POSITION DATA AVAILABLE");
         byte zpos = mDevice.readRegByte(Z_POSITION);
-        Log.d("TUT", "ZPos : " + zpos);
         if (messageListener != null) {
             messageListener.onZCoordinateUpdate(zpos);
         }
@@ -277,7 +267,6 @@ public class ZxSensorI2c implements ZxSensor {
             zCoordinateListener.onZCoordinateUpdate(zpos);
         }
         byte xpos = mDevice.readRegByte(X_POSITION);
-        Log.d("TUT", "XPos : " + xpos);
         if (messageListener != null) {
             messageListener.onXCoordinateUpdate(xpos);
         }
@@ -285,9 +274,7 @@ public class ZxSensorI2c implements ZxSensor {
             xCoordinateListener.onXCoordinateUpdate(xpos);
         }
         byte left = mDevice.readRegByte(LEFT_EMITTER_RANGING_DATA);
-        Log.d("TUT", "LRNG : " + left);
         byte right = mDevice.readRegByte(RIGHT_EMITTER_RANGING_DATA);
-        Log.d("TUT", "RRNG : " + right);
 
         if (messageListener != null) {
             messageListener.onRangeUpdate(left, right);
@@ -302,12 +289,9 @@ public class ZxSensorI2c implements ZxSensor {
             messageListener.onGestureEvent();
         }
         byte gesture = mDevice.readRegByte(LAST_DETECTED_GESTURE);
-        Log.d("TUT", "New gesture! " + gesture);
         byte speed = mDevice.readRegByte(LAST_DETECTED_GESTURE_SPEED);
-        Log.d("TUT", "Speed! " + speed);
 
         if (gesture == 0x01) {
-            Log.d("TUT", "Swipe Right");
             if (gestureListener != null) {
                 gestureListener.onSwipeRight(speed);
             }
@@ -315,7 +299,6 @@ public class ZxSensorI2c implements ZxSensor {
                 swipeRightListener.onSwipeRight(speed);
             }
         } else if (gesture == 0x02) {
-            Log.d("TUT", "Swipe Left");
             if (gestureListener != null) {
                 gestureListener.onSwipeLeft(speed);
             }
@@ -323,7 +306,6 @@ public class ZxSensorI2c implements ZxSensor {
                 swipeLeftListener.onSwipeLeft(speed);
             }
         } else if (gesture == 0x03) {
-            Log.d("TUT", "Swipe Down");
             if (gestureListener != null) {
                 gestureListener.onSwipeDown(speed);
             }
@@ -331,7 +313,6 @@ public class ZxSensorI2c implements ZxSensor {
                 swipeDownListener.onSwipeDown(speed);
             }
         } else if (gesture == 0x05) {
-            Log.d("TUT", "Hover");
             if (gestureListener != null) {
                 gestureListener.onHover(ZxSensor.HoverPosition.CENTER);
             }
@@ -339,7 +320,6 @@ public class ZxSensorI2c implements ZxSensor {
                 hoverListener.onHover(ZxSensor.HoverPosition.CENTER);
             }
         } else if (gesture == 0x06) {
-            Log.d("TUT", "Hover Left");
             if (gestureListener != null) {
                 gestureListener.onHover(ZxSensor.HoverPosition.LEFT);
             }
@@ -347,7 +327,6 @@ public class ZxSensorI2c implements ZxSensor {
                 hoverListener.onHover(ZxSensor.HoverPosition.LEFT);
             }
         } else if (gesture == 0x07) {
-            Log.d("TUT", "Hover Right");
             if (gestureListener != null) {
                 gestureListener.onHover(ZxSensor.HoverPosition.RIGHT);
             }
@@ -355,7 +334,6 @@ public class ZxSensorI2c implements ZxSensor {
                 hoverListener.onHover(ZxSensor.HoverPosition.RIGHT);
             }
         } else if (gesture == 0x08) {
-            Log.d("TUT", "Hover Up");
             if (gestureListener != null) {
                 gestureListener.onHover(ZxSensor.HoverPosition.CENTER);
             }
@@ -414,13 +392,13 @@ public class ZxSensorI2c implements ZxSensor {
             mDevice.close();
         } catch (IOException e) {
             throw new IllegalStateException("Could not close the I2C: " + i2cBus + " connection. " +
-                                                    "You may see errors if you do not power cycle the device.", e);
+                                                "You may see errors if you do not power cycle the device.", e);
         }
         try {
             mDataNotifyBus.close();
         } catch (IOException e) {
             throw new IllegalStateException("Could not close the GPIO: " + dataNotifyPinName + " connection. " +
-                                                    "You may see errors if you do not power cycle the device.", e);
+                                                "You may see errors if you do not power cycle the device.", e);
         }
     }
 }
