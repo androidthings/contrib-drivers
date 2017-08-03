@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,21 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.google.android.things.contrib.driver.ultrasonicsensor;
 
-include ':adcv2x'
-include ':apa102'
-include ':button'
-include ':bmx280'
-include ':cap12xx'
-include ':gps'
-include ':ht16k33'
-include ':mma7660fc'
-include ':pwmservo'
-include ':pwmspeaker'
-include ':tm1637'
-include ':ssd1306'
-include ':rainbowhat'
-include ':sensehat'
-include ':ultrasonic-sensor'
+/**
+ * Callback listener to get notified when distance changes.
+ */
 
-include ':testingutils'
+public interface DistanceListener {
+
+    /**
+     * @param distanceInCm Distance of the object from ranging module in centimeter.
+     */
+    void onDistanceChange(double distanceInCm);
+}
