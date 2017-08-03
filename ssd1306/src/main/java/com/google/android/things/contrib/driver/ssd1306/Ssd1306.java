@@ -53,6 +53,7 @@ public class Ssd1306 implements Closeable {
     private static final int COMMAND_DISPLAY_ON = 0xAF;
     private static final int COMMAND_DISPLAY_OFF = 0xAE;
     private static final int COMMAND_START_LINE = 0x40;
+    private static final int COMMAND_CONTRAST_LEVEL = 0x81;
     private static final int DATA_OFFSET = 1;
     private static final int INIT_CHARGE_PUMP = 0x8D;
     private static final int INIT_CLK_DIV = 0xD5;
@@ -236,6 +237,26 @@ public class Ssd1306 implements Closeable {
             mBuffer[DATA_OFFSET + x + ((y / 8) * mWidth)] &= ~(1 << y % 8);
         }
     }
+
+    /**
+     * Sets the contrast for the display.
+     *
+     * @param level The contrast level (0-255).
+     * @throws IllegalStateException
+     * @throws IllegalArgumentException
+     */
+    public void setContrast(int level) throws IOException, IllegalArgumentException {
+        if (mI2cDevice == null) {
+            throw new IllegalStateException("I2C Device not open");
+        }
+        if (level < 0 || level > 255) {
+            throw new IllegalArgumentException("Invalid contrast " + String.valueOf(level) +
+                    ", level must be between 0 and 255");
+        }
+        mI2cDevice.writeRegByte(0, (byte) COMMAND_CONTRAST_LEVEL);
+        mI2cDevice.writeRegByte(0, (byte) level);
+    }
+
 
     /**
      * Turns the display on and off.
