@@ -47,6 +47,8 @@ Driver | Type | Usage (add to your gradle dependencies) | Note
 [driver-sensehat](sensehat) | metadriver for the Sense HAT | `compile 'com.google.android.things.contrib:driver-sensehat:0.2'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/sensehat) [changelog](sensehat/CHANGELOG.md)
 [driver-ssd1306](ssd1306) | OLED display | `compile 'com.google.android.things.contrib:driver-ssd1306:0.4'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/ssd1306) [changelog](ssd1306/CHANGELOG.md)
 [driver-tm1637](tm1637) | 4-digit numeric segment display | `compile 'com.google.android.things.contrib:driver-tm1637:0.2'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/tm1637) [changelog](tm1637/CHANGELOG.md)
+[driver-zxsensor](zxsensor) | Sparkfun ZX Sensor | `compile 'com.google.android.things.contrib:driver-zxsensor:0.2'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/zxsensor) [changelog](zxsensor/CHANGELOG.md)
+
 <!-- DRIVER_LIST_END -->
 
 License
