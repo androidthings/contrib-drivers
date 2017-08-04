@@ -46,7 +46,7 @@ subprojects {
         from android.sourceSets.main.java.sourceFiles
     }
 
-    def artifactVersion = snapshot ? "SNAPSHOT" : ARTIFACT_VERSION
+    def artifactVersion = snapshot ? "LATEST" : ARTIFACT_VERSION
 
     publishing {
         publications {
