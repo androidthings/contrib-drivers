@@ -1,8 +1,10 @@
 # Change Log
 
-## [0.4] - 2017-07-12
+## [0.4] - 2017-08-03
 ### Added
 - Humidity support for the BME280 class of sensors
+### Updated
+- added required=false to uses-library on manifests
 
 ## [0.3] - 2017-06-16
 ### Fixed
