@@ -18,6 +18,6 @@
     package="com.google.android.things.contrib.driver.voicehat">
 
   <application>
-    <uses-library android:name="com.google.android.things"/>
+    <uses-library android:required="false" android:name="com.google.android.things"/>
   </application>
 </manifest>
