@@ -57,7 +57,7 @@ public class Ws2812b implements AutoCloseable {
     // For peripherals access
     private SpiDevice mDevice = null;
 
-    private final ColorToBitPatternConverter colorToBitPatternConverter;
+    private final ColorToBitPatternConverter mColorToBitPatternConverter;
 
     /**
      * Create a new WS2812B driver.
@@ -73,9 +73,11 @@ public class Ws2812b implements AutoCloseable {
      *
      * @param spiBusPort Name of the SPI bus
      * @param ledMode The {@link LedMode} indicating the red/green/blue byte ordering for the device.
+     * @throws IOException if the initialization of the SpiDevice fails
+     *
      */
     public Ws2812b(String spiBusPort, @LedMode int ledMode) throws IOException {
-        colorToBitPatternConverter = new ColorToBitPatternConverter(ledMode);
+        mColorToBitPatternConverter = new ColorToBitPatternConverter(ledMode);
         PeripheralManagerService pioService = new PeripheralManagerService();
         mDevice = pioService.openSpiDevice(spiBusPort);
         try {
@@ -97,7 +99,7 @@ public class Ws2812b implements AutoCloseable {
      */
     @VisibleForTesting
     /*package*/ Ws2812b(SpiDevice device, @LedMode int ledMode) throws IOException {
-        colorToBitPatternConverter = new ColorToBitPatternConverter(ledMode);
+        mColorToBitPatternConverter = new ColorToBitPatternConverter(ledMode);
         mDevice = device;
         configure(mDevice);
     }
@@ -116,20 +118,21 @@ public class Ws2812b implements AutoCloseable {
     /**
      * Writes the current RGB Led data to the peripheral bus.
      * @param colors An array of integers corresponding to a {@link Color}.
-     * @throws IOException
+     * @throws IOException if writing to the SPi device fails
      */
     public void write(@ColorInt int[] colors) throws IOException {
         if (mDevice == null) {
             throw new IllegalStateException("SPI device not opened");
         }
 
-        byte[] convertedColors = colorToBitPatternConverter.convertColorsToBitPattern(colors);
+        byte[] convertedColors = mColorToBitPatternConverter.convertColorsToBitPattern(colors);
 
         mDevice.write(convertedColors, convertedColors.length);
     }
 
     /**
      * Releases the SPI interface and related resources.
+     * @throws IOException if the SpiDevice is already closed
      */
     @Override
     public void close() throws IOException {
