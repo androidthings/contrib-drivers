@@ -37,7 +37,6 @@ NmeaGpsModule mGpsModule;
 
 try {
     mGpsModule = new NmeaGpsModule(
-            this,           // context
             uartPortName,
             baudRate        // specified baud rate for your GPS peripheral
     );
@@ -81,7 +80,7 @@ try {
 
 // Unregister and close the input driver when finished:
 
-mGpsDriver.unregister;
+mGpsDriver.unregister();
 try {
     mGpsDriver.close();
 } catch (IOException e) {

@@ -15,88 +15,92 @@
  */
 
 /**
- *  To publish on Maven local:
- *     ./gradlew -c [driverName]/publish-settings.gradle clean publishToMavenLocal
+ * To publish a driver to Maven local:
+ *     ./gradlew -PPUBLISHING [driver_name]:clean [driver_name]:publishToMavenLocal
  *
- *  To publish on Bintray:
- *     - set environmental variables BINTRAY_USER and BINTRAY_API_KEY to proper values
- *     ./gradlew -c [driverName]/publish-settings.gradle clean bintrayUpload
+ * To publish a driver to Bintray:
+ * Set environmental variables BINTRAY_USER and BINTRAY_API_KEY to proper values and run
+ *     ./gradlew -PPUBLISHING [driver_name]:clean [driver_name]:bintrayUpload
  *
+ * Additionally, add the -PSNAPSHOT flag to replace artifact version names with "SNAPSHOT". Note
+ * that bintrayUpload tasks will not upload the artifact if this flag is used.
  */
 
-buildscript {
-    repositories {
-        jcenter()
-    }
-    dependencies {
-        classpath 'com.android.tools.build:gradle:2.2.1'
-    }
-}
-
-plugins {
-    id "com.jfrog.bintray" version "1.7"
-}
-
 allprojects {
-    repositories {
-        jcenter()
+    apply plugin: 'maven-publish'
+    apply plugin: 'com.jfrog.bintray'
+}
+
+String publicationName = 'driverPublish'
+boolean snapshot = hasProperty "SNAPSHOT"
+
+subprojects {
+    if (!project.findProperty("ARTIFACT_VERSION")) {
+        return
     }
-}
 
-apply from: 'build.gradle'
-apply plugin: 'maven-publish'
+    apply plugin: 'com.android.library'
 
-task sourceJar(type: Jar) {
-    classifier = 'sources'
-    from android.sourceSets.main.java.sourceFiles
-}
+    task sourceJar(type: Jar) {
+        classifier = 'sources'
+        from android.sourceSets.main.java.sourceFiles
+    }
 
-publishing {
-    publications {
-        driverPublish(MavenPublication) {
-            groupId 'com.google.android.things.contrib'
-            artifactId "driver-$project.name"
-            version ARTIFACT_VERSION
-            artifact sourceJar
-            artifact("$buildDir/outputs/aar/$project.name-release.aar")
-            pom.withXml {
-                def dependenciesNode = asNode().appendNode('dependencies')
-                configurations.compile.allDependencies.each {
-                    if(it.group != null && it.name != null &&
-                    !"unspecified".equals(it.name) && it.version != null &&
-                    !"unspecified".equals(it.version))
-                    {
-                        def dependencyNode = dependenciesNode.appendNode('dependency')
-                        dependencyNode.appendNode('groupId', it.group)
-                        dependencyNode.appendNode('artifactId', it.name)
-                        dependencyNode.appendNode('version', it.version)
+    def artifactVersion = snapshot ? "LATEST" : ARTIFACT_VERSION
+
+    publishing {
+        publications {
+            "$publicationName"(MavenPublication) {
+                groupId 'com.google.android.things.contrib'
+                artifactId "driver-$project.name"
+                version artifactVersion
+                artifact sourceJar
+                artifact("$buildDir/outputs/aar/$project.name-release.aar")
+                pom.withXml {
+                    def dependenciesNode = asNode().appendNode('dependencies')
+                    configurations.compile.allDependencies.each {
+                        if (it.group != null
+                                && it.name != null && !"unspecified".equals(it.name)
+                                && it.version != null && !"unspecified".equals(it.version)) {
+                            def dependencyNode = dependenciesNode.appendNode('dependency')
+                            dependencyNode.appendNode('groupId', it.group)
+                            dependencyNode.appendNode('artifactId', it.name)
+                            dependencyNode.appendNode('version', it.version)
+                        }
                     }
                 }
             }
         }
     }
-}
 
-publishToMavenLocal.dependsOn build
-bintrayUpload.dependsOn build
+    bintray {
+        user = System.getenv('BINTRAY_USER')
+        key = System.getenv('BINTRAY_API_KEY')
+        publications = [publicationName]
 
-bintray {
-  user = System.getenv('BINTRAY_USER')
-  key = System.getenv('BINTRAY_API_KEY')
-  publications = ['driverPublish']
+        publish = true
+        dryRun = snapshot
 
-  publish = true
+        pkg {
+            repo = 'androidthings'
+            name = "contrib-driver-$project.name"
+            userOrg = 'google'
 
-  pkg {
-    repo = 'androidthings'
-    name = "contrib-driver-$project.name"
-    userOrg = 'google'
-
-    version {
-      name = ARTIFACT_VERSION
-      gpg {
-        sign = true
-      }
+            version {
+                name = artifactVersion
+                gpg {
+                    sign = true
+                }
+            }
+        }
     }
-  }
+
+    afterEvaluate {
+        tasks.withType(PublishToMavenRepository).all { publishTask ->
+            publishTask.dependsOn build
+        }
+        tasks.withType(PublishToMavenLocal).all { publishTask ->
+            publishTask.dependsOn build
+        }
+    }
 }

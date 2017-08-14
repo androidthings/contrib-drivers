@@ -28,6 +28,8 @@ include ':tm1637'
 include ':ssd1306'
 include ':rainbowhat'
 include ':sensehat'
+include ':voicehat'
+include ':zxgesturesensor'
 include ':ws2812b'
 
 include ':testingutils'

@@ -110,6 +110,6 @@ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
 License for the specific language governing permissions and limitations under
 the License.
 
-[product_bmp280]: http://www.nxp.com/products/sensors/accelerometers/3-axis-accelerometers/1.5g-low-g-digital-accelerometer:MMA7660FC
+[product]: http://www.nxp.com/products/sensors/accelerometers/3-axis-accelerometers/1.5g-low-g-digital-accelerometer:MMA7660FC
 [jcenter]: https://bintray.com/google/androidthings/contrib-driver-mma7660fc/_latestVersion
 [sensors]: https://developer.android.com/guide/topics/sensors/sensors_overview.html

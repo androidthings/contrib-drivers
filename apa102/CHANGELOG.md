@@ -1,5 +1,9 @@
 # Change Log
 
+## [0.5] - 2017-08-03
+### Updated
+- added required=false to uses-library on manifests
+
 ## [0.4] - 2017-06-16
 ### Fixed
 - fix framing packet (issue #31)

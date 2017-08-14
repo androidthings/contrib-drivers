@@ -40,6 +40,7 @@ public class Bmx280SensorDriver implements AutoCloseable {
 
     private TemperatureUserDriver mTemperatureUserDriver;
     private PressureUserDriver mPressureUserDriver;
+    private HumidityUserDriver mHumidityUserDriver;
 
     /**
      * Create a new framework sensor driver connected on the given bus.
@@ -116,6 +117,21 @@ public class Bmx280SensorDriver implements AutoCloseable {
     }
 
     /**
+     * Register a {@link UserSensor} that pipes humidity readings into the Android SensorManager.
+     * @see #unregisterHumiditySensor()
+     */
+    public void registerHumiditySensor() {
+        if (mDevice == null) {
+            throw new IllegalStateException("cannot register closed driver");
+        }
+
+        if (mHumidityUserDriver == null) {
+            mHumidityUserDriver = new HumidityUserDriver();
+            UserDriverManager.getManager().registerSensor(mHumidityUserDriver.getUserSensor());
+        }
+    }
+
+    /**
      * Unregister the temperature {@link UserSensor}.
      */
     public void unregisterTemperatureSensor() {
@@ -135,9 +151,20 @@ public class Bmx280SensorDriver implements AutoCloseable {
         }
     }
 
+    /**
+     * Unregister the humidity {@link UserSensor}.
+     */
+    public void unregisterHumiditySensor() {
+        if (mHumidityUserDriver != null) {
+            UserDriverManager.getManager().unregisterSensor(mHumidityUserDriver.getUserSensor());
+            mHumidityUserDriver = null;
+        }
+    }
+
     private void maybeSleep() throws IOException {
         if ((mTemperatureUserDriver == null || !mTemperatureUserDriver.isEnabled()) &&
-            (mPressureUserDriver == null || !mPressureUserDriver.isEnabled())) {
+            (mPressureUserDriver == null || !mPressureUserDriver.isEnabled()) &&
+            (mHumidityUserDriver == null || !mHumidityUserDriver.isEnabled())) {
             mDevice.setMode(Bmx280.MODE_SLEEP);
         } else {
             mDevice.setMode(Bmx280.MODE_NORMAL);
@@ -184,8 +211,7 @@ public class Bmx280SensorDriver implements AutoCloseable {
         @Override
         public void setEnabled(boolean enabled) throws IOException {
             mEnabled = enabled;
-            mDevice.setPressureOversampling(
-                    enabled ? Bmx280.OVERSAMPLING_1X : Bmx280.OVERSAMPLING_SKIPPED);
+            syncSamplingState();
             maybeSleep();
         }
 
@@ -234,8 +260,7 @@ public class Bmx280SensorDriver implements AutoCloseable {
         @Override
         public void setEnabled(boolean enabled) throws IOException {
             mEnabled = enabled;
-            mDevice.setTemperatureOversampling(
-                    enabled ? Bmx280.OVERSAMPLING_1X : Bmx280.OVERSAMPLING_SKIPPED);
+            syncSamplingState();
             maybeSleep();
         }
 
@@ -244,4 +269,69 @@ public class Bmx280SensorDriver implements AutoCloseable {
         }
     }
 
+    private class HumidityUserDriver extends UserSensorDriver {
+        // DRIVER parameters
+        // documented at https://source.android.com/devices/sensors/hal-interface.html#sensor_t
+        private static final float DRIVER_MAX_RANGE = Bmx280.MAX_HUM_RH;
+        private static final float DRIVER_RESOLUTION = 0.005f;
+        private static final float DRIVER_POWER = Bmx280.MAX_POWER_CONSUMPTION_HUMIDITY_UA / 1000.f;
+        private static final int DRIVER_VERSION = 1;
+        private static final String DRIVER_REQUIRED_PERMISSION = "";
+
+        private boolean mEnabled;
+        private UserSensor mUserSensor;
+
+        private UserSensor getUserSensor() {
+            if (mUserSensor == null) {
+                mUserSensor = new UserSensor.Builder()
+                        .setType(Sensor.TYPE_RELATIVE_HUMIDITY)
+                        .setName(DRIVER_NAME)
+                        .setVendor(DRIVER_VENDOR)
+                        .setVersion(DRIVER_VERSION)
+                        .setMaxRange(DRIVER_MAX_RANGE)
+                        .setResolution(DRIVER_RESOLUTION)
+                        .setPower(DRIVER_POWER)
+                        .setMinDelay(DRIVER_MIN_DELAY_US)
+                        .setRequiredPermission(DRIVER_REQUIRED_PERMISSION)
+                        .setMaxDelay(DRIVER_MAX_DELAY_US)
+                        .setUuid(UUID.randomUUID())
+                        .setDriver(this)
+                        .build();
+            }
+            return mUserSensor;
+        }
+
+        @Override
+        public UserSensorReading read() throws IOException {
+            return new UserSensorReading(new float[]{mDevice.readHumidity()});
+        }
+
+        @Override
+        public void setEnabled(boolean enabled) throws IOException {
+            mEnabled = enabled;
+            syncSamplingState();
+            maybeSleep();
+        }
+
+        private boolean isEnabled() {
+            return mEnabled;
+        }
+    }
+
+    private void syncSamplingState() throws IOException {
+        // pressure and humidity both depend on temperature sampling
+        boolean humidityEnabled = mHumidityUserDriver != null && mHumidityUserDriver.isEnabled();
+        boolean pressureEnabled = mPressureUserDriver != null && mPressureUserDriver.isEnabled();
+        boolean temperatureEnabled = humidityEnabled || pressureEnabled ||
+                mTemperatureUserDriver != null && mTemperatureUserDriver.isEnabled();
+
+        mDevice.setTemperatureOversampling(
+                temperatureEnabled ? Bmx280.OVERSAMPLING_1X : Bmx280.OVERSAMPLING_SKIPPED);
+        mDevice.setPressureOversampling(
+                pressureEnabled ? Bmx280.OVERSAMPLING_1X : Bmx280.OVERSAMPLING_SKIPPED);
+        if (mDevice.hasHumiditySensor()) {
+            mDevice.setHumidityOversampling(
+                    humidityEnabled ? Bmx280.OVERSAMPLING_1X : Bmx280.OVERSAMPLING_SKIPPED);
+        }
+    }
 }
