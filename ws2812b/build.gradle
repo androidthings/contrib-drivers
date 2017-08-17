@@ -17,18 +17,30 @@
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 24
-    buildToolsVersion '24.0.3'
+    compileSdkVersion 25
+    buildToolsVersion '25.0.3'
 
     defaultConfig {
-        minSdkVersion 24
-        targetSdkVersion 24
+        minSdkVersion 25
+        targetSdkVersion 25
         versionCode 1
         versionName "1.0"
     }
 }
 
+repositories {                                  //
+    jcenter()                                   //    <
+    maven {                                     //   <      CAN BE DELETED IF contrib-drivers was updated
+        url "https://maven.google.com"          //    <
+    }                                           //
+}
+
 dependencies {
-    provided 'com.google.android.things:androidthings:0.4-devpreview'
-    compile 'com.android.support:support-annotations:25.3.1'
+    provided 'com.google.android.things:androidthings:0.5-devpreview'
+    compile 'com.android.support:support-annotations:25.4.0'
+
+    testCompile 'junit:junit:4.12'
+    testCompile 'org.mockito:mockito-core:1.10.19'
+    testCompile 'org.powermock:powermock-module-junit4:1.6.6'
+    testCompile 'org.powermock:powermock-api-mockito:1.6.6'
 }
