@@ -32,7 +32,20 @@ class ColorMock {
         mockRed();
         mockGreen();
         mockBlue();
+        mockRgb();
         mockArgb();
+    }
+
+    private static void mockRgb() {
+        Mockito.when(Color.rgb(anyInt(), anyInt(), anyInt())).thenAnswer(new Answer() {
+            @Override
+            public Integer answer(InvocationOnMock invocation) throws Throwable {
+                int r = invocation.getArgumentAt(0, Integer.class);
+                int g = invocation.getArgumentAt(1, Integer.class);
+                int b = invocation.getArgumentAt(2, Integer.class);
+                return (r << 16) | (g << 8) | b;
+            }
+        });
     }
 
     private static void mockArgb() {

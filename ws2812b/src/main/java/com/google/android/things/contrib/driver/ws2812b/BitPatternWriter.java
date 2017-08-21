@@ -6,7 +6,14 @@ import android.support.annotation.IntRange;
 class BitPatternWriter {
     private static final int MAX_NUMBER_OF_SUPPORTED_LEDS = 512;
     private static final int NUMBER_OF_BYTES_PER_RGB_COLOR = 8;
-    private static final int ONE_BYTE_BIT_MASKS[] = new int[]{128, 64, 32, 16, 8, 4, 2, 1};
+    private static final int ONE_BYTE_BIT_MASKS[] = new int[]{0b10000000,
+                                                              0b01000000,
+                                                              0b00100000,
+                                                              0b00010000,
+                                                              0b00001000,
+                                                              0b00000100,
+                                                              0b00000010,
+                                                              0b00000001};
 
     private final byte[] mDestinationByteBuffer;
     private int mCurrentByteBufferIndex;

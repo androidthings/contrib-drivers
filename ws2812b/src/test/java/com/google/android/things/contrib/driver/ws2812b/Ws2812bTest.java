@@ -37,8 +37,8 @@ public class Ws2812bTest {
 
     @Test
     public void close() throws IOException {
-        Ws2812b leds = new Ws2812b(mSpiDevice, Ws2812b.RGB);
-        leds.close();
+        Ws2812b ws2812b = new Ws2812b(mSpiDevice, Ws2812b.RGB);
+        ws2812b.close();
         Mockito.verify(mSpiDevice).close();
     }
 
@@ -64,14 +64,12 @@ public class Ws2812bTest {
         List<Boolean> oneBitPattern = Arrays.asList(true, true, false);
         List<Boolean> zeroBitPattern = Arrays.asList(true, false, false);
 
-        List<Boolean> originalBits = new ArrayList<>();
 
         int highestBit = 1<<23;
 
         for (int i = 0; i < 24; i++) {
             List<Boolean> bitPattern = (color & highestBit) == highestBit ?  oneBitPattern : zeroBitPattern;
             bitPatterns.addAll(bitPattern);
-            originalBits.add((color & highestBit) == highestBit);
             color = color << 1;
         }
 
@@ -120,18 +118,15 @@ public class Ws2812bTest {
         }
 
 
-
-
+        int firstTwelveBit = 0x00FFF000;
+        int secondTwelveBit = 0x00000FFF;
+        int firstValue = (Color.RED & firstTwelveBit) >> 12;
+        int secondValue = Color.RED & secondTwelveBit;
+        BitPatternHolder bitPatternHolder = new BitPatternHolder();
+        byte[] bitPattern = bitPatternHolder.getBitPattern(firstValue);
+        byte[] secondBitPattern = bitPatternHolder.getBitPattern(secondValue);
 
 
         Mockito.verify(mSpiDevice).write(bytes, bytes.length);
-    }
-
-    private List<Boolean> flatten(List<List<Boolean>> bitPatterns) {
-        List<Boolean> flattenBitPatterns = new ArrayList<>();
-        for (List<Boolean> bitPattern : bitPatterns) {
-            flattenBitPatterns.addAll(bitPattern);
-        }
-        return flattenBitPatterns;
     }
 }
