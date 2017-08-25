@@ -32,7 +32,8 @@ android {
 
 dependencies {
     compile 'com.android.support:support-annotations:24.2.0'
-    provided 'com.google.android.things:androidthings:0.4-devpreview'
+    provided 'com.google.android.things:androidthings:0.5-devpreview'
+    compile 'com.google.android.things.contrib:driver-button:0.4'
 
     androidTestCompile 'com.android.support.test.espresso:espresso-core:2.2.2'
     androidTestCompile 'org.mockito:mockito-core:1.10.19'

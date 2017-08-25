@@ -16,6 +16,8 @@
 
 package com.google.android.things.contrib.driver.voicehat;
 
+import static android.support.test.InstrumentationRegistry.getInstrumentation;
+
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.media.AudioFormat;
@@ -25,19 +27,18 @@ import android.support.test.filters.SmallTest;
 import android.support.test.runner.AndroidJUnit4;
 import java.io.IOException;
 import junit.framework.Assert;
+import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(AndroidJUnit4.class)
 @SmallTest
 public class VoiceHatInstrumentationTest {
-    private static final AudioFormat AUDIO_FORMAT_STEREO =
-        new AudioFormat.Builder()
-            .setChannelMask(AudioFormat.CHANNEL_IN_STEREO)
-            .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
-            .setSampleRate(16000)
-            .build();
+    private VoiceHat mVoiceHat;
 
+    /**
+     * Verify that the permission is granted to manage audio drivers.
+     */
     @Test
     public void testAudioPermissionGranted() {
         String manageAudioDrivers = "com.google.android.things.permission.MANAGE_AUDIO_DRIVERS";
@@ -46,27 +47,95 @@ public class VoiceHatInstrumentationTest {
             context.checkSelfPermission(manageAudioDrivers));
     }
 
+    /**
+     * Verify that a VoiceHat can be created and the audio format is non-null.
+     */
     @Test
     public void testConstructor() throws IOException {
-        assertRaspberryPiOnly();
-        VoiceHat voiceHat = new VoiceHat("I2S1", "BCM16", AUDIO_FORMAT_STEREO);
-        Assert.assertNotNull(voiceHat.getAudioFormat());
-        voiceHat.close();
+        InstrumentationTestUtils.assertRaspberryPiOnly();
+        mVoiceHat = new VoiceHat(InstrumentationTestUtils.VOICE_HAT_I2S_RPI,
+            InstrumentationTestUtils.VOICE_HAT_TRIGGER_GPIO_RPI,
+            InstrumentationTestUtils.AUDIO_FORMAT_STEREO);
+        Assert.assertNotNull(mVoiceHat.getAudioFormat());
+        Assert.assertNotNull(mVoiceHat.getDac());
     }
 
+    /**
+     * Verify that a VoiceHat can be created, registered, and unregistered without issue.
+     */
     @Test
     public void testRegistrationFlow() throws IOException {
-        assertRaspberryPiOnly();
-        VoiceHat voiceHat = new VoiceHat("I2S1", "BCM16", AUDIO_FORMAT_STEREO);
-        voiceHat.registerAudioInputDriver();
-        voiceHat.registerAudioOutputDriver();
-        voiceHat.unregisterAudioInputDriver();
-        voiceHat.unregisterAudioOutputDriver();
-        voiceHat.close();
+        InstrumentationTestUtils.assertRaspberryPiOnly();
+        getInstrumentation().runOnMainSync(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    mVoiceHat = new VoiceHat(InstrumentationTestUtils.VOICE_HAT_I2S_RPI,
+                        InstrumentationTestUtils.VOICE_HAT_TRIGGER_GPIO_RPI,
+                        InstrumentationTestUtils.AUDIO_FORMAT_STEREO);
+                    mVoiceHat.registerAudioInputDriver();
+                    mVoiceHat.registerAudioOutputDriver();
+                    mVoiceHat.unregisterAudioInputDriver();
+                    mVoiceHat.unregisterAudioOutputDriver();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
     }
 
-    private void assertRaspberryPiOnly() {
-        // This test requires a Raspberry Pi to run
-        Assert.assertEquals("rpi3", Build.DEVICE);
+    /**
+     * Verify that a VoiceHat doesn't fail if driver methods are called several times.
+     */
+    @Test
+    public void testEverythingTwice() throws IOException {
+        InstrumentationTestUtils.assertRaspberryPiOnly();
+        getInstrumentation().runOnMainSync(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    mVoiceHat = new VoiceHat(InstrumentationTestUtils.VOICE_HAT_I2S_RPI,
+                        InstrumentationTestUtils.VOICE_HAT_TRIGGER_GPIO_RPI,
+                        InstrumentationTestUtils.AUDIO_FORMAT_STEREO);
+                    mVoiceHat.registerAudioInputDriver();
+                    mVoiceHat.registerAudioInputDriver();
+
+                    mVoiceHat.registerAudioOutputDriver();
+                    mVoiceHat.registerAudioOutputDriver();
+
+                    mVoiceHat.unregisterAudioInputDriver();
+                    mVoiceHat.unregisterAudioInputDriver();
+
+                    mVoiceHat.unregisterAudioOutputDriver();
+                    mVoiceHat.unregisterAudioOutputDriver();
+
+                    mVoiceHat.close();
+                    mVoiceHat.close();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
+
+    }
+
+    /**
+     * Verify that a VoiceHat can 'unregister' a driver that was never registered.
+     */
+    @Test
+    public void testUnregisterUndefinedDriver() throws IOException {
+        InstrumentationTestUtils.assertRaspberryPiOnly();
+        mVoiceHat = new VoiceHat(InstrumentationTestUtils.VOICE_HAT_I2S_RPI,
+            InstrumentationTestUtils.VOICE_HAT_TRIGGER_GPIO_RPI,
+            InstrumentationTestUtils.AUDIO_FORMAT_STEREO);
+        mVoiceHat.unregisterAudioInputDriver();
+        mVoiceHat.unregisterAudioOutputDriver();
+    }
+
+    @After
+    public void closeVoiceHat() throws IOException {
+        if (mVoiceHat != null) {
+            mVoiceHat.close();
+        }
     }
 }

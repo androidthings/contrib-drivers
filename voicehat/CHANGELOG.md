@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.3] - 2017-10-01
+- Adds support for LED and button
+- Refactors class
+- Adds class to directly interact with the audio chip
+
 ## [0.2] - 2017-08-28
 - Fix issue #69
 

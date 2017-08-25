@@ -6,6 +6,8 @@ microphone input and audio output from a [VoiceHat](https://aiyprojects.withgoog
 standard Android audio APIs using the Android Things [AudioInputDriver](https://developer.android.com/things/reference/com/google/android/things/userdriver/AudioInputDriver.html)
 and the [AudioOutputDriver](https://developer.android.com/things/reference/com/google/android/things/userdriver/AudioOutputDriver.html).
 
+It optionally allows the user to interact with the pushbutton and LED that are included on the PCB.
+
 At this moment the driver has only been tested on the Raspberry Pi 3.
 
 NOTE: these drivers are not production-ready. They are offered as sample
@@ -85,6 +87,40 @@ mAudioTrack.play();
 
 ByteBuffer audioData = Example.getSampleAudioData(SAMPLE_BLOCK_SIZE);
 mAudioTrack.write(audioData, audioData.remaining(), AudioTrack.WRITE_BLOCKING);
+```
+
+### Integrating Peripherals
+You can also use the additional peripherals on the VoiceHat: a pushbutton and an LED.
+
+```java
+Gpio led = VoiceHat.openLed();
+led.setValue(true);
+
+Button button = VoiceHat.openButton();
+button.setOnButtonEventListener(new OnButtonEventListener() {
+     @Override
+     public void onButtonEvent(Button button, boolean pressed) {
+         // do something awesome
+     }
+});
+```
+
+Alternatively you can register an InputDriver for the pushbutton.
+
+**Note**: If you are going to use the input driver, you will need to include the following permission
+to your AndroidManifest:
+
+```xml
+<uses-permission android:name="com.google.android.things.permission.MANAGE_INPUT_DRIVERS" />
+```
+
+```java
+// Start voice hat.
+UserDriverManager userDriverManager = UserDriverManager.getManager();
+ButtonInputDriver buttonInputDriver = VoiceHat.createButtonInputDriver(KeyEvent.KEYCODE_ENTER);
+userDriverManager.registerInputDriver(buttonInputDriver);
+
+// Make sure to call `unregisterInputDriver` in the onDestroy() method in your activity
 ```
 
 License
