@@ -3,6 +3,7 @@ package com.google.android.things.contrib.driver.ws2812b;
 
 import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
+import android.support.annotation.Size;
 import android.support.annotation.VisibleForTesting;
 import android.util.SparseArray;
 
@@ -12,10 +13,20 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * Map which stores bit patterns for each possible 12 bit number -> (numbers from 0 to 4096)
+ * Creates a storage which maps any possible 12 bit sized integer to bit patterns. If a sequence of
+ * these bit patterns is sent to a WS2812b LED strip using SPI, the outcoming high and low voltage
+ * pulses are recognized as the original 12 bit integers.<br>
+ * Converting algorithm:<br>
+ * - 1 src bit is converted to a 3 bit long bit pattern<br>
+ * - The 9th bit in a sequence of bit pattern is a pause bit and must be removed. The pause bit is
+ * automatically transmitted between every byte<br>
+ * - This results in the fact that 3 source bits are converted to 1 destination byte<br>
+ *
+ * => 3 src bits = 8 bit (1 dst byte)<br>
+ * => 12 src bits = 32 bit (4 dst bytes)<br>
  */
-public class BitPatternHolder {
-    private static final int BIGGEST_12_BIT_NUMBER = (1 << 12) - 1; // 2¹² - 1 = 4095
+public class TwelveBitIntToBitPatternMapper {
+    private static final int BIGGEST_12_BIT_NUMBER = 0B1111_1111_1111;
     private static final List<Boolean> BIT_PATTERN_FOR_ZERO_BIT = Arrays.asList(true, false, false);
     private static final List<Boolean> BIT_PATTERN_FOR_ONE_BIT = Arrays.asList(true, true, false);
     private static final int ONE_BYTE_BIT_MASKS[] = new int[]{  0b10000000,
@@ -27,28 +38,29 @@ public class BitPatternHolder {
                                                                 0b00000010,
                                                                 0b00000001};
 
-    private final Storage bitPatternStorage;
+    private final Storage mBitPatternStorage;
 
-    public BitPatternHolder() {
+    public TwelveBitIntToBitPatternMapper() {
         this(new DefaultStorage());
     }
 
     @VisibleForTesting
-    /*package*/ BitPatternHolder(@NonNull Storage storage) {
-        this.bitPatternStorage = storage;
-        fillBitPatternCache();
+    TwelveBitIntToBitPatternMapper(@NonNull Storage storage) {
+        mBitPatternStorage = storage;
+        fillBitPatternStorage();
     }
 
     /**
-     * Returns for each possible 12 bit integer an corresponding bit pattern as byte array.
+     * Returns for each possible 12 bit integer a corresponding sequence of bit pattern as byte array.
      * Throws an {@link IllegalArgumentException} if the integer is using more than 12 bit.
      *
      * @param twelveBitValue A 12 bit integer (from 0 to 4095)
      * @return The corresponding bit pattern as byte array
      */
     @NonNull
+    @Size(value = 4)
     public byte[] getBitPattern(@IntRange(from = 0, to = BIGGEST_12_BIT_NUMBER) int twelveBitValue) {
-        byte[] bitPatternByteArray = bitPatternStorage.get(twelveBitValue);
+        byte[] bitPatternByteArray = mBitPatternStorage.get(twelveBitValue);
         if (bitPatternByteArray == null)
         {
             throw new IllegalArgumentException("Only values from 0 to " + BIGGEST_12_BIT_NUMBER + " are allowed. The passed input value was: " + twelveBitValue);
@@ -56,12 +68,13 @@ public class BitPatternHolder {
         return bitPatternByteArray;
     }
 
-    private void fillBitPatternCache() {
+    private void fillBitPatternStorage() {
         for (int i = 0; i <= BIGGEST_12_BIT_NUMBER; i++) {
-            bitPatternStorage.put(i, calculateBitPatternByteArray(i));
+            mBitPatternStorage.put(i, calculateBitPatternByteArray(i));
         }
     }
 
+    @Size(value = 4)
     private byte[] calculateBitPatternByteArray(@IntRange(from = 0, to = BIGGEST_12_BIT_NUMBER) int twelveBitNumber) {
         List<Boolean> bitPatterns = new ArrayList<>();
         int highest12BitBitMask = 1 << 11;
@@ -96,6 +109,7 @@ public class BitPatternHolder {
         return bitPatterns;
     }
 
+    @Size(value = 4)
     private byte[] convertBitPatternsToByteArray(List<Boolean> bitPatterns) {
 
         if (bitPatterns.size() != 32)

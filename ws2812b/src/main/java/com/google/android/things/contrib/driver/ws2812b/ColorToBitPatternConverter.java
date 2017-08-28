@@ -1,129 +1,55 @@
 package com.google.android.things.contrib.driver.ws2812b;
 
 
-import android.graphics.Color;
 import android.support.annotation.ColorInt;
 import android.support.annotation.NonNull;
+import android.support.annotation.Size;
+import android.support.annotation.VisibleForTesting;
 
-import java.util.Arrays;
+public class ColorToBitPatternConverter {
+    private static final int MAX_NUMBER_OF_SUPPORTED_LEDS = 512;
+    private static final int FIRST_TWELVE_BIT_BIT_MASK = 0x00FFF000;
+    private static final int SECOND_TWELVE_BIT_BIT_MASK = 0x00000FFF;
 
-import static com.google.android.things.contrib.driver.ws2812b.Ws2812b.*;
+    private final TwelveBitIntToBitPatternMapper mTwelveBitIntToBitPatternMapper;
+    private ColorChannelSequence.Sequencer colorChannelSequencer;
 
-
-class ColorToBitPatternConverter {
-    @Ws2812b.LedMode
-    private final int mLedMode;
-    private static final int[] SUPPORTED_MODES = {RGB, RBG, GRB, GBR, BRG, BGR};
-
-
-    ColorToBitPatternConverter(@LedMode int ledMode) {
-        this.mLedMode = ledMode;
+    public ColorToBitPatternConverter(@ColorChannelSequence.Sequence int colorChannelSequence) {
+        this(colorChannelSequence, new TwelveBitIntToBitPatternMapper());
     }
 
-    @NonNull
-    byte[] convertColorsToBitPattern(@NonNull @ColorInt int colors[]) {
-        byte[] convertedColors;
-        switch (mLedMode) {
-            case BGR:
-                convertedColors = convertToBgr(colors);
-                break;
-            case BRG:
-                convertedColors = convertToBrg(colors);
-                break;
-            case GBR:
-                convertedColors = convertToGbr(colors);
-                break;
-            case GRB:
-                convertedColors = convertToGrb(colors);
-                break;
-            case RBG:
-                convertedColors = convertToRbg(colors);
-                break;
-            case Ws2812b.RGB:
-                convertedColors = convertToRgb(colors);
-                break;
-            default:
-                throw new IllegalStateException("This LED mode is not supported. Chosen mode: " + mLedMode + ". Supported modes: " + Arrays.toString(SUPPORTED_MODES));
+    @VisibleForTesting
+    ColorToBitPatternConverter(@ColorChannelSequence.Sequence int colorChannelSequence, @NonNull TwelveBitIntToBitPatternMapper twelveBitIntToBitPatternMapper) {
+        colorChannelSequencer = ColorChannelSequence.createSequencer(colorChannelSequence);
+        mTwelveBitIntToBitPatternMapper = twelveBitIntToBitPatternMapper;
+    }
+
+    /**
+     * Converts the passed color array to a correlating byte array of bit patterns. These resulting
+     * bit patterns are readable by a WS2812B LED strip if they are sent by a SPI device with the
+     * right frequency.
+     *
+     * @param colors An array of color integers {@link ColorInt}
+     * @return Returns a byte array of correlating bit patterns
+     */
+    public byte[] convertToBitPattern(@ColorInt @NonNull @Size(max = MAX_NUMBER_OF_SUPPORTED_LEDS) int[] colors) {
+        if (colors.length > MAX_NUMBER_OF_SUPPORTED_LEDS) {
+            throw new IllegalArgumentException("Only " + MAX_NUMBER_OF_SUPPORTED_LEDS + " LEDs are supported. A Greater Number (" + colors.length + ") will result in SPI errors!");
         }
-        return convertedColors;
 
-    }
+        byte[] bitPatterns = new byte[colors.length * 8];
 
-    private byte[] convertToBgr(@ColorInt int colors[]) {
-        BitPatternWriter bitPatternWriter = new BitPatternWriter(colors.length);
-
+        int i = 0;
         for (int color : colors) {
-            bitPatternWriter.writeBitPatternToBuffer(Color.blue(color));
-            bitPatternWriter.writeBitPatternToBuffer(Color.green(color));
-            bitPatternWriter.writeBitPatternToBuffer(Color.red(color));
+            color = colorChannelSequencer.rearrangeColorChannels(color);
+            int firstValue = (color & FIRST_TWELVE_BIT_BIT_MASK) >> 12;
+            int secondValue = color & SECOND_TWELVE_BIT_BIT_MASK;
+
+            System.arraycopy(mTwelveBitIntToBitPatternMapper.getBitPattern(firstValue), 0, bitPatterns, i, 4);
+            i += 4;
+            System.arraycopy(mTwelveBitIntToBitPatternMapper.getBitPattern(secondValue), 0, bitPatterns, i, 4);
+            i += 4;
         }
-        bitPatternWriter.finishBitPatternBuffer();
-
-        return bitPatternWriter.getBitPatternBuffer();
-    }
-
-    private byte[] convertToBrg(@ColorInt int colors[]) {
-        BitPatternWriter bitPatternWriter = new BitPatternWriter(colors.length);
-
-        for (int color : colors) {
-            bitPatternWriter.writeBitPatternToBuffer(Color.blue(color));
-            bitPatternWriter.writeBitPatternToBuffer(Color.red(color));
-            bitPatternWriter.writeBitPatternToBuffer(Color.green(color));
-        }
-        bitPatternWriter.finishBitPatternBuffer();
-
-        return bitPatternWriter.getBitPatternBuffer();
-    }
-
-    private byte[] convertToGbr(@ColorInt int colors[]) {
-        BitPatternWriter bitPatternWriter = new BitPatternWriter(colors.length);
-
-        for (int color : colors) {
-            bitPatternWriter.writeBitPatternToBuffer(Color.green(color));
-            bitPatternWriter.writeBitPatternToBuffer(Color.blue(color));
-            bitPatternWriter.writeBitPatternToBuffer(Color.red(color));
-        }
-        bitPatternWriter.finishBitPatternBuffer();
-
-        return bitPatternWriter.getBitPatternBuffer();
-    }
-
-    private byte[] convertToGrb(@ColorInt int colors[]) {
-        BitPatternWriter bitPatternWriter = new BitPatternWriter(colors.length);
-
-        for (int color : colors) {
-            bitPatternWriter.writeBitPatternToBuffer(Color.green(color));
-            bitPatternWriter.writeBitPatternToBuffer(Color.red(color));
-            bitPatternWriter.writeBitPatternToBuffer(Color.blue(color));
-        }
-        bitPatternWriter.finishBitPatternBuffer();
-
-        return bitPatternWriter.getBitPatternBuffer();
-    }
-
-    private byte[] convertToRbg(@ColorInt int colors[]) {
-        BitPatternWriter bitPatternWriter = new BitPatternWriter(colors.length);
-
-        for (int color : colors) {
-            bitPatternWriter.writeBitPatternToBuffer(Color.red(color));
-            bitPatternWriter.writeBitPatternToBuffer(Color.blue(color));
-            bitPatternWriter.writeBitPatternToBuffer(Color.green(color));
-        }
-        bitPatternWriter.finishBitPatternBuffer();
-
-        return bitPatternWriter.getBitPatternBuffer();
-    }
-
-    private byte[] convertToRgb(@ColorInt int colors[]) {
-        BitPatternWriter bitPatternWriter = new BitPatternWriter(colors.length);
-
-        for (int color : colors) {
-            bitPatternWriter.writeBitPatternToBuffer(Color.red(color));
-            bitPatternWriter.writeBitPatternToBuffer(Color.green(color));
-            bitPatternWriter.writeBitPatternToBuffer(Color.blue(color));
-        }
-        bitPatternWriter.finishBitPatternBuffer();
-
-        return bitPatternWriter.getBitPatternBuffer();
+        return bitPatterns;
     }
 }

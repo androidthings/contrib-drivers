@@ -16,17 +16,14 @@
 
 package com.google.android.things.contrib.driver.ws2812b;
 
-import android.graphics.Color;
 import android.support.annotation.ColorInt;
-import android.support.annotation.IntDef;
+import android.support.annotation.NonNull;
 import android.support.annotation.VisibleForTesting;
+
 import com.google.android.things.pio.PeripheralManagerService;
 import com.google.android.things.pio.SpiDevice;
 
 import java.io.IOException;
-import java.lang.annotation.Retention;
-
-import static java.lang.annotation.RetentionPolicy.SOURCE;
 
 /**
  * Device driver for WS2812B LEDs using SPI.
@@ -41,23 +38,9 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
 public class Ws2812b implements AutoCloseable {
     private static final String TAG = "Ws2812b";
 
-    /**
-     * Color ordering for the RGB LED messages; the most common modes are BGR and RGB.
-     */
-    @Retention(SOURCE)
-    @IntDef({RGB, RBG, GRB, GBR, BRG, BGR})
-    public @interface LedMode {}
-    public static final int RGB = 0;
-    public static final int RBG = 1;
-    public static final int GRB = 2;
-    public static final int GBR = 3;
-    public static final int BRG = 4;
-    public static final int BGR = 5;
-
-    // For peripherals access
-    private SpiDevice mDevice = null;
-
+    @NonNull
     private final ColorToBitPatternConverter mColorToBitPatternConverter;
+    private SpiDevice mDevice = null;
 
     /**
      * Create a new WS2812B driver.
@@ -65,23 +48,26 @@ public class Ws2812b implements AutoCloseable {
      * @param spiBusPort Name of the SPI bus
      */
     public Ws2812b(String spiBusPort) throws IOException {
-        this(spiBusPort, GRB);
+        this(spiBusPort, new ColorToBitPatternConverter(ColorChannelSequence.GRB));
     }
 
     /**
      * Create a new WS2812B driver.
      *
      * @param spiBusPort Name of the SPI bus
-     * @param ledMode The {@link LedMode} indicating the red/green/blue byte ordering for the device.
+     * @param colorChannelSequence The {@link ColorChannelSequence.Sequence} indicates the red/green/blue byte order for the LED strip.
      * @throws IOException if the initialization of the SpiDevice fails
      *
      */
-    public Ws2812b(String spiBusPort, @LedMode int ledMode) throws IOException {
-        mColorToBitPatternConverter = new ColorToBitPatternConverter(ledMode);
-        PeripheralManagerService pioService = new PeripheralManagerService();
-        mDevice = pioService.openSpiDevice(spiBusPort);
+    public Ws2812b(String spiBusPort, @ColorChannelSequence.Sequence int colorChannelSequence) throws IOException {
+        this (spiBusPort, new ColorToBitPatternConverter(colorChannelSequence));
+    }
+
+    private Ws2812b(String spiBusPort, @NonNull ColorToBitPatternConverter colorToBitPatternConverter) throws IOException {
+        mColorToBitPatternConverter = colorToBitPatternConverter;
+        mDevice = new PeripheralManagerService().openSpiDevice(spiBusPort);
         try {
-            configure(mDevice);
+            initSpiDevice(mDevice);
         } catch (IOException|RuntimeException e) {
             try {
                 close();
@@ -91,20 +77,14 @@ public class Ws2812b implements AutoCloseable {
         }
     }
 
-    /**
-     * Create a new WS2812B driver.
-     *
-     * @param device {@link SpiDevice} where the LED strip is attached to.
-     * @param ledMode The {@link LedMode} indicating the red/green/blue byte ordering for the device.
-     */
     @VisibleForTesting
-    /*package*/ Ws2812b(SpiDevice device, @LedMode int ledMode) throws IOException {
-        mColorToBitPatternConverter = new ColorToBitPatternConverter(ledMode);
+    /*package*/ Ws2812b(SpiDevice device, @NonNull ColorToBitPatternConverter colorToBitPatternConverter) throws IOException {
+        mColorToBitPatternConverter = colorToBitPatternConverter;
         mDevice = device;
-        configure(mDevice);
+        initSpiDevice(mDevice);
     }
 
-    private void configure(SpiDevice device) throws IOException {
+    private void initSpiDevice(SpiDevice device) throws IOException {
 
         double durationOfOneBitInNs = 417.0;
         double durationOfOneBitInS = durationOfOneBitInNs * Math.pow(10, -9);
@@ -116,17 +96,16 @@ public class Ws2812b implements AutoCloseable {
     }
 
     /**
-     * Writes the current RGB Led data to the peripheral bus.
-     * @param colors An array of integers corresponding to a {@link Color}.
-     * @throws IOException if writing to the SPi device fails
+     * Transforms the passed color array and writes it to the SPI connected WS2812b LED strip.
+     * @param colors An array of 24 bit RGB color integers {@link ColorInt}
+     * @throws IOException if writing to the SPI device fails
      */
-    public void write(@ColorInt int[] colors) throws IOException {
+    public void write(@NonNull @ColorInt int[] colors) throws IOException {
         if (mDevice == null) {
             throw new IllegalStateException("SPI device not opened");
         }
 
-        byte[] convertedColors = mColorToBitPatternConverter.convertColorsToBitPattern(colors);
-
+        byte[] convertedColors = mColorToBitPatternConverter.convertToBitPattern(colors);
         mDevice.write(convertedColors, convertedColors.length);
     }
 

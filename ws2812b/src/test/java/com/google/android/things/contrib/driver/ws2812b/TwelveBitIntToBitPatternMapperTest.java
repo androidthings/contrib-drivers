@@ -3,7 +3,9 @@ package com.google.android.things.contrib.driver.ws2812b;
 
 import android.annotation.SuppressLint;
 
-import org.junit.Before;
+import com.google.android.things.contrib.driver.ws2812b.util.BitPatternTo12BitIntConverter;
+
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -13,14 +15,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 
+
 @RunWith(PowerMockRunner.class)
-public class BitPatternHolderTest {
+public class TwelveBitIntToBitPatternMapperTest {
 
-    private BitPatternHolder bitPatternHolder;
-
-    @Before
-    public void setUp() throws Exception {
-        bitPatternHolder = new BitPatternHolder(new BitPatternHolder.Storage() {
+    private TwelveBitIntToBitPatternMapper twelveBitIntToBitPatternMapper = new TwelveBitIntToBitPatternMapper(new TwelveBitIntToBitPatternMapper.Storage() {
             @SuppressLint("UseSparseArrays") // Sparse array is not available for Unit tests
             private Map<Integer, byte []> map = new HashMap<>();
             @Override
@@ -33,23 +32,22 @@ public class BitPatternHolderTest {
                 return map.get(key);
             }
         });
-    }
+
 
     @Test
     public void getBitPattern() throws IOException {
+        BitPatternTo12BitIntConverter converter = new BitPatternTo12BitIntConverter();
         double limit = Math.pow(2, 12);
         for (int i = 0; i < limit; i++) {
-            //noinspection ConstantConditions
-            if (bitPatternHolder.getBitPattern(i) == null)
-            {
-                throw new AssertionError("Bit pattern not found for value: " + i);
-            }
+            byte[] bitPattern = twelveBitIntToBitPatternMapper.getBitPattern(i);
+            int originalValue = converter.convertBitPatternTo12BitInt(bitPattern);
+            Assert.assertEquals(originalValue, i);
         }
     }
 
     @Test (expected = IllegalArgumentException.class)
     public void getBitPatternIllegalArgumentException() throws IOException {
         int limit = (int) Math.pow(2, 12);
-        bitPatternHolder.getBitPattern(limit);
+        twelveBitIntToBitPatternMapper.getBitPattern(limit);
     }
 }

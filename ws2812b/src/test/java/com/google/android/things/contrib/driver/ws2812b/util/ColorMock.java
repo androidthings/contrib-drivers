@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.android.things.contrib.driver.ws2812b;
+package com.google.android.things.contrib.driver.ws2812b.util;
 
 import android.graphics.Color;
 
@@ -25,8 +25,8 @@ import org.powermock.api.mockito.PowerMockito;
 
 import static org.mockito.Matchers.anyInt;
 
-class ColorMock {
-    static void mockStatic() {
+public class ColorMock {
+    public static void mockStatic() {
         PowerMockito.mockStatic(Color.class);
 
         mockRed();
