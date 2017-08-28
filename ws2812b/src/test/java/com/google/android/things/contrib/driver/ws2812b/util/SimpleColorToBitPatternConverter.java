@@ -8,7 +8,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-public class SimpleBitPatternTestConverter {
+public class SimpleColorToBitPatternConverter {
     private static final int [] ONE_BYTE_BIT_MASKS = {
             0b1000_0000,
             0b0100_0000,

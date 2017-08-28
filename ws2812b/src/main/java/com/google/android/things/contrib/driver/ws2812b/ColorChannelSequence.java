@@ -10,7 +10,7 @@ import java.util.Arrays;
 
 import static java.lang.annotation.RetentionPolicy.SOURCE;
 
-public class ColorChannelSequence {
+class ColorChannelSequence {
     @SuppressWarnings("WeakerAccess")
     public static final int RGB = 1;
     @SuppressWarnings("WeakerAccess")
@@ -37,7 +37,7 @@ public class ColorChannelSequence {
     }
 
     @NonNull
-    public static Sequencer createSequencer(@Sequence int colorChannelSequence)
+    static Sequencer createSequencer(@Sequence int colorChannelSequence)
     {
         switch (colorChannelSequence) {
             case BGR:

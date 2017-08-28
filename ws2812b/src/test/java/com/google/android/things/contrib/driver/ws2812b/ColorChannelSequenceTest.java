@@ -41,7 +41,7 @@ public class ColorChannelSequenceTest {
 
         Assert.assertEquals(get1stColor(rearrangedColor), red);
         Assert.assertEquals(get2ndColor(rearrangedColor), green);
-        Assert.assertEquals(get3ndColor(rearrangedColor), blue);
+        Assert.assertEquals(get3rdColor(rearrangedColor), blue);
     }
 
     @Test
@@ -52,7 +52,7 @@ public class ColorChannelSequenceTest {
 
         Assert.assertEquals(get1stColor(rearrangedColor), red);
         Assert.assertEquals(get2ndColor(rearrangedColor), blue);
-        Assert.assertEquals(get3ndColor(rearrangedColor), green);
+        Assert.assertEquals(get3rdColor(rearrangedColor), green);
     }
 
     @Test
@@ -63,7 +63,7 @@ public class ColorChannelSequenceTest {
 
         Assert.assertEquals(get1stColor(rearrangedColor), green);
         Assert.assertEquals(get2ndColor(rearrangedColor), red);
-        Assert.assertEquals(get3ndColor(rearrangedColor), blue);
+        Assert.assertEquals(get3rdColor(rearrangedColor), blue);
     }
 
     @Test
@@ -74,7 +74,7 @@ public class ColorChannelSequenceTest {
 
         Assert.assertEquals(get1stColor(rearrangedColor), green);
         Assert.assertEquals(get2ndColor(rearrangedColor), blue);
-        Assert.assertEquals(get3ndColor(rearrangedColor), red);
+        Assert.assertEquals(get3rdColor(rearrangedColor), red);
     }
 
     @Test
@@ -85,7 +85,7 @@ public class ColorChannelSequenceTest {
 
         Assert.assertEquals(get1stColor(rearrangedColor), blue);
         Assert.assertEquals(get2ndColor(rearrangedColor), red);
-        Assert.assertEquals(get3ndColor(rearrangedColor), green);
+        Assert.assertEquals(get3rdColor(rearrangedColor), green);
     }
 
     @Test
@@ -96,7 +96,7 @@ public class ColorChannelSequenceTest {
 
         Assert.assertEquals(get1stColor(rearrangedColor), blue);
         Assert.assertEquals(get2ndColor(rearrangedColor), green);
-        Assert.assertEquals(get3ndColor(rearrangedColor), red);
+        Assert.assertEquals(get3rdColor(rearrangedColor), red);
     }
 
     @IntRange(from = 0, to = 255)
@@ -114,7 +114,7 @@ public class ColorChannelSequenceTest {
         return Color.green(color);
     }
 
-    private static int get3ndColor(@ColorInt int color)
+    private static int get3rdColor(@ColorInt int color)
     {
         return Color.blue(color);
     }

@@ -6,7 +6,7 @@ import android.graphics.Color;
 import android.support.annotation.NonNull;
 
 import com.google.android.things.contrib.driver.ws2812b.util.ColorMock;
-import com.google.android.things.contrib.driver.ws2812b.util.SimpleBitPatternTestConverter;
+import com.google.android.things.contrib.driver.ws2812b.util.SimpleColorToBitPatternConverter;
 import com.google.android.things.pio.SpiDevice;
 
 import org.junit.Rule;
@@ -62,7 +62,7 @@ public class Ws2812bTest {
         Ws2812b ws2812b = createWs2812BDevice();
         ws2812b.write(new int [] {Color.RED});
 
-        byte[] bytes = new SimpleBitPatternTestConverter().constructBitPatterns(color);
+        byte[] bytes = new SimpleColorToBitPatternConverter().constructBitPatterns(color);
 
         Mockito.verify(mSpiDevice).write(bytes, bytes.length);
     }

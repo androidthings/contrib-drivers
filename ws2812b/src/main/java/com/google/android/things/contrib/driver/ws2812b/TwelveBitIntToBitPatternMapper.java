@@ -25,7 +25,7 @@ import java.util.List;
  * => 3 src bits = 8 bit (1 dst byte)<br>
  * => 12 src bits = 32 bit (4 dst bytes)<br>
  */
-public class TwelveBitIntToBitPatternMapper {
+class TwelveBitIntToBitPatternMapper {
     private static final int BIGGEST_12_BIT_NUMBER = 0B1111_1111_1111;
     private static final List<Boolean> BIT_PATTERN_FOR_ZERO_BIT = Arrays.asList(true, false, false);
     private static final List<Boolean> BIT_PATTERN_FOR_ONE_BIT = Arrays.asList(true, true, false);
@@ -40,7 +40,7 @@ public class TwelveBitIntToBitPatternMapper {
 
     private final Storage mBitPatternStorage;
 
-    public TwelveBitIntToBitPatternMapper() {
+    TwelveBitIntToBitPatternMapper() {
         this(new DefaultStorage());
     }
 
@@ -54,12 +54,12 @@ public class TwelveBitIntToBitPatternMapper {
      * Returns for each possible 12 bit integer a corresponding sequence of bit pattern as byte array.
      * Throws an {@link IllegalArgumentException} if the integer is using more than 12 bit.
      *
-     * @param twelveBitValue A 12 bit integer (from 0 to 4095)
-     * @return The corresponding bit pattern as byte array
+     * @param twelveBitValue Any 12 bit integer (from 0 to 4095)
+     * @return The corresponding bit pattern as 4 byte sized array
      */
     @NonNull
     @Size(value = 4)
-    public byte[] getBitPattern(@IntRange(from = 0, to = BIGGEST_12_BIT_NUMBER) int twelveBitValue) {
+    byte[] getBitPattern(@IntRange(from = 0, to = BIGGEST_12_BIT_NUMBER) int twelveBitValue) {
         byte[] bitPatternByteArray = mBitPatternStorage.get(twelveBitValue);
         if (bitPatternByteArray == null)
         {
