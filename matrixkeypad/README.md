@@ -128,7 +128,7 @@ protected void onDestroy() {
     driver.unregisterKeypad();
     driver.close();
   } catch (IOException e) {
-    e.printStackTrace();
+     ...
   }
 }
 ```
