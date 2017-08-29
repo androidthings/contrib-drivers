@@ -1,9 +1,8 @@
 package com.google.android.things.contrib.driver.ws2812b;
 
 
-import android.annotation.SuppressLint;
-
 import com.google.android.things.contrib.driver.ws2812b.util.BitPatternTo12BitIntConverter;
+import com.google.android.things.contrib.driver.ws2812b.util.SparseArrayMockCreator;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -11,28 +10,13 @@ import org.junit.runner.RunWith;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 
 
 @RunWith(PowerMockRunner.class)
 public class TwelveBitIntToBitPatternMapperTest {
 
-    private TwelveBitIntToBitPatternMapper twelveBitIntToBitPatternMapper = new TwelveBitIntToBitPatternMapper(new TwelveBitIntToBitPatternMapper.Storage() {
-            @SuppressLint("UseSparseArrays") // Sparse array is not available for Unit tests
-            private Map<Integer, byte []> map = new HashMap<>();
-            @Override
-            public void put(int key, byte[] value) {
-                map.put(key, value);
-            }
-
-            @Override
-            public byte[] get(int key) {
-                return map.get(key);
-            }
-        });
-
+    private TwelveBitIntToBitPatternMapper twelveBitIntToBitPatternMapper = new TwelveBitIntToBitPatternMapper(SparseArrayMockCreator.createMockedSparseArray());
 
     @Test
     public void getBitPattern() throws IOException {

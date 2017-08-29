@@ -1,12 +1,12 @@
 package com.google.android.things.contrib.driver.ws2812b;
 
 
-import android.annotation.SuppressLint;
 import android.graphics.Color;
 import android.support.annotation.NonNull;
 
 import com.google.android.things.contrib.driver.ws2812b.util.ColorMock;
 import com.google.android.things.contrib.driver.ws2812b.util.SimpleColorToBitPatternConverter;
+import com.google.android.things.contrib.driver.ws2812b.util.SparseArrayMockCreator;
 import com.google.android.things.pio.SpiDevice;
 
 import org.junit.Rule;
@@ -21,8 +21,6 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 
 @RunWith(PowerMockRunner.class)
@@ -69,20 +67,7 @@ public class Ws2812bTest {
 
     @NonNull
     private Ws2812b createWs2812BDevice() throws IOException {
-        TwelveBitIntToBitPatternMapper patternMapper = new TwelveBitIntToBitPatternMapper(new TwelveBitIntToBitPatternMapper.Storage() {
-            @SuppressLint("UseSparseArrays")
-            private Map<Integer, byte[]> internalStorage = new HashMap<>();
-
-            @Override
-            public void put(int key, byte[] value) {
-                internalStorage.put(key, value);
-            }
-
-            @Override
-            public byte[] get(int key) {
-                return internalStorage.get(key);
-            }
-        });
+        TwelveBitIntToBitPatternMapper patternMapper = new TwelveBitIntToBitPatternMapper(SparseArrayMockCreator.createMockedSparseArray());
         ColorToBitPatternConverter converter = new ColorToBitPatternConverter(ColorChannelSequence.RBG, patternMapper);
         return new Ws2812b(mSpiDevice, converter);
     }

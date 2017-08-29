@@ -37,16 +37,16 @@ class TwelveBitIntToBitPatternMapper {
                                                                 0b00000100,
                                                                 0b00000010,
                                                                 0b00000001};
-
-    private final Storage mBitPatternStorage;
+    @NonNull
+    private final SparseArray<byte[]> mSparseArray;
 
     TwelveBitIntToBitPatternMapper() {
-        this(new DefaultStorage());
+        this(new SparseArray<byte[]>(BIGGEST_12_BIT_NUMBER));
     }
 
     @VisibleForTesting
-    TwelveBitIntToBitPatternMapper(@NonNull Storage storage) {
-        mBitPatternStorage = storage;
+    TwelveBitIntToBitPatternMapper(@NonNull final SparseArray<byte[]> sparseArray) {
+        mSparseArray = sparseArray;
         fillBitPatternStorage();
     }
 
@@ -60,7 +60,7 @@ class TwelveBitIntToBitPatternMapper {
     @NonNull
     @Size(value = 4)
     byte[] getBitPattern(@IntRange(from = 0, to = BIGGEST_12_BIT_NUMBER) int twelveBitValue) {
-        byte[] bitPatternByteArray = mBitPatternStorage.get(twelveBitValue);
+        byte[] bitPatternByteArray = mSparseArray.get(twelveBitValue);
         if (bitPatternByteArray == null)
         {
             throw new IllegalArgumentException("Only values from 0 to " + BIGGEST_12_BIT_NUMBER + " are allowed. The passed input value was: " + twelveBitValue);
@@ -70,7 +70,7 @@ class TwelveBitIntToBitPatternMapper {
 
     private void fillBitPatternStorage() {
         for (int i = 0; i <= BIGGEST_12_BIT_NUMBER; i++) {
-            mBitPatternStorage.put(i, calculateBitPatternByteArray(i));
+            mSparseArray.append(i, calculateBitPatternByteArray(i));
         }
     }
 
@@ -133,27 +133,5 @@ class TwelveBitIntToBitPatternMapper {
             }
         }
         return (byte) bitPatternByte;
-    }
-
-    @VisibleForTesting
-    /*package*/ interface Storage
-    {
-        void put(int key, byte[] value);
-        byte[] get(int key);
-    }
-
-    private static class DefaultStorage implements Storage
-    {
-        private final SparseArray<byte[]> sparseArray = new SparseArray<>();
-
-        @Override
-        public void put(int key, byte[] value) {
-            sparseArray.append(key, value);
-        }
-
-        @Override
-        public byte[] get(int key) {
-            return sparseArray.get(key);
-        }
     }
 }
