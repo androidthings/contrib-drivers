@@ -40,6 +40,7 @@ Driver | Type | Usage (add to your gradle dependencies) | Note
 [driver-cap12xx](cap12xx) | capacitive touch buttons | `compile 'com.google.android.things.contrib:driver-cap12xx:0.4'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/cap12xx) [changelog](cap12xx/CHANGELOG.md)
 [driver-gps](gps) | GPS | `compile 'com.google.android.things.contrib:driver-gps:0.4'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/gps) [changelog](gps/CHANGELOG.md)
 [driver-ht16k33](ht16k33) | 7-digit alphanumeric segment display | `compile 'com.google.android.things.contrib:driver-ht16k33:0.4'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/ht16k33) [changelog](ht16k33/CHANGELOG.md)
+[driver-matrixkeypad](matrixkeypad) | driver for generic matrix keypads | `compile 'com.google.android.things.contrib:driver-matrixkeypad:0.1'` |  [changelog](matrixkeypad/CHANGELOG.md)
 [driver-mma7660fc](mma7660fc) | accelerometer sensor | `compile 'com.google.android.things.contrib:driver-mma7660fc:0.3'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/mma7660fc) [changelog](mma7660fc/CHANGELOG.md)
 [driver-pwmservo](pwmservo) | PWM servo | `compile 'com.google.android.things.contrib:driver-pwmservo:0.3'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/pwmservo) [changelog](pwmservo/CHANGELOG.md)
 [driver-pwmspeaker](pwmspeaker) | PWM speaker/buzzer | `compile 'com.google.android.things.contrib:driver-pwmspeaker:0.3'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/pwmspeaker) [changelog](pwmspeaker/CHANGELOG.md)
@@ -47,7 +48,7 @@ Driver | Type | Usage (add to your gradle dependencies) | Note
 [driver-sensehat](sensehat) | metadriver for the Sense HAT | `compile 'com.google.android.things.contrib:driver-sensehat:0.3'` |  [changelog](sensehat/CHANGELOG.md)
 [driver-ssd1306](ssd1306) | OLED display | `compile 'com.google.android.things.contrib:driver-ssd1306:0.5'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/ssd1306) [changelog](ssd1306/CHANGELOG.md)
 [driver-tm1637](tm1637) | 4-digit numeric segment display | `compile 'com.google.android.things.contrib:driver-tm1637:0.3'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/tm1637) [changelog](tm1637/CHANGELOG.md)
-[driver-voicehat](voicehat) | driver for VoiceHat board | `compile 'com.google.android.things.contrib:driver-voicehat:0.1'` | [sample](https://github.com/androidthings/sample-googleassistant) [changelog](voicehat/CHANGELOG.md)
+[driver-voicehat](voicehat) | driver for VoiceHat board | `compile 'com.google.android.things.contrib:driver-voicehat:0.2'` | [sample](https://github.com/androidthings/sample-googleassistant) [changelog](voicehat/CHANGELOG.md)
 [driver-zxgesturesensor](zxgesturesensor) | zx gesture sensor | `compile 'com.google.android.things.contrib:driver-zxgesturesensor:0.1'` |  [changelog](zxgesturesensor/CHANGELOG.md)
 <!-- DRIVER_LIST_END -->
 
