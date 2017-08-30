@@ -15,12 +15,13 @@
  limitations under the License.
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.google.android.things.contrib.driver.button">
+    package="com.google.android.things.contrib.driver.voicehat">
 
-    <uses-permission android:name="com.google.android.things.permission.MANAGE_INPUT_DRIVERS" />
+  <uses-permission android:name="android.permission.RECORD_AUDIO" />
+  <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+  <uses-permission android:name="com.google.android.things.permission.MANAGE_AUDIO_DRIVERS" />
 
-    <application>
-        <activity android:name=".ButtonTestActivity" />
-    </application>
-
+  <application>
+    <uses-library android:required="false" android:name="com.google.android.things"/>
+  </application>
 </manifest>
