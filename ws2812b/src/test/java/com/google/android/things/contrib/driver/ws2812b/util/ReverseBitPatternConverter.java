@@ -1,6 +1,7 @@
 package com.google.android.things.contrib.driver.ws2812b.util;
 
 
+import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Size;
 
@@ -10,10 +11,24 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 
-public class BitPatternTo12BitIntConverter {
+public class ReverseBitPatternConverter {
 
-    public int convertBitPatternTo12BitInt(@Size(value = 4) byte[] bitPatterns)
-    {
+    @IntRange(from = 0, to = (1 << 24) -1)
+    public int convertBitPatternTo24BitInt(@Size(value = 8) byte[] bitPatterns) {
+        byte[] firstBitPatterns = new byte[4];
+        byte[] secondBitPatterns = new byte[4];
+
+        System.arraycopy(bitPatterns, 0, firstBitPatterns, 0, 4);
+        System.arraycopy(bitPatterns, 4, secondBitPatterns, 0, 4);
+
+        int first12BitInt = convertBitPatternTo12BitInt(firstBitPatterns);
+        int second12BitInt = convertBitPatternTo12BitInt(secondBitPatterns);
+
+        return (first12BitInt << 12) | second12BitInt;
+    }
+
+    @IntRange(from = 0, to = (1 << 12) -1)
+    public int convertBitPatternTo12BitInt(@Size(value = 4) byte[] bitPatterns) {
         List<Boolean> booleanBitPatterns = convertToBooleanBitPatternWithMissingPauseBit(bitPatterns);
         List<Boolean> originalBooleanBits = new ArrayList<>();
         ListIterator<Boolean> booleanBitPatternIterator = booleanBitPatterns.listIterator();

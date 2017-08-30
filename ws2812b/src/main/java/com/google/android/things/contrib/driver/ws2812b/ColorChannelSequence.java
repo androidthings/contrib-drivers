@@ -23,8 +23,8 @@ class ColorChannelSequence {
     public static final int BRG = 5;
     @SuppressWarnings("WeakerAccess")
     public static final int BGR = 6;
-    @SuppressWarnings("WeakerAccess")
-    private static final int[] AVAILABLE_ORDER = {RGB, RBG, GRB, GBR, BRG, BGR};
+    @Sequence
+    private static final int[] ALL_SEQUENCES = {RGB, RBG, GRB, GBR, BRG, BGR};
 
     @Retention(SOURCE)
     @IntDef({RGB, RBG, GRB, GBR, BRG, BGR})
@@ -83,7 +83,7 @@ class ColorChannelSequence {
                     }
                 };
             default:
-                throw new IllegalArgumentException("Invalid color channel sequence: " + colorChannelSequence + ". Supported color channel sequences are: " + Arrays.toString(ColorChannelSequence.AVAILABLE_ORDER));
+                throw new IllegalArgumentException("Invalid color channel sequence: " + colorChannelSequence + ". Supported color channel sequences are: " + Arrays.toString(ColorChannelSequence.ALL_SEQUENCES));
         }
     }
 

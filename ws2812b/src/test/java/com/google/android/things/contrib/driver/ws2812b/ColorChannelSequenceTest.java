@@ -2,10 +2,9 @@ package com.google.android.things.contrib.driver.ws2812b;
 
 
 import android.graphics.Color;
-import android.support.annotation.ColorInt;
-import android.support.annotation.IntRange;
 
 import com.google.android.things.contrib.driver.ws2812b.util.ColorMock;
+import com.google.android.things.contrib.driver.ws2812b.util.ColorUtil;
 
 import junit.framework.Assert;
 
@@ -25,12 +24,12 @@ public class ColorChannelSequenceTest {
     private int blue;
 
     @Before
-    public void before() {
+    public void setUp() {
         ColorMock.mockStatic();
 
-        red = generateRandomColorValue();
-        green = generateRandomColorValue();
-        blue = generateRandomColorValue();
+        red = ColorUtil.generateRandomColorValue();
+        green = ColorUtil.generateRandomColorValue();
+        blue = ColorUtil.generateRandomColorValue();
     }
 
     @Test
@@ -39,9 +38,9 @@ public class ColorChannelSequenceTest {
         int rgbColor = Color.rgb(red, green, blue);
         int rearrangedColor = sequencer.rearrangeColorChannels(rgbColor);
 
-        Assert.assertEquals(get1stColor(rearrangedColor), red);
-        Assert.assertEquals(get2ndColor(rearrangedColor), green);
-        Assert.assertEquals(get3rdColor(rearrangedColor), blue);
+        Assert.assertEquals(ColorUtil.get1stColor(rearrangedColor), red);
+        Assert.assertEquals(ColorUtil.get2ndColor(rearrangedColor), green);
+        Assert.assertEquals(ColorUtil.get3rdColor(rearrangedColor), blue);
     }
 
     @Test
@@ -50,9 +49,9 @@ public class ColorChannelSequenceTest {
         int rgbColor = Color.rgb(red, green, blue);
         int rearrangedColor = sequencer.rearrangeColorChannels(rgbColor);
 
-        Assert.assertEquals(get1stColor(rearrangedColor), red);
-        Assert.assertEquals(get2ndColor(rearrangedColor), blue);
-        Assert.assertEquals(get3rdColor(rearrangedColor), green);
+        Assert.assertEquals(ColorUtil.get1stColor(rearrangedColor), red);
+        Assert.assertEquals(ColorUtil.get2ndColor(rearrangedColor), blue);
+        Assert.assertEquals(ColorUtil.get3rdColor(rearrangedColor), green);
     }
 
     @Test
@@ -61,9 +60,9 @@ public class ColorChannelSequenceTest {
         int rgbColor = Color.rgb(red, green, blue);
         int rearrangedColor = sequencer.rearrangeColorChannels(rgbColor);
 
-        Assert.assertEquals(get1stColor(rearrangedColor), green);
-        Assert.assertEquals(get2ndColor(rearrangedColor), red);
-        Assert.assertEquals(get3rdColor(rearrangedColor), blue);
+        Assert.assertEquals(ColorUtil.get1stColor(rearrangedColor), green);
+        Assert.assertEquals(ColorUtil.get2ndColor(rearrangedColor), red);
+        Assert.assertEquals(ColorUtil.get3rdColor(rearrangedColor), blue);
     }
 
     @Test
@@ -72,9 +71,9 @@ public class ColorChannelSequenceTest {
         int rgbColor = Color.rgb(red, green, blue);
         int rearrangedColor = sequencer.rearrangeColorChannels(rgbColor);
 
-        Assert.assertEquals(get1stColor(rearrangedColor), green);
-        Assert.assertEquals(get2ndColor(rearrangedColor), blue);
-        Assert.assertEquals(get3rdColor(rearrangedColor), red);
+        Assert.assertEquals(ColorUtil.get1stColor(rearrangedColor), green);
+        Assert.assertEquals(ColorUtil.get2ndColor(rearrangedColor), blue);
+        Assert.assertEquals(ColorUtil.get3rdColor(rearrangedColor), red);
     }
 
     @Test
@@ -83,9 +82,9 @@ public class ColorChannelSequenceTest {
         int rgbColor = Color.rgb(red, green, blue);
         int rearrangedColor = sequencer.rearrangeColorChannels(rgbColor);
 
-        Assert.assertEquals(get1stColor(rearrangedColor), blue);
-        Assert.assertEquals(get2ndColor(rearrangedColor), red);
-        Assert.assertEquals(get3rdColor(rearrangedColor), green);
+        Assert.assertEquals(ColorUtil.get1stColor(rearrangedColor), blue);
+        Assert.assertEquals(ColorUtil.get2ndColor(rearrangedColor), red);
+        Assert.assertEquals(ColorUtil.get3rdColor(rearrangedColor), green);
     }
 
     @Test
@@ -94,28 +93,9 @@ public class ColorChannelSequenceTest {
         int rgbColor = Color.rgb(red, green, blue);
         int rearrangedColor = sequencer.rearrangeColorChannels(rgbColor);
 
-        Assert.assertEquals(get1stColor(rearrangedColor), blue);
-        Assert.assertEquals(get2ndColor(rearrangedColor), green);
-        Assert.assertEquals(get3rdColor(rearrangedColor), red);
+        Assert.assertEquals(ColorUtil.get1stColor(rearrangedColor), blue);
+        Assert.assertEquals(ColorUtil.get2ndColor(rearrangedColor), green);
+        Assert.assertEquals(ColorUtil.get3rdColor(rearrangedColor), red);
     }
 
-    @IntRange(from = 0, to = 255)
-    private int generateRandomColorValue() {
-        return (int) Math.round(Math.random() * 255);
-    }
-
-    private static int get1stColor(@ColorInt int color)
-    {
-        return Color.red(color);
-    }
-
-    private static int get2ndColor(@ColorInt int color)
-    {
-        return Color.green(color);
-    }
-
-    private static int get3rdColor(@ColorInt int color)
-    {
-        return Color.blue(color);
-    }
 }
