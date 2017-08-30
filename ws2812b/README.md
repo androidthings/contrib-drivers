@@ -18,7 +18,7 @@ At the moment there is no direct solution to send such short timed pulses with *
 Now the solution gets within reach. To control WS2812B LEDs by the SPI we must find an assembly of SPI bits (bit pattern) and a frequency so that this bit pattern is recognized as one WS2812B bit.
 This approach is using an assembly of 3 bits to represent 1 WS2812B bit:
 
-<img src="https://rawgit.com/Ic-ks/readme-svg-test/master/ws2812b-bit-pattern.svg" width="100%" height="200">
+<img src="https://rawgit.com/Ic-ks/contrib-drivers/master/ws2812b/ws2812b-pattern.svg" width="100%" height="200">
 
 The deviation from the WS2812B specified pulse duration is -16 or rather +17 nanoseconds which is within the allowed range of +/-150ns. You could create also a more accurate bit patterns which consists of more than 3 bits. But the more bits you use to express one WS2812b bit, the less is the number of controllable LEDs. Because the SPI is using a fixed sized byte buffer to send the data.    
 
