@@ -62,6 +62,7 @@ public class VoiceHat implements AutoCloseable {
             mDevice = pioService.openI2sDevice(i2sBus, audioFormat);
             mTriggerGpio = pioService.openGpio(triggerGpioPin);
             mTriggerGpio.setDirection(Gpio.DIRECTION_OUT_INITIALLY_LOW);
+            mAudioFormat = audioFormat;
         } catch (IOException e) {
             try {
                 close();
@@ -72,9 +73,14 @@ public class VoiceHat implements AutoCloseable {
     }
 
     @VisibleForTesting
-    /* package */ VoiceHat(I2sDevice device, AudioFormat audioFormat) {
+    /* package */ VoiceHat(I2sDevice device, Gpio trigger, AudioFormat audioFormat) {
         mDevice = device;
+        mTriggerGpio = trigger;
         mAudioFormat = audioFormat;
+    }
+
+    /* package */ AudioFormat getAudioFormat() {
+        return mAudioFormat;
     }
 
     public void registerAudioInputDriver() {

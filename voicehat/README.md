@@ -41,18 +41,18 @@ In your AndroidManifest, add the following three permissions:
 
 ```java
 // import the VoiceHat driver
-import com.google.android.things.contrib.driver.voicehat.VoiceHatDriver;
+import com.google.android.things.contrib.driver.voicehat.VoiceHat;
 ```
 
 ```java
 // Start voice hat.
-mVoiceHatDriver = new VoiceHatDriver(
+mVoiceHat = new VoiceHat(
     "I2S1",
     "BCM16",
     AUDIO_FORMAT_STEREO
   );
-mVoiceHatDriver.registerAudioInputDriver();
-mVoiceHatDriver.registerAudioOutputDriver();
+mVoiceHat.registerAudioInputDriver();
+mVoiceHat.registerAudioOutputDriver();
 
 // Make sure to call mVoiceHatDriver.close() in the onDestroy() method in your activity
 ```
