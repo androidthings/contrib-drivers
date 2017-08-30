@@ -4,7 +4,7 @@ How does it work
 The WS2812B LED controller needs 24 bits of data (8 bit per color channel) to set the color of one LED. Every further LED of a strip needs another 24 bit long data block. The transmission of these bits is done by sending a chain of high and low voltage pulses to the data line of the LED controller. 
 Each separate bit is hereby defined by a high voltage pulse which is followed by a low voltage pulse. Both pulses must have an exact specified duration, so that they are recognized as 1 or 0 bit: 
 
- <img src="https://rawgit.com/Ic-ks/readme-svg-test/master/ws2812b-timings.svg" width="100%" height="200">
+ <img src="https://rawgit.com/Ic-ks/contrib-drivers/master/ws2812b/ws2812b-timings.svg" width="100%" height="200">
 
 * A 1 bit is defined by a high voltage pulse with a duration of 850 ns which is followed by a low voltage pulse of 400 ns
 * A 0 bit is defined by a high voltage pulse with a duration of 400 ns which is followed by a low voltage pulse of 850 ns
