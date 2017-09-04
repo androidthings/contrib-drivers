@@ -10,7 +10,7 @@ Each separate bit is hereby defined by a high voltage pulse which is followed by
 * A 0 bit is defined by a high voltage pulse with a duration of 400 ns which is followed by a low voltage pulse of 850 ns
 * Each pulse can have a deviation of +/- 150 ns 
 
-At the moment there is no direct solution to send such short timed pulses with **different durations** by the API of Android Things. There is however the [Serial Peripheral Interface (SPI)](https://developer.android.com/things/sdk/pio/spi.html) which is only able to send short timed pulses with the **exact same** duration: 
+At the moment there is no direct solution to send such short timed pulses with **different durations** by the API of Android Things. There is however the [Serial Peripheral Interface (SPI)](https://developer.android.com/things/sdk/pio/spi.html) which can send bits as pulses with the **exact same** duration: 
 * This duration is indirectly defined by the frequency of the SPI. 
 * A transmitted 1 bit results in a short high voltage pulse at the SPI MOSI (Master Out Slave In) pinout 
 * A transmitted 0 bit results in a short low voltage pulse at the MOSI pinout
@@ -20,8 +20,21 @@ This approach is using an assembly of 3 bits to represent 1 WS2812B bit:
 
 <img src="https://rawgit.com/Ic-ks/contrib-drivers/master/ws2812b/ws2812b-bit-pattern.svg" width="100%" height="200">
 
-The deviation from the WS2812B specified pulse duration is -16 or rather +17 nanoseconds which is within the allowed range of +/-150ns. You could create also a more accurate bit patterns which consists of more than 3 bits. But the more bits you use to express one WS2812b bit, the less is the number of controllable LEDs. Because the SPI is using a fixed sized byte buffer to send the data.    
+The deviation from the WS2812B specified pulse duration is -16 or rather +17 nanoseconds which is within the allowed range of +/-150ns. You could create also a more accurate bit patterns which consists of more than 3 bits. But the more bits you use to express one WS2812b bit, the less is the number of controllable LEDs. Because the SPI is using a fixed sized byte buffer to send the data.
 
+If the the SPI sends more than 8 bits in a row, a pause bit is automatically sent after the 8th bit. This pause bit can be understood as 0 bit between the 8th and the 9th bit. What implications does that have for our bit pattern conversion? Fortunately, this results only in a removing of the 9th bit, because every 9th bit is a 0 bit after we converted a arbitrary bit sequence. For example, if we take the following source bit sequence: 001 and converts it with our bit patterns it will result in: 100 100 11~~0.~~ As you can see the 9th bit is a 0 bit and can be removed because it will be sent automatically by the SPI device. This 9th 0 bit exists for any possible 3 bit long source sequence after the conversation:
+
+| Source bit sequence | Destination bit sequence | 
+| ------------------- |:------------------------:| 
+| 111                 | 110 110 11~~0~~          |
+| 011                 | 100 110 11~~0~~          |
+| 001                 | 100 100 11~~0~~          |
+| 000                 | 100 100 10~~0~~          |
+| 010                 | 100 110 10~~0~~          |
+| 100                 | 110 100 10~~0~~          |
+| 110                 | 110 110 10~~0~~          |
+
+With this in mind any possible 24 bit color can be represented by 8 times 8 converted bits. Which means that 8 bytes must be sent to set the color of 1 LED. 
 
 Copyright 2016 Google Inc.
 
