@@ -15,12 +15,12 @@
  limitations under the License.
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.google.android.things.contrib.driver.button">
+    package="com.google.android.things.contrib.driver.matrixkeypad">
 
     <uses-permission android:name="com.google.android.things.permission.MANAGE_INPUT_DRIVERS" />
 
     <application>
-        <activity android:name=".ButtonTestActivity" />
+        <activity android:name=".MatrixKeypadActivity" />
     </application>
 
 </manifest>
