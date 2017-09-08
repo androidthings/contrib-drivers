@@ -11,6 +11,23 @@ of correctness, completeness or robustness.
 How to use the driver
 ---------------------
 
+### Gradle dependency
+
+To use the `zxgesturesensor` driver, simply add the line below to your project's `build.gradle`,
+where `<version>` matches the last version of the driver available on [jcenter][jcenter].
+
+```
+dependencies {
+    compile 'com.google.android.things.contrib:driver-zxgesturesensor:<version>'
+}
+```
+
+In your AndroidManifest, add the following permission:
+
+```xml
+<uses-permission android:name="com.google.android.things.permission.MANAGE_INPUT_DRIVERS" />
+```
+
 ### Sample usage
 
 ```java
@@ -22,7 +39,7 @@ ZXGestureSensor mSensor;
 
 try {
     // for sensor connected to UART port use UART port name and getUartSensor instead
-    mSensor = ZXGestureSensor.getI2cSensor(uartPortName, new Handler());
+    mSensor = ZXGestureSensor.getUartSensor(uartPortName, new Handler());
     mSensor.setListener(new OnZXGestureSensorEventListener() {
         @Override
         public void onGestureEvent(ZXGestureSensor sensor, Gesture gesture, int param) {
@@ -118,3 +135,6 @@ distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
 WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
 License for the specific language governing permissions and limitations under
 the License.
+
+
+[jcenter]: https://bintray.com/google/androidthings/contrib-driver-zxgesturesensor/_latestVersion
