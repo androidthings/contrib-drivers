@@ -11,6 +11,8 @@ Things][product]:
 - Piezo Buzzer (PWM)
 - Servo header (PWM)
 
+The pin/bus mapping and helper methods provided by this driver are only
+compatible with the following boards: Raspberry Pi 3 and NXP Pico i.MX7D.
 
 NOTE: these drivers are not production-ready. They are offered as sample
 implementations of Android Things user space drivers for common peripherals
@@ -37,12 +39,12 @@ dependencies {
 
 ```java
 // import the RainbowHat driver
-import com.google.android.things.driver.rainbowhat.RainbowHat
+import com.google.android.things.contrib.driver.rainbowhat.RainbowHat;
 ```
 
 ```java
 // Light up the Red LED.
-Gpio led = RainbowHat.openLed(RainbowHat.LED_RED);
+Gpio led = RainbowHat.openLedRed();
 led.setValue(true);
 // Close the device when done.
 led.close();
@@ -60,7 +62,7 @@ segment.close();
 
 ```java
 // Play a note on the buzzer.
-Speaker buzzer = RainbowHat.openBuzzer();
+Speaker buzzer = RainbowHat.openPiezo();
 buzzer.play(440);
 // Stop the buzzer.
 buzzer.stop();
@@ -104,8 +106,8 @@ ledstrip.close();
 ```
 
 ```java
-// Detect button press.
-Button button = RainbowHat.openButton(RainbowHat.BUTTON_A);
+// Detect when button 'A' is pressed.
+Button button = RainbowHat.openButtonA();
 button.setOnButtonEventListener(new Button.OnButtonEventListener() {
     @Override
     public void onButtonEvent(Button button, boolean pressed) {
@@ -118,8 +120,7 @@ button.close();
 
 ```java
 // Get native Android 'A' key events when button 'A' is pressed.
-ButtonInputDriver inputDriver = RainbowHat.createButtonInputDriver(
-        RainbowHat.BUTTON_A,    // button on the hat
+ButtonInputDriver inputDriver = RainbowHat.createButtonAInputDriver(
         KeyEvent.KEYCODE_A      // keyCode to send
 );
 inputDriver.register();
@@ -142,7 +143,7 @@ public boolean onKeyUp(int keyCode, KeyEvent event) {
 ```
 
 ```java
-// Continously report temperature.
+// Continuously report temperature.
 final SensorManager sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
 sensorManager.registerDynamicSensorCallback(new SensorManager.DynamicSensorCallback() {
     @Override

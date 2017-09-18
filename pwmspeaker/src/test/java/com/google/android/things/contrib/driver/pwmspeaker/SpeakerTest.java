@@ -27,6 +27,8 @@ import org.mockito.junit.MockitoRule;
 
 import java.io.IOException;
 
+import static org.mockito.Mockito.times;
+
 public class SpeakerTest {
 
     @Mock
@@ -79,5 +81,6 @@ public class SpeakerTest {
         Speaker speaker = new Speaker(mPwm);
         speaker.close();
         speaker.close(); // should not throw
+        Mockito.verify(mPwm, times(1)).close();
     }
 }

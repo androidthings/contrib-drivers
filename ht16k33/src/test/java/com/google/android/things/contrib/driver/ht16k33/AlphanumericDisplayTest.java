@@ -111,7 +111,7 @@ public class AlphanumericDisplayTest {
         AlphanumericDisplay display = new AlphanumericDisplay(mI2c);
         display.display(11.22);
         Mockito.verify(mI2c).writeRegWord(0, (short) Font.DATA['1']);
-        Mockito.verify(mI2c).writeRegWord(2, (short) (Font.DATA['1'] | (1 << 14)));
+        Mockito.verify(mI2c).writeRegWord(2, (short) (Font.DATA['1'] | Font.DATA['.']));
         Mockito.verify(mI2c).writeRegWord(4, (short) Font.DATA['2']);
         Mockito.verify(mI2c).writeRegWord(6, (short) Font.DATA['2']);
     }
@@ -123,7 +123,7 @@ public class AlphanumericDisplayTest {
         display.display(0.5);
         Mockito.verify(mI2c).writeRegWord(0, (short) 0);
         Mockito.verify(mI2c).writeRegWord(2, (short) 0);
-        Mockito.verify(mI2c).writeRegWord(4, (short) (Font.DATA['0'] | (1 << 14)));
+        Mockito.verify(mI2c).writeRegWord(4, (short) (Font.DATA['0'] | Font.DATA['.']));
         Mockito.verify(mI2c).writeRegWord(6, (short) Font.DATA['5']);
     }
 
@@ -133,7 +133,7 @@ public class AlphanumericDisplayTest {
         AlphanumericDisplay display = new AlphanumericDisplay(mI2c);
         display.display(86.75309);
         Mockito.verify(mI2c).writeRegWord(0, (short) Font.DATA['8']);
-        Mockito.verify(mI2c).writeRegWord(2, (short) (Font.DATA['6'] | (1 << 14)));
+        Mockito.verify(mI2c).writeRegWord(2, (short) (Font.DATA['6'] | Font.DATA['.']));
         Mockito.verify(mI2c).writeRegWord(4, (short) Font.DATA['7']);
         Mockito.verify(mI2c).writeRegWord(6, (short) Font.DATA['5']);
     }
@@ -163,10 +163,21 @@ public class AlphanumericDisplayTest {
         TextUtilsMock.mockStatic();
         AlphanumericDisplay display = new AlphanumericDisplay(mI2c);
         display.display("..");
-        Mockito.verify(mI2c).writeRegWord(0, (short) (1 << 14));
-        Mockito.verify(mI2c).writeRegWord(2, (short) (1 << 14));
+        Mockito.verify(mI2c).writeRegWord(0, (short) Font.DATA['.']);
+        Mockito.verify(mI2c).writeRegWord(2, (short) Font.DATA['.']);
         Mockito.verify(mI2c).writeRegWord(4, (short) 0);
         Mockito.verify(mI2c).writeRegWord(6, (short) 0);
+    }
+
+    @Test
+    public void displayString_appendDotsOk() throws IOException {
+        TextUtilsMock.mockStatic();
+        AlphanumericDisplay display = new AlphanumericDisplay(mI2c);
+        display.display("E.T.L.A.");
+        Mockito.verify(mI2c).writeRegWord(0, (short) (Font.DATA['E'] | Font.DATA['.']));
+        Mockito.verify(mI2c).writeRegWord(2, (short) (Font.DATA['T'] | Font.DATA['.']));
+        Mockito.verify(mI2c).writeRegWord(4, (short) (Font.DATA['L'] | Font.DATA['.']));
+        Mockito.verify(mI2c).writeRegWord(6, (short) (Font.DATA['A'] | Font.DATA['.']));
     }
 
     @Test

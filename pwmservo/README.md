@@ -13,12 +13,12 @@ How to use the driver
 
 ### Gradle dependency
 
-To use the `pwm-servo` driver, simply add the line below to your project's `build.gradle`,
+To use the `pwmservo` driver, simply add the line below to your project's `build.gradle`,
 where `<version>` matches the last version of the driver available on [jcenter][jcenter].
 
 ```
 dependencies {
-    compile 'com.google.android.things.contrib:driver-pwm-servo:<version>'
+    compile 'com.google.android.things.contrib:driver-pwmservo:<version>'
 }
 ```
 
@@ -33,8 +33,8 @@ Servo mServo;
 
 try {
     mServo = new Servo(pwmPinName);
-    mServo.setPulseWidthDurationRange(1, 2); // according to your servo's specifications
-    mServo.setAngleRange(0, 180);            // according to your servo's specifications
+    mServo.setPulseDurationRange(1, 2); // according to your servo's specifications
+    mServo.setAngleRange(0, 180);       // according to your servo's specifications
     mServo.setEnabled(true);
 } catch (IOException e) {
     // couldn't configure the servo...
@@ -77,4 +77,4 @@ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
 License for the specific language governing permissions and limitations under
 the License.
 
-[jcenter]: https://bintray.com/google/androidthings/contrib-driver-pwm-servo/_latestVersion
+[jcenter]: https://bintray.com/google/androidthings/contrib-driver-pwmservo/_latestVersion

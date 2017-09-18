@@ -23,6 +23,7 @@ import android.util.Log;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 
+import com.google.android.things.contrib.driver.cap12xx.Cap12xx.Configuration;
 import com.google.android.things.userdriver.InputDriver;
 import com.google.android.things.userdriver.UserDriverManager;
 
@@ -41,7 +42,6 @@ public class Cap12xxInputDriver implements AutoCloseable {
     private static final String DRIVER_NAME = "Cap12xx";
     private static final int DRIVER_VERSION = 1;
 
-    private Context mContext;
     private Cap12xx mPeripheralDevice;
     // Framework input driver
     private InputDriver mInputDriver;
@@ -49,71 +49,75 @@ public class Cap12xxInputDriver implements AutoCloseable {
     private int[] mKeycodes;
 
     /**
-     * Create a new Cap12xxInputDriver to forward capacitive touch events
-     * to the Android input framework.
-     *
-     * @param context Current context, used for loading resources.
-     * @param i2cName I2C port name where the controller is attached. Cannot be null.
-     * @param alertName optional GPIO pin name connected to the controller's
-     *                  alert interrupt signal. Can be null.
-     * @param chip identifier for the connected controller device chip.
-     * @param keyCodes {@link KeyEvent} codes to be emitted for each input channel.
-     *                 Length must match the input channel count of the
-     *                 touch controller.
+     * @deprecated Use {@link #Cap12xxInputDriver(String, String, Configuration, int[])} instead.
      */
-    public Cap12xxInputDriver(Context context,
-                              String i2cName,
-                              String alertName,
-                              Cap12xx.Configuration chip,
-                              int[] keyCodes) throws IOException {
-        this(context, i2cName, alertName, chip, null, keyCodes);
+    @Deprecated
+    public Cap12xxInputDriver(Context context, String i2cName, String alertName, Configuration chip,
+            int[] keyCodes) throws IOException {
+        this(i2cName, alertName, chip, null, keyCodes);
     }
 
     /**
-     * Create a new Cap12xxInputDriver to forward capacitive touch events
-     * to the Android input framework.
+     * Create a new Cap12xxInputDriver to forward capacitive touch events to the Android input
+     * framework.
      *
-     * @param context Current context, used for loading resources.
      * @param i2cName I2C port name where the controller is attached. Cannot be null.
-     * @param alertName optional GPIO pin name connected to the controller's
-     *                  alert interrupt signal. Can be null.
-     * @param chip identifier for the connected controller device chip.
-     * @param handler optional {@link Handler} for software polling and callback events.
-     * @param keyCodes {@link KeyEvent} codes to be emitted for each input channel.
-     *                 Length must match the input channel count of the
-     *                 touch controller.
+     * @param alertName Optional GPIO pin name connected to the controller's alert interrupt signal.
+     *                  Can be null.
+     * @param chip Identifier for the connected controller device chip.
+     * @param keyCodes {@link KeyEvent} codes to be emitted for each input channel. Length must
+     *                 match the input channel count of the Configuration {@code chip}.
      */
-    public Cap12xxInputDriver(Context context,
-                              String i2cName,
-                              String alertName,
-                              Cap12xx.Configuration chip,
-                              Handler handler,
-                              int[] keyCodes) throws IOException {
-        Cap12xx peripheral = new Cap12xx(context, i2cName, alertName, chip, handler);
-        init(context, peripheral, keyCodes);
+    public Cap12xxInputDriver(String i2cName, String alertName, Configuration chip, int[] keyCodes)
+            throws IOException {
+        this(i2cName, alertName, chip, null, keyCodes);
+    }
+
+    /**
+     * @deprecated Use {@link #Cap12xxInputDriver(String, String, Configuration, Handler, int[])} instead.
+     */
+    @Deprecated
+    public Cap12xxInputDriver(Context context, String i2cName, String alertName, Configuration chip,
+            Handler handler, int[] keyCodes) throws IOException {
+        this(i2cName, alertName, chip, handler, keyCodes);
+    }
+
+    /**
+     * Create a new Cap12xxInputDriver to forward capacitive touch events to the Android input
+     * framework.
+     *
+     * @param i2cName I2C port name where the controller is attached. Cannot be null.
+     * @param alertName Optional GPIO pin name connected to the controller's alert interrupt signal.
+     *                  Can be null.
+     * @param chip Identifier for the connected controller device chip.
+     * @param handler Optional {@link Handler} for software polling and callback events.
+     * @param keyCodes {@link KeyEvent} codes to be emitted for each input channel. Length must
+     *                 match the input channel count of the Configuration {@code chip}.
+     */
+    public Cap12xxInputDriver(String i2cName, String alertName, Configuration chip, Handler handler,
+            int[] keyCodes) throws IOException {
+        Cap12xx peripheral = new Cap12xx(i2cName, alertName, chip, handler);
+        init(peripheral, keyCodes);
     }
 
     /**
      * Constructor invoked from unit tests.
      */
     @VisibleForTesting
-    /*package*/ Cap12xxInputDriver(Context context,
-                                   Cap12xx peripheral,
-                                   int[] keyCodes) throws IOException {
-        init(context, peripheral, keyCodes);
+    /*package*/ Cap12xxInputDriver(Cap12xx peripheral, int[] keyCodes) throws IOException {
+        init(peripheral, keyCodes);
     }
 
     /**
      * Initialize peripheral defaults from the constructor.
      */
-    private void init(Context context, Cap12xx peripheral, int[] keyCodes) {
+    private void init(Cap12xx peripheral, int[] keyCodes) {
         // Verify inputs
         if (keyCodes == null) {
             throw new IllegalArgumentException("Must provide a valid set of key codes.");
         }
 
         mKeycodes = keyCodes;
-        mContext = context.getApplicationContext();
         mPeripheralDevice = peripheral;
         mPeripheralDevice.setOnCapTouchListener(mTouchListener);
     }
@@ -229,7 +233,7 @@ public class Cap12xxInputDriver implements AutoCloseable {
      * uses to emit input events based on the driver's event codes list.
      */
     private InputDriver buildInputDriver() {
-        return InputDriver.builder(InputDevice.SOURCE_CLASS_BUTTON)
+        return new InputDriver.Builder(InputDevice.SOURCE_CLASS_BUTTON)
                 .setName(DRIVER_NAME)
                 .setVersion(DRIVER_VERSION)
                 .setKeys(mKeycodes)

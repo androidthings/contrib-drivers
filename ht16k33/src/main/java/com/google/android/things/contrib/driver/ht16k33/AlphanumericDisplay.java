@@ -25,7 +25,6 @@ import java.nio.ByteBuffer;
 
 public class AlphanumericDisplay extends Ht16k33 {
 
-    private static final short DOT = (short) (1 << 14);
     private ByteBuffer mBuffer = ByteBuffer.allocate(8);
 
     /**
@@ -64,7 +63,7 @@ public class AlphanumericDisplay extends Ht16k33 {
     public void display(char c, int index, boolean dot) throws IOException {
         int val = Font.DATA[c];
         if (dot) {
-            val |= DOT;
+            val |= Font.DATA['.'];
         }
         writeColumn(index, (short) val);
     }
@@ -101,29 +100,20 @@ public class AlphanumericDisplay extends Ht16k33 {
 
         mBuffer.clear();
         mBuffer.mark();
-        short n = (short) 0;
-        char prevChar = (char) 0;
+
+        short prevFontData  = 0;
         for (char c : s.toCharArray()) {
-            // truncate string to the size of the display
+            short fontData = (short) Font.DATA[c];
+            if (c == '.' && prevFontData != Font.DATA['.']) {
+                mBuffer.reset();
+                fontData = (short)(prevFontData | fontData);
+            }
             if (mBuffer.position() == mBuffer.limit()) {
                 break;
             }
-            if (c == '.') {
-                if (prevChar == '.') {
-                    mBuffer.putShort(DOT);
-                } else {
-                    // add dot LED flag to the previous character.
-                    n |= DOT;
-                    mBuffer.reset();
-                    mBuffer.putShort(n);
-                }
-            } else {
-                // extract character data from font.
-                n = (short) Font.DATA[c];
-                mBuffer.mark();
-                mBuffer.putShort(n);
-            }
-            prevChar = c;
+            mBuffer.mark();
+            mBuffer.putShort(fontData);
+            prevFontData = fontData;
         }
 
         // clear the rest of the display

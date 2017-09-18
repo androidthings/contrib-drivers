@@ -29,6 +29,7 @@ import java.io.IOException;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.times;
 
 public class ServoTest {
 
@@ -178,5 +179,6 @@ public class ServoTest {
         Servo servo = new Servo(mPwm);
         servo.close();
         servo.close(); // should not throw
+        Mockito.verify(mPwm, times(1)).close();
     }
 }

@@ -14,15 +14,22 @@
  * limitations under the License.
  */
 
+include ':adcv2x'
 include ':apa102'
 include ':button'
 include ':bmx280'
 include ':cap12xx'
 include ':gps'
 include ':ht16k33'
+include ':matrixkeypad'
 include ':mma7660fc'
 include ':pwmservo'
 include ':pwmspeaker'
 include ':tm1637'
 include ':ssd1306'
 include ':rainbowhat'
+include ':sensehat'
+include ':voicehat'
+include ':zxgesturesensor'
+
+include ':testingutils'

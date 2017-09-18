@@ -16,6 +16,7 @@
 
 package com.google.android.things.contrib.driver.button;
 
+import android.support.annotation.VisibleForTesting;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 
@@ -48,6 +49,11 @@ public class ButtonInputDriver implements AutoCloseable {
         mKeycode = keycode;
     }
 
+    @VisibleForTesting
+    /*package*/ ButtonInputDriver(Button button, int keycode) {
+        mDevice = button;
+        mKeycode = keycode;
+    }
 
     /**
      * Close the driver and the underlying device.
@@ -83,13 +89,13 @@ public class ButtonInputDriver implements AutoCloseable {
      */
     public void unregister() {
         if (mDriver != null) {
-            UserDriverManager.getManager().registerInputDriver(mDriver);
+            UserDriverManager.getManager().unregisterInputDriver(mDriver);
             mDriver = null;
         }
     }
 
     static InputDriver build(Button button, final int keyCode) {
-        final InputDriver inputDriver = InputDriver.builder(InputDevice.SOURCE_CLASS_BUTTON)
+        final InputDriver inputDriver = new InputDriver.Builder(InputDevice.SOURCE_CLASS_BUTTON)
                 .setName(DRIVER_NAME)
                 .setVersion(DRIVER_VERSION)
                 .setKeys(new int[]{keyCode})

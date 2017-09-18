@@ -156,8 +156,9 @@ public class NmeaGpsModule implements AutoCloseable {
     private static final int CHUNK_SIZE = 512;
     private void readUartBuffer() throws IOException {
         byte[] buffer = new byte[CHUNK_SIZE];
-        while (mDevice.read(buffer, buffer.length) > 0) {
-            processBuffer(buffer);
+        int count;
+        while ((count = mDevice.read(buffer, buffer.length)) > 0) {
+            processBuffer(buffer, count);
         }
     }
 
@@ -167,15 +168,15 @@ public class NmeaGpsModule implements AutoCloseable {
      */
     private boolean mFrameFlag = false;
     private ByteBuffer mMessageBuffer = ByteBuffer.allocate(CHUNK_SIZE*2);
-    private void processBuffer(byte[] buffer) {
-        for (byte b : buffer) {
-            if (mParser.getFrameStart() == b) {
+    private void processBuffer(byte[] buffer, int count) {
+        for (int i = 0; i < count; i++) {
+            if (mParser.getFrameStart() == buffer[i]) {
                 handleFrameStart();
-            } else if (mParser.getFrameEnd() == b) {
+            } else if (mParser.getFrameEnd() == buffer[i]) {
                 handleFrameEnd();
-            } else {
-                //Insert all other characters into the buffer
-                mMessageBuffer.put(b);
+            } else if (buffer[i] != 0){
+                //Insert all other characters except '0's into the buffer
+                mMessageBuffer.put(buffer[i]);
             }
         }
     }

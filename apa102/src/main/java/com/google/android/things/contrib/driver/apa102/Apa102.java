@@ -17,11 +17,13 @@
 package com.google.android.things.contrib.driver.apa102;
 
 import android.graphics.Color;
+import android.support.annotation.VisibleForTesting;
 
 import com.google.android.things.pio.PeripheralManagerService;
 import com.google.android.things.pio.SpiDevice;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 /**
  * Device driver for APA102 / Dotstar RGB LEDs using 2-wire SPI.
@@ -48,32 +50,53 @@ public class Apa102 implements AutoCloseable {
         BGR
     }
 
+    /**
+     * The direction to apply colors when writing LED data
+     */
     public enum Direction {
         NORMAL,
         REVERSED,
     }
 
+    /**
+     * The maximum brightness level
+     */
+    public static final int MAX_BRIGHTNESS = 31;
+
     // RGB LED strip configuration that must be provided by the caller.
     private Mode mLedMode;
 
     // RGB LED strip settings that have sensible defaults.
-    private byte mLedBrightness = (byte) (0xE0 | 12); // 0 ... 31
+    private int mLedBrightness = MAX_BRIGHTNESS >> 1; // default to half
 
     // Direction of the led strip;
     private Direction mDirection;
 
     // Device SPI Configuration constants
-    private static final int APA102_PACKET_LENGTH = 4;
     private static final int SPI_BPW = 8; // Bits per word
     private static final int SPI_FREQUENCY = 1000000;
-    private static final int SPI_MODE = 2;
+    private static final int SPI_MODE = SpiDevice.MODE2;
 
     // Protocol constants for APA102c
-    private static final byte[] APA_START_DATA = {0, 0, 0, 0};
-    private static final byte[] APA_END_DATA = {-1, -1, -1, -1};
+    // Start frame: 0x00000000
+    private static final int APA_START_FRAME_PACKET_LENGTH = 4;
+    // Color frame: 0xe{brightness}{color[0]}{color[1]}{color[2]}
+    private static final int APA_COLOR_PACKET_LENGTH = 4;
+    // Reset frame: 0x00000000 (for SK9822 variant)
+    // See: https://cpldcpu.com/2016/12/13/sk9822-a-clone-of-the-apa102/
+    private static final int APA_RESET_FRAME_PACKET_LENGTH = 4;
+    // End frame: 0x00000000 (up to 64 LEDs)
+    private static final int APA_END_FRAME_PACKET_LENGTH = 4;
+
+    private static final byte APA_START_DATA_BYTE = (byte) 0x00;
+    private static final byte APA_RESET_DATA_BYTE = (byte) 0x00;
+    private static final byte APA_END_DATA_BYTE = (byte) 0x00;
 
     // For peripherals access
     private SpiDevice mDevice = null;
+
+    // For composing data to send to the peripheral
+    private byte[] mLedData;
 
     /**
      * Create a new Apa102 driver.
@@ -114,6 +137,7 @@ public class Apa102 implements AutoCloseable {
      * @param device {@link SpiDevice} where the LED strip is attached to.
      * @param ledMode The {@link Mode} indicating the red/green/blue byte ordering for the device.
      */
+    @VisibleForTesting
     /*package*/ Apa102(SpiDevice device, Mode ledMode, Direction direction) throws IOException {
         mLedMode = ledMode;
         mDirection = direction;
@@ -131,13 +155,36 @@ public class Apa102 implements AutoCloseable {
 
     /**
      * Sets the brightness for all LEDs in the strip.
-     * @param ledBrightness The brightness of the LED strip (0 ... 31).
+     * @param ledBrightness The brightness of the LED strip, between 0 and {@link #MAX_BRIGHTNESS}.
      */
     public void setBrightness(int ledBrightness) {
-        if (ledBrightness < 0 || ledBrightness > 31) {
-            throw new IllegalArgumentException("Brightness needs to be between 0 and 31");
+        if (ledBrightness < 0 || ledBrightness > MAX_BRIGHTNESS) {
+            throw new IllegalArgumentException("Brightness needs to be between 0 and "
+                    + MAX_BRIGHTNESS);
         }
-        mLedBrightness = (byte) (0xE0 | ledBrightness); // Less brightness possible
+        mLedBrightness = ledBrightness;
+    }
+
+    /**
+     * Get the current brightness level
+     */
+    public int getBrightness() {
+        return mLedBrightness;
+    }
+
+    /**
+     * Sets the direction of the LED strip.
+     * @param direction The direction of the LED strip, corresponding to {@link Direction}.
+     */
+    public void setDirection(Direction direction) {
+        mDirection = direction;
+    }
+
+    /**
+     * Get the current {@link Direction}
+     */
+    public Direction getDirection() {
+        return mDirection;
     }
 
     /**
@@ -146,23 +193,44 @@ public class Apa102 implements AutoCloseable {
      * @throws IOException
      */
     public void write(int[] colors) throws IOException {
-        byte[] ledData = new byte[(APA102_PACKET_LENGTH * (2 + colors.length))];
-
-        // Add the RGB LED start bits (0 ... 0)
-        System.arraycopy(APA_START_DATA, 0, ledData, 0, APA102_PACKET_LENGTH);
-
-        // Compute the packets to send.
-        for (int i = 0; i < colors.length; i++) {
-            int position = ((i + 1) * APA102_PACKET_LENGTH);
-            int di = mDirection == Direction.NORMAL ? i : colors.length - i - 1;
-            System.arraycopy(getApaColorData(colors[di]), 0, ledData, position,
-                    APA102_PACKET_LENGTH);
+        if (mDevice == null) {
+            throw new IllegalStateException("SPI device not open");
         }
 
-        // Add the RGB LED end bits
-        System.arraycopy(APA_END_DATA, 0, ledData, ledData.length - 4, 4);
+        final int size = APA_START_FRAME_PACKET_LENGTH
+                + APA_COLOR_PACKET_LENGTH * colors.length
+                + APA_RESET_FRAME_PACKET_LENGTH
+                + APA_END_FRAME_PACKET_LENGTH;
 
-        mDevice.write(ledData, ledData.length);
+        int pos = 0;
+
+        if (mLedData == null || mLedData.length < size) {
+            mLedData = new byte[size];
+            // Add start frame.
+            Arrays.fill(mLedData, 0, APA_START_FRAME_PACKET_LENGTH, APA_START_DATA_BYTE);
+        }
+        pos += APA_START_FRAME_PACKET_LENGTH;
+
+        // Compute the packets to send.
+        byte brightness = (byte) (0xE0 | mLedBrightness); // Less brightness possible
+        final Direction currentDirection = mDirection; // Avoids reading changes of mDirection during loop
+        for (int i = 0; i < colors.length; i++) {
+            int di = currentDirection == Direction.NORMAL ? i : colors.length - i - 1;
+            copyApaColorData(brightness, colors[di], mLedMode, mLedData, pos);
+            pos += APA_COLOR_PACKET_LENGTH;
+        }
+
+        // Add reset frame.
+        Arrays.fill(mLedData, pos, pos + APA_RESET_FRAME_PACKET_LENGTH, APA_RESET_DATA_BYTE);
+        pos += APA_RESET_FRAME_PACKET_LENGTH;
+        // Add end frame.
+        Arrays.fill(mLedData, pos, pos + APA_END_FRAME_PACKET_LENGTH, APA_END_DATA_BYTE);
+        pos += APA_END_FRAME_PACKET_LENGTH;
+        if (pos != size) {
+            throw new IllegalStateException("end position: " + pos + " should match size: " + size);
+        }
+        // Write frames to device.
+        mDevice.write(mLedData, size);
     }
 
     /**
@@ -180,29 +248,40 @@ public class Apa102 implements AutoCloseable {
     }
 
     /**
-     * Returns an APA102 packet corresponding to the current brightness and given {@link Color}.
-     * @param color The {@link Color} to retrieve the protocol packet for.
-     * @return APA102 packet corresponding to the current brightness and given {@link Color}.
+     * Copy the brightness and color values in the form of an APA data packet to the destination
+     * array, starting at the specified position.
      */
-    private byte[] getApaColorData(int color) {
+    @VisibleForTesting
+    static void copyApaColorData(byte brightness, int color, Mode ledMode, byte[] dest, int pos) {
+        if (dest == null || dest.length < pos + 4) {
+            throw new IllegalArgumentException("Destination length must be at least " + (pos + 4));
+        }
+
+        dest[pos] = brightness;
         int r = Color.red(color);
         int g = Color.green(color);
         int b = Color.blue(color);
 
-        switch(mLedMode) {
+        switch(ledMode) {
             case RBG:
-                return new byte[] {mLedBrightness, (byte) r, (byte) b, (byte) g};
+                dest[++pos] = (byte) r; dest[++pos] = (byte) b; dest[++pos] = (byte) g;
+                break;
             case BGR:
-                return new byte[] {mLedBrightness, (byte) b, (byte) g, (byte) r};
+                dest[++pos] = (byte) b; dest[++pos] = (byte) g; dest[++pos] = (byte) r;
+                break;
             case BRG:
-                return new byte[] {mLedBrightness, (byte) b, (byte) r, (byte) g};
+                dest[++pos] = (byte) b; dest[++pos] = (byte) r; dest[++pos] = (byte) g;
+                break;
             case GRB:
-                return new byte[] {mLedBrightness, (byte) g, (byte) r, (byte) b};
+                dest[++pos] = (byte) g; dest[++pos] = (byte) r; dest[++pos] = (byte) b;
+                break;
             case GBR:
-                return new byte[] {mLedBrightness, (byte) g, (byte) b, (byte) r};
+                dest[++pos] = (byte) g; dest[++pos] = (byte) b; dest[++pos] = (byte) r;
+                break;
             default:
                 // RGB
-                return new byte[] {mLedBrightness, (byte) r, (byte) g, (byte) b};
+                dest[++pos] = (byte) r; dest[++pos] = (byte) g; dest[++pos] = (byte) b;
+                break;
         }
     }
 }

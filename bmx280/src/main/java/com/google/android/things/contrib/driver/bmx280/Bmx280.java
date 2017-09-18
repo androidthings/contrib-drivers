@@ -23,6 +23,8 @@ import com.google.android.things.pio.I2cDevice;
 import com.google.android.things.pio.PeripheralManagerService;
 
 import java.io.IOException;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
 /**
  * Driver for the BMP/BME 280 temperature sensor.
@@ -41,9 +43,11 @@ public class Bmx280 implements AutoCloseable {
      */
     public static final int CHIP_ID_BME280 = 0x60;
     /**
-     * I2C address for the sensor.
+     * Default I2C address for the sensor.
      */
-    public static final int I2C_ADDRESS = 0x77;
+    public static final int DEFAULT_I2C_ADDRESS = 0x77;
+    @Deprecated
+    public static final int I2C_ADDRESS = DEFAULT_I2C_ADDRESS;
 
     // Sensor constants from the datasheet.
     // https://cdn-shop.adafruit.com/datasheets/BST-BMP280-DS001-11.pdf
@@ -64,6 +68,14 @@ public class Bmx280 implements AutoCloseable {
      */
     public static final float MAX_PRESSURE_HPA = 1100f;
     /**
+     * Mininum humidity in RH the sensor can measure.
+     */
+    public static final float MIN_HUM_RH = 0f;
+    /**
+     * Maximum temperature in RH the sensor can measure.
+     */
+    public static final float MAX_HUM_RH = 100f;
+    /**
      * Maximum power consumption in micro-amperes when measuring temperature.
      */
     public static final float MAX_POWER_CONSUMPTION_TEMP_UA = 325f;
@@ -71,6 +83,10 @@ public class Bmx280 implements AutoCloseable {
      * Maximum power consumption in micro-amperes when measuring pressure.
      */
     public static final float MAX_POWER_CONSUMPTION_PRESSURE_UA = 720f;
+    /**
+     * Maximum power consumption in micro-amperes when measuring humidity.
+     */
+    public static final float MAX_POWER_CONSUMPTION_HUMIDITY_UA = 340f;
     /**
      * Maximum frequency of the measurements.
      */
@@ -83,59 +99,77 @@ public class Bmx280 implements AutoCloseable {
     /**
      * Power mode.
      */
+    @Retention(RetentionPolicy.SOURCE)
     @IntDef({MODE_SLEEP, MODE_FORCED, MODE_NORMAL})
     public @interface Mode {}
-
     public static final int MODE_SLEEP = 0;
     public static final int MODE_FORCED = 1;
     public static final int MODE_NORMAL = 2;
 
     /**
      * Oversampling multiplier.
+     * TODO: add other oversampling modes
      */
+    @Retention(RetentionPolicy.SOURCE)
     @IntDef({OVERSAMPLING_SKIPPED, OVERSAMPLING_1X})
     public @interface Oversampling {}
     public static final int OVERSAMPLING_SKIPPED = 0;
     public static final int OVERSAMPLING_1X = 1;
 
     // Registers
-    private static final int BMP280_REG_TEMP_CALIB_1 = 0x88;
-    private static final int BMP280_REG_TEMP_CALIB_2 = 0x8A;
-    private static final int BMP280_REG_TEMP_CALIB_3 = 0x8C;
+    private static final int BMX280_REG_TEMP_CALIB_1 = 0x88;
+    private static final int BMX280_REG_TEMP_CALIB_2 = 0x8A;
+    private static final int BMX280_REG_TEMP_CALIB_3 = 0x8C;
 
-    private static final int BMP280_REG_PRESS_CALIB_1 = 0x8E;
-    private static final int BMP280_REG_PRESS_CALIB_2 = 0x90;
-    private static final int BMP280_REG_PRESS_CALIB_3 = 0x92;
-    private static final int BMP280_REG_PRESS_CALIB_4 = 0x94;
-    private static final int BMP280_REG_PRESS_CALIB_5 = 0x96;
-    private static final int BMP280_REG_PRESS_CALIB_6 = 0x98;
-    private static final int BMP280_REG_PRESS_CALIB_7 = 0x9A;
-    private static final int BMP280_REG_PRESS_CALIB_8 = 0x9C;
-    private static final int BMP280_REG_PRESS_CALIB_9 = 0x9E;
+    private static final int BMX280_REG_PRESS_CALIB_1 = 0x8E;
+    private static final int BMX280_REG_PRESS_CALIB_2 = 0x90;
+    private static final int BMX280_REG_PRESS_CALIB_3 = 0x92;
+    private static final int BMX280_REG_PRESS_CALIB_4 = 0x94;
+    private static final int BMX280_REG_PRESS_CALIB_5 = 0x96;
+    private static final int BMX280_REG_PRESS_CALIB_6 = 0x98;
+    private static final int BMX280_REG_PRESS_CALIB_7 = 0x9A;
+    private static final int BMX280_REG_PRESS_CALIB_8 = 0x9C;
+    private static final int BMX280_REG_PRESS_CALIB_9 = 0x9E;
 
-    private static final int BMP280_REG_ID = 0xD0;
-    private static final int BMP280_REG_CTRL = 0xF4;
+    private static final int BME280_REG_HUM_CALIB_1 = 0xA1;
+    private static final int BME280_REG_HUM_CALIB_2 = 0xE1;
+    private static final int BME280_REG_HUM_CALIB_3 = 0xE3;
+    private static final int BME280_REG_HUM_CALIB_4 = 0xE4;
+    private static final int BME280_REG_HUM_CALIB_5 = 0xE5;
+    private static final int BME280_REG_HUM_CALIB_6 = 0xE6;
+    private static final int BME280_REG_HUM_CALIB_7 = 0xE7;
 
-    private static final int BMP280_REG_PRESS = 0xF7;
-    private static final int BMP280_REG_TEMP = 0xFA;
+    private static final int BMX280_REG_ID = 0xD0;
 
-    private static final int BMP280_POWER_MODE_MASK = 0b00000011;
-    private static final int BMP280_POWER_MODE_SLEEP = 0b00000000;
-    private static final int BMP280_POWER_MODE_NORMAL = 0b00000011;
-    private static final int BMP280_OVERSAMPLING_PRESSURE_MASK = 0b00011100;
-    private static final int BMP280_OVERSAMPLING_PRESSURE_BITSHIFT = 2;
-    private static final int BMP280_OVERSAMPLING_TEMPERATURE_MASK = 0b11100000;
-    private static final int BMP280_OVERSAMPLING_TEMPERATURE_BITSHIFT = 5;
+    @VisibleForTesting
+    static final int BMX280_REG_CTRL = 0xF4;
+    @VisibleForTesting
+    static final int BME280_REG_CTRL_HUM = 0xF2;
+
+    private static final int BMX280_REG_PRESS = 0xF7;
+    private static final int BMX280_REG_TEMP = 0xFA;
+    private static final int BME280_REG_HUM = 0xFD;
+
+    private static final int BMX280_POWER_MODE_MASK = 0b00000011;
+    private static final int BMX280_POWER_MODE_SLEEP = 0b00000000;
+    private static final int BMX280_POWER_MODE_NORMAL = 0b00000011;
+    private static final int BMX280_OVERSAMPLING_PRESSURE_MASK = 0b00011100;
+    private static final int BMX280_OVERSAMPLING_PRESSURE_BITSHIFT = 2;
+    private static final int BMX280_OVERSAMPLING_TEMPERATURE_MASK = 0b11100000;
+    private static final int BMX280_OVERSAMPLING_TEMPERATURE_BITSHIFT = 5;
 
     private I2cDevice mDevice;
     private final int[] mTempCalibrationData = new int[3];
     private final int[] mPressureCalibrationData = new int[9];
+    private final int[] mHumCalibrationData = new int[6];
     private final byte[] mBuffer = new byte[3]; // for reading sensor values
-    private boolean mEnabled = false;
+    private boolean mEnabled;
+    private boolean mHasHumiditySensor;
     private int mChipId;
     private int mMode;
     private int mPressureOversampling;
     private int mTemperatureOversampling;
+    private int mHumidityOversampling;
 
     /**
      * Create a new BMP/BME280 sensor driver connected on the given bus.
@@ -143,8 +177,18 @@ public class Bmx280 implements AutoCloseable {
      * @throws IOException
      */
     public Bmx280(String bus) throws IOException {
+        this(bus, DEFAULT_I2C_ADDRESS);
+    }
+
+    /**
+     * Create a new BMP/BME280 sensor driver connected on the given bus and address.
+     * @param bus I2C bus the sensor is connected to.
+     * @param address I2C address of the sensor.
+     * @throws IOException
+     */
+    public Bmx280(String bus, int address) throws IOException {
         PeripheralManagerService pioService = new PeripheralManagerService();
-        I2cDevice device = pioService.openI2cDevice(bus, I2C_ADDRESS);
+        I2cDevice device = pioService.openI2cDevice(bus, address);
         try {
             connect(device);
         } catch (IOException|RuntimeException e) {
@@ -168,25 +212,38 @@ public class Bmx280 implements AutoCloseable {
     private void connect(I2cDevice device) throws IOException {
         mDevice = device;
 
-        mChipId = mDevice.readRegByte(BMP280_REG_ID);
+        mChipId = mDevice.readRegByte(BMX280_REG_ID);
+        mHasHumiditySensor = mChipId == CHIP_ID_BME280;
 
         // Read temperature calibration data (3 words). First value is unsigned.
-        mTempCalibrationData[0] = mDevice.readRegWord(BMP280_REG_TEMP_CALIB_1) & 0xffff;
-        mTempCalibrationData[1] = (short) mDevice.readRegWord(BMP280_REG_TEMP_CALIB_2);
-        mTempCalibrationData[2] = (short) mDevice.readRegWord(BMP280_REG_TEMP_CALIB_3);
+        mTempCalibrationData[0] = mDevice.readRegWord(BMX280_REG_TEMP_CALIB_1) & 0xffff;
+        mTempCalibrationData[1] = mDevice.readRegWord(BMX280_REG_TEMP_CALIB_2);
+        mTempCalibrationData[2] = mDevice.readRegWord(BMX280_REG_TEMP_CALIB_3);
         // Read pressure calibration data (9 words). First value is unsigned.
-        mPressureCalibrationData[0] = mDevice.readRegWord(BMP280_REG_PRESS_CALIB_1) & 0xffff;
-        mPressureCalibrationData[1] = (short) mDevice.readRegWord(BMP280_REG_PRESS_CALIB_2);
-        mPressureCalibrationData[2] = (short) mDevice.readRegWord(BMP280_REG_PRESS_CALIB_3);
-        mPressureCalibrationData[3] = (short) mDevice.readRegWord(BMP280_REG_PRESS_CALIB_4);
-        mPressureCalibrationData[4] = (short) mDevice.readRegWord(BMP280_REG_PRESS_CALIB_5);
-        mPressureCalibrationData[5] = (short) mDevice.readRegWord(BMP280_REG_PRESS_CALIB_6);
-        mPressureCalibrationData[6] = (short) mDevice.readRegWord(BMP280_REG_PRESS_CALIB_7);
-        mPressureCalibrationData[7] = (short) mDevice.readRegWord(BMP280_REG_PRESS_CALIB_8);
-        mPressureCalibrationData[8] = (short) mDevice.readRegWord(BMP280_REG_PRESS_CALIB_9);
+        mPressureCalibrationData[0] = mDevice.readRegWord(BMX280_REG_PRESS_CALIB_1) & 0xffff;
+        mPressureCalibrationData[1] = mDevice.readRegWord(BMX280_REG_PRESS_CALIB_2);
+        mPressureCalibrationData[2] = mDevice.readRegWord(BMX280_REG_PRESS_CALIB_3);
+        mPressureCalibrationData[3] = mDevice.readRegWord(BMX280_REG_PRESS_CALIB_4);
+        mPressureCalibrationData[4] = mDevice.readRegWord(BMX280_REG_PRESS_CALIB_5);
+        mPressureCalibrationData[5] = mDevice.readRegWord(BMX280_REG_PRESS_CALIB_6);
+        mPressureCalibrationData[6] = mDevice.readRegWord(BMX280_REG_PRESS_CALIB_7);
+        mPressureCalibrationData[7] = mDevice.readRegWord(BMX280_REG_PRESS_CALIB_8);
+        mPressureCalibrationData[8] = mDevice.readRegWord(BMX280_REG_PRESS_CALIB_9);
+
+        if (mHasHumiditySensor) {
+            // Read humidity calibration data
+            mHumCalibrationData[0] = mDevice.readRegByte(BME280_REG_HUM_CALIB_1) & 0xff; // dig_H1
+            mHumCalibrationData[1] = mDevice.readRegWord(BME280_REG_HUM_CALIB_2); // dig_H2
+            mHumCalibrationData[2] = mDevice.readRegByte(BME280_REG_HUM_CALIB_3) & 0xff; // dig_H3
+            int E4 = mDevice.readRegByte(BME280_REG_HUM_CALIB_4) & 0xff;
+            int E5 = mDevice.readRegByte(BME280_REG_HUM_CALIB_5) & 0xff;
+            int E6 = mDevice.readRegByte(BME280_REG_HUM_CALIB_6) & 0xff;
+            int E7 = mDevice.readRegByte(BME280_REG_HUM_CALIB_7);
+            mHumCalibrationData[3] = (E4 << 4) | (E5 & 0x0F); // dig_H4
+            mHumCalibrationData[4] = (E6 << 4) | (E5 >> 4); // dig_H5
+            mHumCalibrationData[5] = E7; // dig_H6
+        }
     }
-
-
 
     /**
      * Set the power mode of the sensor.
@@ -194,13 +251,17 @@ public class Bmx280 implements AutoCloseable {
      * @throws IOException
      */
     public void setMode(@Mode int mode) throws IOException {
-        int regCtrl = mDevice.readRegByte(BMP280_REG_CTRL) & 0xff;
-        if (mode == MODE_SLEEP) {
-            regCtrl &= ~BMP280_POWER_MODE_MASK;
-        } else {
-            regCtrl |= BMP280_POWER_MODE_NORMAL;
+        if (mDevice == null) {
+            throw new IllegalStateException("I2C device not open");
         }
-        mDevice.writeRegByte(BMP280_REG_CTRL, (byte)(regCtrl));
+
+        int regCtrl = mDevice.readRegByte(BMX280_REG_CTRL) & 0xff;
+        if (mode == MODE_SLEEP) {
+            regCtrl &= ~BMX280_POWER_MODE_MASK;
+        } else {
+            regCtrl |= BMX280_POWER_MODE_NORMAL;
+        }
+        mDevice.writeRegByte(BMX280_REG_CTRL, (byte)(regCtrl));
         mMode = mode;
     }
 
@@ -210,13 +271,17 @@ public class Bmx280 implements AutoCloseable {
      * @throws IOException
      */
     public void setTemperatureOversampling(@Oversampling int oversampling) throws IOException {
-        int regCtrl = mDevice.readRegByte(BMP280_REG_CTRL) & 0xff;
-        if (oversampling == OVERSAMPLING_SKIPPED) {
-            regCtrl &= ~BMP280_OVERSAMPLING_TEMPERATURE_MASK;
-        } else {
-            regCtrl |= 1 << BMP280_OVERSAMPLING_TEMPERATURE_BITSHIFT;
+        if (mDevice == null) {
+            throw new IllegalStateException("I2C device not open");
         }
-        mDevice.writeRegByte(BMP280_REG_CTRL, (byte)(regCtrl));
+
+        int regCtrl = mDevice.readRegByte(BMX280_REG_CTRL) & 0xff;
+        if (oversampling == OVERSAMPLING_SKIPPED) {
+            regCtrl &= ~BMX280_OVERSAMPLING_TEMPERATURE_MASK;
+        } else {
+            regCtrl |= 1 << BMX280_OVERSAMPLING_TEMPERATURE_BITSHIFT;
+        }
+        mDevice.writeRegByte(BMX280_REG_CTRL, (byte)(regCtrl));
         mTemperatureOversampling = oversampling;
     }
 
@@ -226,16 +291,54 @@ public class Bmx280 implements AutoCloseable {
      * @throws IOException
      */
     public void setPressureOversampling(@Oversampling int oversampling) throws IOException {
-        int regCtrl = mDevice.readRegByte(BMP280_REG_CTRL) & 0xff;
-        if (oversampling == OVERSAMPLING_SKIPPED) {
-            regCtrl &= ~BMP280_OVERSAMPLING_PRESSURE_MASK;
-            mEnabled = false;
-        } else {
-            regCtrl |= 1 << BMP280_OVERSAMPLING_PRESSURE_BITSHIFT;
-            mEnabled = true;
+        if (mDevice == null) {
+            throw new IllegalStateException("I2C device not open");
         }
-        mDevice.writeRegByte(BMP280_REG_CTRL, (byte)(regCtrl));
+
+        int regCtrl = mDevice.readRegByte(BMX280_REG_CTRL) & 0xff;
+        if (oversampling == OVERSAMPLING_SKIPPED) {
+            regCtrl &= ~BMX280_OVERSAMPLING_PRESSURE_MASK;
+        } else {
+            regCtrl |= 1 << BMX280_OVERSAMPLING_PRESSURE_BITSHIFT;
+        }
+        mDevice.writeRegByte(BMX280_REG_CTRL, (byte)(regCtrl));
         mPressureOversampling = oversampling;
+    }
+
+    /**
+     * Set oversampling multiplier for the humidity measurement.
+     * @param oversampling humidity oversampling multiplier.
+     * @throws IOException
+     */
+    public void setHumidityOversampling(@Oversampling int oversampling) throws IOException {
+        if (mDevice == null) {
+            throw new IllegalStateException("I2C device not open");
+        }
+        if (!hasHumiditySensor()) {
+            throw new UnsupportedOperationException("This chip " + mChipId +
+                    " doesn't have humidity sensor");
+        }
+
+        mDevice.writeRegByte(BME280_REG_CTRL_HUM, (byte)(oversampling));
+
+        // from https://cdn-shop.adafruit.com/datasheets/BST-BME280_DS001-10.pdf:
+        // "Changes to ctrl_hum only become effective after a write operation to ctrl_meas"
+        int regCtrl = mDevice.readRegByte(BMX280_REG_CTRL) & 0xff;
+        mDevice.writeRegByte(BMX280_REG_CTRL, (byte)(regCtrl));
+
+        mHumidityOversampling = oversampling;
+    }
+
+    public @Oversampling int getTemperatureOversampling() {
+        return mTemperatureOversampling;
+    }
+
+    public @Oversampling int getPressureOversampling() {
+        return mPressureOversampling;
+    }
+
+    public @Oversampling int getHumidityOversampling() {
+        return mHumidityOversampling;
     }
 
     /**
@@ -260,6 +363,18 @@ public class Bmx280 implements AutoCloseable {
     }
 
     /**
+     * Returns if the associated BMX280 sensor is able to measure humidity.
+     */
+    public boolean hasHumiditySensor() {
+        return mHasHumiditySensor;
+    }
+
+    @VisibleForTesting
+    void setHasHumiditySensor(boolean hasHumiditySensor) {
+        mHasHumiditySensor = hasHumiditySensor;
+    }
+
+    /**
      * Read the current temperature.
      *
      * @return the current temperature in degrees Celsius
@@ -268,7 +383,7 @@ public class Bmx280 implements AutoCloseable {
         if (mTemperatureOversampling == OVERSAMPLING_SKIPPED) {
             throw new IllegalStateException("temperature oversampling is skipped");
         }
-        int rawTemp = readSample(BMP280_REG_TEMP);
+        int rawTemp = readSample(BMX280_REG_TEMP);
         return compensateTemperature(rawTemp, mTempCalibrationData)[0];
     }
 
@@ -283,6 +398,31 @@ public class Bmx280 implements AutoCloseable {
     public float readPressure() throws IOException, IllegalStateException {
         float[] values = readTemperatureAndPressure();
         return values[1];
+    }
+
+    /**
+     * Read the current humidity.
+     *
+     * @return the current relative humidity in RH percentage (100f means totally saturated air)
+     */
+    public float readHumidity() throws IOException, IllegalStateException {
+        if (!hasHumiditySensor()) {
+            throw new UnsupportedOperationException("This chip " + mChipId +
+                    " doesn't have humidity sensor");
+        }
+        if (mTemperatureOversampling == OVERSAMPLING_SKIPPED) {
+            throw new IllegalStateException("temperature oversampling is skipped");
+        }
+        if (mHumidityOversampling == OVERSAMPLING_SKIPPED) {
+            throw new IllegalStateException("Humidity oversampling is skipped");
+        }
+
+        int rawTemp = readSample(BMX280_REG_TEMP);
+
+        float[] temperatures = compensateTemperature(rawTemp, mTempCalibrationData);
+
+        int rawHum = readSample16(BME280_REG_HUM);
+        return compensateHumidity(rawHum, temperatures[1], mHumCalibrationData);
     }
 
     /**
@@ -301,9 +441,9 @@ public class Bmx280 implements AutoCloseable {
         }
         // The pressure compensation formula requires the fine temperature reading, so we always
         // read temperature first.
-        int rawTemp = readSample(BMP280_REG_TEMP);
+        int rawTemp = readSample(BMX280_REG_TEMP);
         float[] temperatures = compensateTemperature(rawTemp, mTempCalibrationData);
-        int rawPressure = readSample(BMP280_REG_PRESS);
+        int rawPressure = readSample(BMX280_REG_PRESS);
         float pressure = compensatePressure(rawPressure, temperatures[1], mPressureCalibrationData);
         return new float[]{temperatures[0], pressure};
     }
@@ -314,7 +454,7 @@ public class Bmx280 implements AutoCloseable {
      */
     private int readSample(int address) throws IOException, IllegalStateException {
         if (mDevice == null) {
-            throw new IllegalStateException("I2C device is already closed");
+            throw new IllegalStateException("I2C device not open");
         }
         synchronized (mBuffer) {
             mDevice.readRegBuffer(address, mBuffer, 3);
@@ -324,6 +464,25 @@ public class Bmx280 implements AutoCloseable {
             int xlsb = mBuffer[2] & 0xf0;
             // Convert to 20bit integer
             return (msb << 16 | lsb << 8 | xlsb) >> 4;
+        }
+    }
+
+    /**
+     * Reads 16 bits from the given address.
+     * @throws IOException
+     */
+    private int readSample16(int address) throws IOException, IllegalStateException {
+        if (mDevice == null) {
+            throw new IllegalStateException("I2C device is already closed");
+        }
+        synchronized (mBuffer) {
+            // Reading a byte buffer instead of a short to avoid having to deal with
+            // platform-specific endianness.
+            mDevice.readRegBuffer(address, mBuffer, 2);
+            // msb[7:0] lsb[7:0]
+            int msb = mBuffer[0] & 0xff;
+            int lsb = mBuffer[1] & 0xff;
+            return msb << 8 | lsb;
         }
     }
 
@@ -374,5 +533,29 @@ public class Bmx280 implements AutoCloseable {
         p = p + (var1 + var2 + ((float) dig_P7)) / 16.0f;
         // p is in Pa, convert to hPa
         return p / 100.0f;
+    }
+
+    // Compensation formula from the BME280 datasheet.
+    // https://cdn-shop.adafruit.com/datasheets/BST-BME280_DS001-10.pdf
+    @VisibleForTesting
+    static float compensateHumidity(int rawHumidity, float fineTemperature, int[] calibration)
+    {
+        int dig_H1 = calibration[0];
+        int dig_H2 = calibration[1];
+        int dig_H3 = calibration[2];
+        int dig_H4 = calibration[3];
+        int dig_H5 = calibration[4];
+        int dig_H6 = calibration[5];
+        float var_H;
+        var_H = (fineTemperature - 76800f);
+        var_H = (rawHumidity - (((float) dig_H4) * 64f + ((float) dig_H5) / 16384f * var_H)) *
+                (((float) dig_H2) / 65536f * (1f + ((float) dig_H6) / 67108864f * var_H *
+                        (1f + ((float) dig_H3) / 67108864f * var_H)));
+        var_H = var_H * (1f - ((float) dig_H1) * var_H / 524288f);
+        if (var_H > 100)
+            var_H = 100f;
+        else if (var_H < 0)
+            var_H = 0f;
+        return var_H;
     }
 }

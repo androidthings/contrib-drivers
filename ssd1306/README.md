@@ -40,7 +40,7 @@ try {
 // Draw on the screen:
 
 try {
-    for (int i = 0, i < mDisplay.getLcdWidth(); i++) {
+    for (int i = 0; i < mDisplay.getLcdWidth(); i++) {
         for (int j = 0; j < mDisplay.getLcdHeight(); j++) {
             // checkerboard
             mDisplay.setPixel(i, j, (i % 2) == (j % 2));

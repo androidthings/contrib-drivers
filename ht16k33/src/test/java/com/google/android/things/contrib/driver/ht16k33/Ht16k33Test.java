@@ -28,6 +28,7 @@ import org.mockito.junit.MockitoRule;
 import java.io.IOException;
 
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.mockito.Mockito.times;
 
 public class Ht16k33Test {
 
@@ -144,5 +145,6 @@ public class Ht16k33Test {
         Ht16k33 driver = new Ht16k33(mI2c);
         driver.close();
         driver.close(); // should not throw
+        Mockito.verify(mI2c, times(1)).close();
     }
 }

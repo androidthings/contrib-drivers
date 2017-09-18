@@ -93,7 +93,7 @@ public class Mma7660FcAccelerometerDriver implements AutoCloseable {
     }
 
     static UserSensor build(final Mma7660Fc mma7660fc) {
-        return UserSensor.builder()
+        return new UserSensor.Builder()
                 .setType(Sensor.TYPE_ACCELEROMETER)
                 .setName(DRIVER_NAME)
                 .setVendor(DRIVER_VENDOR)
