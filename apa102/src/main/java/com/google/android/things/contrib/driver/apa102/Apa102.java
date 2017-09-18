@@ -67,7 +67,16 @@ public class Apa102 implements AutoCloseable {
     private Mode mLedMode;
 
     // RGB LED strip settings that have sensible defaults.
-    private int mLedBrightness = MAX_BRIGHTNESS >> 1; // default to half
+    private int mLedBrightnessGlobal = MAX_BRIGHTNESS/2;
+    private int mLedBrightness[] = new int[] {
+            MAX_BRIGHTNESS >> 1,
+            MAX_BRIGHTNESS >> 1,
+            MAX_BRIGHTNESS >> 1,
+            MAX_BRIGHTNESS >> 1,
+            MAX_BRIGHTNESS >> 1,
+            MAX_BRIGHTNESS >> 1,
+            MAX_BRIGHTNESS >> 1
+    }; // default to half
 
     // Direction of the led strip;
     private Direction mDirection;
@@ -162,14 +171,32 @@ public class Apa102 implements AutoCloseable {
             throw new IllegalArgumentException("Brightness needs to be between 0 and "
                     + MAX_BRIGHTNESS);
         }
-        mLedBrightness = ledBrightness;
+        mLedBrightnessGlobal = ledBrightness;
     }
 
     /**
-     * Get the current brightness level
+     * Sets the brightness for all LEDs in the strip.
+     * @param ledBrightness The brightness of the LED strip, between 0 and {@link #MAX_BRIGHTNESS}.
+     */
+    public void setBrightness(int[] ledBrightness) {
+        mLedBrightnessGlobal = 0;
+        for (int i=0; i<mLedBrightness.length; i++) {
+            if (ledBrightness[i] < 0 || ledBrightness[i] > MAX_BRIGHTNESS) {
+                throw new IllegalArgumentException("Brightness needs to be between 0 and "
+                        + MAX_BRIGHTNESS);
+            }
+            mLedBrightness[i] = ledBrightness[i];
+            if (mLedBrightnessGlobal < ledBrightness[i]) {
+                mLedBrightnessGlobal = ledBrightness[i];
+            }
+        }
+    }
+
+    /**
+     * Get the current brightness maximum level
      */
     public int getBrightness() {
-        return mLedBrightness;
+        return mLedBrightnessGlobal;
     }
 
     /**
@@ -212,9 +239,9 @@ public class Apa102 implements AutoCloseable {
         pos += APA_START_FRAME_PACKET_LENGTH;
 
         // Compute the packets to send.
-        byte brightness = (byte) (0xE0 | mLedBrightness); // Less brightness possible
         final Direction currentDirection = mDirection; // Avoids reading changes of mDirection during loop
         for (int i = 0; i < colors.length; i++) {
+            byte brightness = (byte) (0xE0 | mLedBrightness[i]); // Less brightness possible
             int di = currentDirection == Direction.NORMAL ? i : colors.length - i - 1;
             copyApaColorData(brightness, colors[di], mLedMode, mLedData, pos);
             pos += APA_COLOR_PACKET_LENGTH;
