@@ -172,6 +172,9 @@ public class Apa102 implements AutoCloseable {
                     + MAX_BRIGHTNESS);
         }
         mLedBrightnessGlobal = ledBrightness;
+        for (int i=0; i<mLedBrightness.length; i++) {
+            mLedBrightness[i] = mLedBrightnessGlobal;
+        }
     }
 
     /**
