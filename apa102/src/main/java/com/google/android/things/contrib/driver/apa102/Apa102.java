@@ -218,6 +218,9 @@ public class Apa102 implements AutoCloseable {
         if (mDevice == null) {
             throw new IllegalStateException("SPI device not open");
         }
+        if (mLedBrightness != null && colors.length != mLedBrightness.length) {
+            throw new IllegalStateException("colors and brightness arrays must be of the same length");
+        }
 
         final int size = APA_START_FRAME_PACKET_LENGTH
                 + APA_COLOR_PACKET_LENGTH * colors.length
