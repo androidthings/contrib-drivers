@@ -67,16 +67,8 @@ public class Apa102 implements AutoCloseable {
     private Mode mLedMode;
 
     // RGB LED strip settings that have sensible defaults.
-    private int mLedBrightnessGlobal = MAX_BRIGHTNESS/2;
-    private int mLedBrightness[] = new int[] {
-            MAX_BRIGHTNESS >> 1,
-            MAX_BRIGHTNESS >> 1,
-            MAX_BRIGHTNESS >> 1,
-            MAX_BRIGHTNESS >> 1,
-            MAX_BRIGHTNESS >> 1,
-            MAX_BRIGHTNESS >> 1,
-            MAX_BRIGHTNESS >> 1
-    }; // default to half
+    private int mLedBrightnessGlobal = MAX_BRIGHTNESS >> 1; // Default to half
+    private int mLedBrightness[];
 
     // Direction of the led strip;
     private Direction mDirection;
@@ -172,34 +164,33 @@ public class Apa102 implements AutoCloseable {
                     + MAX_BRIGHTNESS);
         }
         mLedBrightnessGlobal = ledBrightness;
-        for (int i=0; i<mLedBrightness.length; i++) {
-            mLedBrightness[i] = mLedBrightnessGlobal;
-        }
+        mLedBrightness = null;
     }
 
     /**
      * Sets the brightness for all LEDs in the strip.
      * @param ledBrightness The brightness of the LED strip, between 0 and {@link #MAX_BRIGHTNESS}.
      */
-    public void setBrightness(int[] ledBrightness) {
-        mLedBrightnessGlobal = 0;
-        for (int i=0; i<mLedBrightness.length; i++) {
+    public void setIndividualBrightness(int[] ledBrightness) {
+        mLedBrightness = new int[ledBrightness.length];
+        for (int i=0; i<ledBrightness.length; i++) {
             if (ledBrightness[i] < 0 || ledBrightness[i] > MAX_BRIGHTNESS) {
                 throw new IllegalArgumentException("Brightness needs to be between 0 and "
                         + MAX_BRIGHTNESS);
             }
             mLedBrightness[i] = ledBrightness[i];
-            if (mLedBrightnessGlobal < ledBrightness[i]) {
-                mLedBrightnessGlobal = ledBrightness[i];
-            }
         }
     }
 
     /**
-     * Get the current brightness maximum level
+     * Get the current brightness
      */
     public int getBrightness() {
         return mLedBrightnessGlobal;
+    }
+
+    public int[] getIndividualBrightness() {
+        return mLedBrightness;
     }
 
     /**
@@ -243,8 +234,11 @@ public class Apa102 implements AutoCloseable {
 
         // Compute the packets to send.
         final Direction currentDirection = mDirection; // Avoids reading changes of mDirection during loop
+        byte brightness = (byte) (0xE0 | mLedBrightnessGlobal); // Default initialization
         for (int i = 0; i < colors.length; i++) {
-            byte brightness = (byte) (0xE0 | mLedBrightness[i]); // Less brightness possible
+            if (mLedBrightness != null) {
+                brightness = (byte) (0xE0 | mLedBrightness[i]); // Less brightness possible
+            }
             int di = currentDirection == Direction.NORMAL ? i : colors.length - i - 1;
             copyApaColorData(brightness, colors[di], mLedMode, mLedData, pos);
             pos += APA_COLOR_PACKET_LENGTH;
