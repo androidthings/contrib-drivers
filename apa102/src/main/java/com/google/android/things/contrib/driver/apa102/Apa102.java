@@ -17,6 +17,7 @@
 package com.google.android.things.contrib.driver.apa102;
 
 import android.graphics.Color;
+import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
 
 import com.google.android.things.pio.PeripheralManagerService;
@@ -68,7 +69,7 @@ public class Apa102 implements AutoCloseable {
 
     // RGB LED strip settings that have sensible defaults.
     private int mLedBrightnessGlobal = MAX_BRIGHTNESS >> 1; // Default to half
-    private int mLedBrightness[];
+    private int[] mLedBrightness;
 
     // Direction of the led strip;
     private Direction mDirection;
@@ -189,7 +190,7 @@ public class Apa102 implements AutoCloseable {
         return mLedBrightnessGlobal;
     }
 
-    public int[] getIndividualBrightness() {
+    public @Nullable int[] getIndividualBrightness() {
         return mLedBrightness;
     }
 
