@@ -22,6 +22,11 @@ public class Output implements AutoCloseable {
 
     private Gpio mOutputGpio;
 
+    /**
+     * Create a new Output for the given GPIO pin name.
+     * @param pin GPIO pin where the button is attached.
+     * @throws IOException
+     */
     public Output(String pin) throws IOException {
         PeripheralManagerService pioService = new PeripheralManagerService();
         mOutputGpio = pioService.openGpio(pin);
@@ -37,6 +42,17 @@ public class Output implements AutoCloseable {
         }
     }
 
+
+    /**
+     * Set the time delay after an edge trigger that the output
+     * must remain stable before generating an event. Debounce
+     * is enabled by default for 100ms.
+     *
+     * Setting this value to zero disables debounce and triggers
+     * events on all edges immediately.
+     *
+     * @param delay Delay, in milliseconds, or 0 to disable.
+     */
     public void setDebounceDelay(long delay) {
         if (delay < 0) {
             throw new IllegalArgumentException("Debounce delay cannot be negative.");
@@ -47,6 +63,10 @@ public class Output implements AutoCloseable {
     }
 
 
+    /*
+     *  Turn On or Off Led
+     *  @param boolean
+     */
     public void turn(boolean value){
 
         if (mOutputGpio != null) {
@@ -58,6 +78,10 @@ public class Output implements AutoCloseable {
         }
     }
 
+    /*
+    *  Turn On and Off Led
+    *  Blink led
+    */
     public void toggle(){
         turn(true);
         mDelayHadler.postDelayed(new Runnable() {
@@ -69,11 +93,18 @@ public class Output implements AutoCloseable {
     }
 
 
+   /*
+   *  Turn repetion
+   *  Blink led emit repetion
+   */
     public void toggleRepeat(){
         mDelayHadler.postDelayed(postRepetion,mDebounceDelay);
     }
 
 
+    /*
+     * call repetion emit  repetion to listerner
+     */
     private Runnable postRepetion = new Runnable() {
 
         @Override
@@ -86,11 +117,17 @@ public class Output implements AutoCloseable {
         }
     };
 
+    /*
+     *  emit event when time finish
+     */
     public void toggleTimeOut(int timeout){
         toggle();
         mTimeOutHadler.postDelayed(postTimeout,timeout);
     }
 
+    /*
+     * call to timeout
+     */
     private Runnable postTimeout = new Runnable() {
         @Override
         public void run() {
@@ -101,8 +138,10 @@ public class Output implements AutoCloseable {
         }
     };
 
-
-
+    /*
+     * remove call repetion
+     * Cancel repetion
+     */
     public void removeCallbackRepetion(){
         try {
             mRepetionHadler.removeCallbacks(postRepetion);
@@ -111,6 +150,10 @@ public class Output implements AutoCloseable {
         }
     }
 
+   /*
+   * remove call time
+   * Cancel time
+   */
     public void removeCallbackTimeout(){
         try {
             mTimeOutHadler.removeCallbacks(postTimeout);
@@ -119,14 +162,12 @@ public class Output implements AutoCloseable {
         }
     }
 
-
+   /*
+   * remove all calls
+   */
     public void removeCallbacks(){
-        try {
-            mTimeOutHadler.removeCallbacks(postTimeout);
-            mRepetionHadler.removeCallbacks(postRepetion);
-        }catch (Exception e) {
-            Log.e(TAG,"Error remove callbacks");
-        }
+       removeCallbackRepetion();
+       removeCallbackTimeout();
     }
 
     @Override
@@ -143,6 +184,11 @@ public class Output implements AutoCloseable {
         }
     }
 
+    /**
+     * Set the listener to be called when a output event occurred.
+     *
+     * @param listener button event listener to be invoked.
+     */
     public void setOnOutputEventListener(OnOutputEventListener listener) {
         mListener = listener;
     }
@@ -153,4 +199,3 @@ public class Output implements AutoCloseable {
     }
 
 }
-    

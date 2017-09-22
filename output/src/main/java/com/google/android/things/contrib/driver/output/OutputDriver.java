@@ -17,11 +17,23 @@ public class OutputDriver extends  Output implements AutoCloseable {
     private InputDriver mDriver;
     private int mKeycode;
 
-    public OutputDriver(String pin, int keyevent) throws IOException {
+    /**
+     * Create a new framework input driver for a output connected on given GPIO pin.
+     * The driver emits {@link android.view.KeyEvent} with the given keycode when registered.
+     * @param pin GPIO pin where the button is connected.
+     * @param keycode keycode to be emitted.
+     * @throws IOException
+     * @see #register
+     * @return new input driver instance.
+     */
+    public OutputDriver(String pin, int keycode) throws IOException {
         super(pin);
-        mKeycode = keyevent;
+        mKeycode = keycode;
     }
 
+    /**
+     * Register the driver in the framework.
+     */
     public void register() {
         if (mDriver == null) {
             mDriver = build(mKeycode);
@@ -29,7 +41,9 @@ public class OutputDriver extends  Output implements AutoCloseable {
         }
     }
 
-
+    /**
+     * Unregister the driver from the framework.
+     */
     public void unregister() {
         if (mDriver != null) {
             UserDriverManager.getManager().unregisterInputDriver(mDriver);
