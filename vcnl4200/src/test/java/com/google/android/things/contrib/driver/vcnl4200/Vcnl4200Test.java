@@ -16,22 +16,21 @@
 
 package com.google.android.things.contrib.driver.vcnl4200;
 
+import static com.google.android.things.contrib.driver.testutils.BitsMatcher.hasBitsSet;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.byteThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.shortThat;
 import static org.mockito.Mockito.times;
 
-import static com.google.android.things.contrib.driver.testutils.BitsMatcher.hasBitsNotSet;
-import static com.google.android.things.contrib.driver.testutils.BitsMatcher.hasBitsSet;
-
 import com.google.android.things.contrib.driver.vcnl4200.Vcnl4200.InterruptStatus;
 import com.google.android.things.pio.I2cDevice;
 import java.io.IOException;
+
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
@@ -161,19 +160,6 @@ public class Vcnl4200Test {
     }
 
     @Test
-    public void resetSensorConfigurations() throws IOException {
-        Vcnl4200 vcnl4200 = new Vcnl4200(mI2c);
-        vcnl4200.resetAlsConfiguration();
-        vcnl4200.resetPsConfiguration();
-        Mockito.verify(mI2c, times(2)).writeRegWord(eq(Vcnl4200.REGISTER_ALS_CONF),
-                eq((short) 0x00));
-        Mockito.verify(mI2c, times(2)).writeRegWord(eq(Vcnl4200.REGISTER_PS_CONF_1_2),
-                eq((short) 0x00));
-        Mockito.verify(mI2c, times(2)).writeRegWord(eq(Vcnl4200.REGISTER_PS_CONF_3_MS),
-                eq((short) 0x00));
-    }
-
-    @Test
     public void setAlsIntegrationTime() throws IOException {
         Vcnl4200 vcnl4200 = new Vcnl4200(mI2c);
         Mockito.reset(mI2c);
@@ -233,6 +219,21 @@ public class Vcnl4200Test {
         assertTrue(
                 vcnl4200.getCurrentAlsResolution() == Vcnl4200.ALS_IT_400MS_SENSITIVITY_RANGE[0]);
         assertTrue(vcnl4200.getCurrentAlsMaxRange() == Vcnl4200.ALS_IT_400MS_SENSITIVITY_RANGE[1]);
+    }
+
+    @Test
+    public void validatePsMaxRangeSet() throws IOException {
+        Vcnl4200 vcnl4200 = new Vcnl4200(mI2c);
+
+        Mockito.doReturn((short) Vcnl4200.PS_OUT_RES_12_BITS).when(mI2c)
+                .readRegWord(Vcnl4200.REGISTER_PS_CONF_1_2);
+        vcnl4200.setPsOutputResolution(Vcnl4200.PS_OUT_RES_12_BITS);
+        assertTrue(vcnl4200.getCurrentPsMaxRange() == 0xFFF);
+
+        Mockito.doReturn((short) Vcnl4200.PS_OUT_RES_16_BITS).when(mI2c)
+                .readRegWord(Vcnl4200.REGISTER_PS_CONF_1_2);
+        vcnl4200.setPsOutputResolution(Vcnl4200.PS_OUT_RES_16_BITS);
+        assertTrue(vcnl4200.getCurrentPsMaxRange() == 0xFFFF);
     }
 
     @Test
@@ -338,9 +339,9 @@ public class Vcnl4200Test {
 
         vcnl4200.setAlsInterruptThresholds(0.0f, 100.0f);
         Mockito.verify(mI2c).writeRegWord(eq(Vcnl4200.REGISTER_ALS_LOW_INT_THRESH),
-                eq((short)0x00));
+                eq((short) 0x00));
         Mockito.verify(mI2c).writeRegWord(eq(Vcnl4200.REGISTER_ALS_HIGH_INT_THRESH),
-                eq((short)(100.0f / vcnl4200.getCurrentAlsResolution())));
+                eq((short) (100.0f / vcnl4200.getCurrentAlsResolution())));
     }
 
     @Test
@@ -358,25 +359,37 @@ public class Vcnl4200Test {
     }
 
     @Test
+    public void setAlsInterruptThresholds_boundsCheck() throws IOException {
+        Vcnl4200 vcnl4200 = new Vcnl4200(mI2c);
+        Mockito.reset(mI2c);
+
+        vcnl4200.setAlsInterruptThresholds(0.0f, vcnl4200.getCurrentAlsMaxRange());
+        Mockito.verify(mI2c).writeRegWord(eq(Vcnl4200.REGISTER_ALS_LOW_INT_THRESH),
+                eq((short) 0x00));
+        Mockito.verify(mI2c).writeRegWord(eq(Vcnl4200.REGISTER_ALS_HIGH_INT_THRESH),
+                eq((short) 0xFFFF /* setting maximum threshold */));
+    }
+
+    @Test
     public void setPsIredDutyCycle() throws IOException {
         Vcnl4200 vcnl4200 = new Vcnl4200(mI2c);
         Mockito.reset(mI2c);
 
         vcnl4200.setPsIredDutyCycle(Vcnl4200.PS_IRED_DUTY_CYCLE_1_160);
         Mockito.verify(mI2c).writeRegWord(eq(Vcnl4200.REGISTER_PS_CONF_1_2),
-                eq((short)Vcnl4200.PS_IRED_DUTY_CYCLE_1_160));
+                eq((short) Vcnl4200.PS_IRED_DUTY_CYCLE_1_160));
 
         vcnl4200.setPsIredDutyCycle(Vcnl4200.PS_IRED_DUTY_CYCLE_1_320);
         Mockito.verify(mI2c).writeRegWord(eq(Vcnl4200.REGISTER_PS_CONF_1_2),
-                eq((short)Vcnl4200.PS_IRED_DUTY_CYCLE_1_320));
+                eq((short) Vcnl4200.PS_IRED_DUTY_CYCLE_1_320));
 
         vcnl4200.setPsIredDutyCycle(Vcnl4200.PS_IRED_DUTY_CYCLE_1_640);
         Mockito.verify(mI2c).writeRegWord(eq(Vcnl4200.REGISTER_PS_CONF_1_2),
-                eq((short)Vcnl4200.PS_IRED_DUTY_CYCLE_1_640));
+                eq((short) Vcnl4200.PS_IRED_DUTY_CYCLE_1_640));
 
         vcnl4200.setPsIredDutyCycle(Vcnl4200.PS_IRED_DUTY_CYCLE_1_1280);
         Mockito.verify(mI2c).writeRegWord(eq(Vcnl4200.REGISTER_PS_CONF_1_2),
-                eq((short)Vcnl4200.PS_IRED_DUTY_CYCLE_1_1280));
+                eq((short) Vcnl4200.PS_IRED_DUTY_CYCLE_1_1280));
     }
 
     @Test
@@ -394,19 +407,19 @@ public class Vcnl4200Test {
 
         vcnl4200.setPsInterruptPersistence(Vcnl4200.PS_INT_PERSISTENCE_1);
         Mockito.verify(mI2c).writeRegWord(eq(Vcnl4200.REGISTER_PS_CONF_1_2),
-                eq((short)Vcnl4200.PS_INT_PERSISTENCE_1));
+                eq((short) Vcnl4200.PS_INT_PERSISTENCE_1));
 
         vcnl4200.setPsInterruptPersistence(Vcnl4200.PS_INT_PERSISTENCE_2);
         Mockito.verify(mI2c).writeRegWord(eq(Vcnl4200.REGISTER_PS_CONF_1_2),
-                eq((short)Vcnl4200.PS_INT_PERSISTENCE_2));
+                eq((short) Vcnl4200.PS_INT_PERSISTENCE_2));
 
         vcnl4200.setPsInterruptPersistence(Vcnl4200.PS_INT_PERSISTENCE_3);
         Mockito.verify(mI2c).writeRegWord(eq(Vcnl4200.REGISTER_PS_CONF_1_2),
-                eq((short)Vcnl4200.PS_INT_PERSISTENCE_3));
+                eq((short) Vcnl4200.PS_INT_PERSISTENCE_3));
 
         vcnl4200.setPsInterruptPersistence(Vcnl4200.PS_INT_PERSISTENCE_4);
         Mockito.verify(mI2c).writeRegWord(eq(Vcnl4200.REGISTER_PS_CONF_1_2),
-                eq((short)Vcnl4200.PS_INT_PERSISTENCE_4));
+                eq((short) Vcnl4200.PS_INT_PERSISTENCE_4));
     }
 
     @Test
@@ -424,27 +437,27 @@ public class Vcnl4200Test {
 
         vcnl4200.setPsIntegrationTime(Vcnl4200.PS_IT_1);
         Mockito.verify(mI2c).writeRegWord(eq(Vcnl4200.REGISTER_PS_CONF_1_2),
-                eq((short)Vcnl4200.PS_IT_1));
+                eq((short) Vcnl4200.PS_IT_1));
 
         vcnl4200.setPsIntegrationTime(Vcnl4200.PS_IT_1_5);
         Mockito.verify(mI2c).writeRegWord(eq(Vcnl4200.REGISTER_PS_CONF_1_2),
-                eq((short)Vcnl4200.PS_IT_1_5));
+                eq((short) Vcnl4200.PS_IT_1_5));
 
         vcnl4200.setPsIntegrationTime(Vcnl4200.PS_IT_2);
         Mockito.verify(mI2c).writeRegWord(eq(Vcnl4200.REGISTER_PS_CONF_1_2),
-                eq((short)Vcnl4200.PS_IT_2));
+                eq((short) Vcnl4200.PS_IT_2));
 
         vcnl4200.setPsIntegrationTime(Vcnl4200.PS_IT_4);
         Mockito.verify(mI2c).writeRegWord(eq(Vcnl4200.REGISTER_PS_CONF_1_2),
-                eq((short)Vcnl4200.PS_IT_4));
+                eq((short) Vcnl4200.PS_IT_4));
 
         vcnl4200.setPsIntegrationTime(Vcnl4200.PS_IT_8);
         Mockito.verify(mI2c).writeRegWord(eq(Vcnl4200.REGISTER_PS_CONF_1_2),
-                eq((short)Vcnl4200.PS_IT_8));
+                eq((short) Vcnl4200.PS_IT_8));
 
         vcnl4200.setPsIntegrationTime(Vcnl4200.PS_IT_9);
         Mockito.verify(mI2c).writeRegWord(eq(Vcnl4200.REGISTER_PS_CONF_1_2),
-                eq((short)Vcnl4200.PS_IT_9));
+                eq((short) Vcnl4200.PS_IT_9));
     }
 
     @Test
@@ -462,11 +475,11 @@ public class Vcnl4200Test {
 
         vcnl4200.enablePsPower(true);
         Mockito.verify(mI2c).writeRegWord(eq(Vcnl4200.REGISTER_PS_CONF_1_2),
-                eq((short)Vcnl4200.PS_POWER_ON));
+                eq((short) Vcnl4200.PS_POWER_ON));
 
         vcnl4200.enablePsPower(false);
         Mockito.verify(mI2c).writeRegWord(eq(Vcnl4200.REGISTER_PS_CONF_1_2),
-                eq((short)Vcnl4200.PS_POWER_OFF));
+                eq((short) Vcnl4200.PS_POWER_OFF));
     }
 
     @Test
@@ -484,11 +497,11 @@ public class Vcnl4200Test {
 
         vcnl4200.setPsOutputResolution(Vcnl4200.PS_OUT_RES_12_BITS);
         Mockito.verify(mI2c).writeRegWord(eq(Vcnl4200.REGISTER_PS_CONF_1_2),
-                eq((short)Vcnl4200.PS_OUT_RES_12_BITS));
+                eq((short) Vcnl4200.PS_OUT_RES_12_BITS));
 
         vcnl4200.setPsOutputResolution(Vcnl4200.PS_OUT_RES_16_BITS);
         Mockito.verify(mI2c).writeRegWord(eq(Vcnl4200.REGISTER_PS_CONF_1_2),
-                eq((short)Vcnl4200.PS_OUT_RES_16_BITS));
+                eq((short) Vcnl4200.PS_OUT_RES_16_BITS));
     }
 
     @Test
@@ -506,19 +519,19 @@ public class Vcnl4200Test {
 
         vcnl4200.setPsInterruptConfiguration(Vcnl4200.PS_INT_CONFIG_DISABLE);
         Mockito.verify(mI2c).writeRegWord(eq(Vcnl4200.REGISTER_PS_CONF_1_2),
-                eq((short)Vcnl4200.PS_INT_CONFIG_DISABLE));
+                eq((short) Vcnl4200.PS_INT_CONFIG_DISABLE));
 
         vcnl4200.setPsInterruptConfiguration(Vcnl4200.PS_INT_CONFIG_TRIGGER_BY_AWAY);
         Mockito.verify(mI2c).writeRegWord(eq(Vcnl4200.REGISTER_PS_CONF_1_2),
-                eq((short)Vcnl4200.PS_INT_CONFIG_TRIGGER_BY_AWAY));
+                eq((short) Vcnl4200.PS_INT_CONFIG_TRIGGER_BY_AWAY));
 
         vcnl4200.setPsInterruptConfiguration(Vcnl4200.PS_INT_CONFIG_TRIGGER_BY_CLOSING);
         Mockito.verify(mI2c).writeRegWord(eq(Vcnl4200.REGISTER_PS_CONF_1_2),
-                eq((short)Vcnl4200.PS_INT_CONFIG_TRIGGER_BY_CLOSING));
+                eq((short) Vcnl4200.PS_INT_CONFIG_TRIGGER_BY_CLOSING));
 
         vcnl4200.setPsInterruptConfiguration(Vcnl4200.PS_INT_CONFIG_TRIGGER_BY_CLOSING_AND_AWAY);
         Mockito.verify(mI2c).writeRegWord(eq(Vcnl4200.REGISTER_PS_CONF_1_2),
-                eq((short)Vcnl4200.PS_INT_CONFIG_TRIGGER_BY_CLOSING_AND_AWAY));
+                eq((short) Vcnl4200.PS_INT_CONFIG_TRIGGER_BY_CLOSING_AND_AWAY));
     }
 
     @Test
@@ -536,19 +549,19 @@ public class Vcnl4200Test {
 
         vcnl4200.setPsMultiPulseNumbers(Vcnl4200.PS_MULTI_PULSE_1);
         Mockito.verify(mI2c).writeRegWord(eq(Vcnl4200.REGISTER_PS_CONF_3_MS),
-                eq((short)Vcnl4200.PS_MULTI_PULSE_1));
+                eq((short) Vcnl4200.PS_MULTI_PULSE_1));
 
         vcnl4200.setPsMultiPulseNumbers(Vcnl4200.PS_MULTI_PULSE_2);
         Mockito.verify(mI2c).writeRegWord(eq(Vcnl4200.REGISTER_PS_CONF_3_MS),
-                eq((short)Vcnl4200.PS_MULTI_PULSE_2));
+                eq((short) Vcnl4200.PS_MULTI_PULSE_2));
 
         vcnl4200.setPsMultiPulseNumbers(Vcnl4200.PS_MULTI_PULSE_4);
         Mockito.verify(mI2c).writeRegWord(eq(Vcnl4200.REGISTER_PS_CONF_3_MS),
-                eq((short)Vcnl4200.PS_MULTI_PULSE_4));
+                eq((short) Vcnl4200.PS_MULTI_PULSE_4));
 
         vcnl4200.setPsMultiPulseNumbers(Vcnl4200.PS_MULTI_PULSE_8);
         Mockito.verify(mI2c).writeRegWord(eq(Vcnl4200.REGISTER_PS_CONF_3_MS),
-                eq((short)Vcnl4200.PS_MULTI_PULSE_8));
+                eq((short) Vcnl4200.PS_MULTI_PULSE_8));
     }
 
     @Test
@@ -566,11 +579,11 @@ public class Vcnl4200Test {
 
         vcnl4200.enablePsSmartPersistence(true);
         Mockito.verify(mI2c).writeRegWord(eq(Vcnl4200.REGISTER_PS_CONF_3_MS),
-                eq((short)Vcnl4200.PS_SMART_PERSISTENCE_ENABLE));
+                eq((short) Vcnl4200.PS_SMART_PERSISTENCE_ENABLE));
 
         vcnl4200.enablePsSmartPersistence(false);
         Mockito.verify(mI2c).writeRegWord(eq(Vcnl4200.REGISTER_PS_CONF_3_MS),
-                eq((short)Vcnl4200.PS_SMART_PERSISTENCE_DISABLE));
+                eq((short) Vcnl4200.PS_SMART_PERSISTENCE_DISABLE));
     }
 
     @Test
@@ -588,11 +601,11 @@ public class Vcnl4200Test {
 
         vcnl4200.enablePsActiveForceMode(true);
         Mockito.verify(mI2c).writeRegWord(eq(Vcnl4200.REGISTER_PS_CONF_3_MS),
-                eq((short)Vcnl4200.PS_ACTIVE_FORCE_MODE_ENABLE));
+                eq((short) Vcnl4200.PS_ACTIVE_FORCE_MODE_ENABLE));
 
         vcnl4200.enablePsActiveForceMode(false);
         Mockito.verify(mI2c).writeRegWord(eq(Vcnl4200.REGISTER_PS_CONF_3_MS),
-                eq((short)Vcnl4200.PS_ACTIVE_FORCE_MODE_DISABLE));
+                eq((short) Vcnl4200.PS_ACTIVE_FORCE_MODE_DISABLE));
     }
 
     @Test
@@ -610,11 +623,11 @@ public class Vcnl4200Test {
 
         vcnl4200.setPsSunlightImmunity(Vcnl4200.PS_SUNLIGHT_IMMUNITY_TYPICAL);
         Mockito.verify(mI2c).writeRegWord(eq(Vcnl4200.REGISTER_PS_CONF_3_MS),
-                eq((short)Vcnl4200.PS_SUNLIGHT_IMMUNITY_TYPICAL));
+                eq((short) Vcnl4200.PS_SUNLIGHT_IMMUNITY_TYPICAL));
 
         vcnl4200.setPsSunlightImmunity(Vcnl4200.PS_SUNLIGHT_IMMUNITY_2X);
         Mockito.verify(mI2c).writeRegWord(eq(Vcnl4200.REGISTER_PS_CONF_3_MS),
-                eq((short)Vcnl4200.PS_SUNLIGHT_IMMUNITY_2X));
+                eq((short) Vcnl4200.PS_SUNLIGHT_IMMUNITY_2X));
     }
 
     @Test
@@ -632,11 +645,11 @@ public class Vcnl4200Test {
 
         vcnl4200.setPsSunlightProtectMode(Vcnl4200.PS_SUNLIGHT_PROTECT_MODE_00);
         Mockito.verify(mI2c).writeRegWord(eq(Vcnl4200.REGISTER_PS_CONF_3_MS),
-                eq((short)Vcnl4200.PS_SUNLIGHT_PROTECT_MODE_00));
+                eq((short) Vcnl4200.PS_SUNLIGHT_PROTECT_MODE_00));
 
         vcnl4200.setPsSunlightProtectMode(Vcnl4200.PS_SUNLIGHT_PROTECT_MODE_FF);
         Mockito.verify(mI2c).writeRegWord(eq(Vcnl4200.REGISTER_PS_CONF_3_MS),
-                eq((short)Vcnl4200.PS_SUNLIGHT_PROTECT_MODE_FF));
+                eq((short) Vcnl4200.PS_SUNLIGHT_PROTECT_MODE_FF));
     }
 
     @Test
@@ -654,11 +667,11 @@ public class Vcnl4200Test {
 
         vcnl4200.setPsSunlightCapability(Vcnl4200.PS_SUNLIGHT_CAP_TYPICAL);
         Mockito.verify(mI2c).writeRegWord(eq(Vcnl4200.REGISTER_PS_CONF_3_MS),
-                eq((short)Vcnl4200.PS_SUNLIGHT_CAP_TYPICAL));
+                eq((short) Vcnl4200.PS_SUNLIGHT_CAP_TYPICAL));
 
         vcnl4200.setPsSunlightCapability(Vcnl4200.PS_SUNLIGHT_CAP_1_5);
         Mockito.verify(mI2c).writeRegWord(eq(Vcnl4200.REGISTER_PS_CONF_3_MS),
-                eq((short)Vcnl4200.PS_SUNLIGHT_CAP_1_5));
+                eq((short) Vcnl4200.PS_SUNLIGHT_CAP_1_5));
     }
 
     @Test
@@ -676,11 +689,11 @@ public class Vcnl4200Test {
 
         vcnl4200.setPsOperationMode(Vcnl4200.PS_OP_NORMAL_WITH_INT);
         Mockito.verify(mI2c).writeRegWord(eq(Vcnl4200.REGISTER_PS_CONF_3_MS),
-                eq((short)Vcnl4200.PS_OP_NORMAL_WITH_INT));
+                eq((short) Vcnl4200.PS_OP_NORMAL_WITH_INT));
 
         vcnl4200.setPsOperationMode(Vcnl4200.PS_OP_DETECT_LOGIC_OUTPUT);
         Mockito.verify(mI2c).writeRegWord(eq(Vcnl4200.REGISTER_PS_CONF_3_MS),
-                eq((short)Vcnl4200.PS_OP_DETECT_LOGIC_OUTPUT));
+                eq((short) Vcnl4200.PS_OP_DETECT_LOGIC_OUTPUT));
     }
 
     @Test
@@ -698,11 +711,11 @@ public class Vcnl4200Test {
 
         vcnl4200.enablePsCancellationFunction(true);
         Mockito.verify(mI2c).writeRegWord(eq(Vcnl4200.REGISTER_PS_CONF_3_MS),
-                eq((short)Vcnl4200.PS_SUNLIGHT_CANC_ENABLE));
+                eq((short) Vcnl4200.PS_SUNLIGHT_CANC_ENABLE));
 
         vcnl4200.enablePsCancellationFunction(false);
         Mockito.verify(mI2c).writeRegWord(eq(Vcnl4200.REGISTER_PS_CONF_3_MS),
-                eq((short)Vcnl4200.PS_SUNLIGHT_CANC_DISABLE));
+                eq((short) Vcnl4200.PS_SUNLIGHT_CANC_DISABLE));
     }
 
     @Test
@@ -720,9 +733,9 @@ public class Vcnl4200Test {
 
         vcnl4200.setPsInterruptThresholds(0, 100);
         Mockito.verify(mI2c).writeRegWord(eq(Vcnl4200.REGISTER_PROX_LOW_INT_THRESH),
-                eq((short)0));
+                eq((short) 0));
         Mockito.verify(mI2c).writeRegWord(eq(Vcnl4200.REGISTER_PROX_HIGH_INT_THRESH),
-                eq((short)100));
+                eq((short) 100));
     }
 
     @Test
@@ -733,10 +746,22 @@ public class Vcnl4200Test {
         mExpectedException.expect(IllegalArgumentException.class);
         vcnl4200.setPsInterruptThresholds(-1, 0);
         mExpectedException.expect(IllegalArgumentException.class);
-        vcnl4200.setPsInterruptThresholds(0, Vcnl4200.PS_MAX_DATA_VALUE + 1);
+        vcnl4200.setPsInterruptThresholds(0, vcnl4200.getCurrentPsMaxRange() + 1);
         vcnl4200.close();
         mExpectedException.expect(IllegalStateException.class);
         vcnl4200.setPsInterruptThresholds(0x00, 0xFF);
+    }
+
+    @Test
+    public void setPsInterruptThresholds_boundsCheck() throws IOException {
+        Vcnl4200 vcnl4200 = new Vcnl4200(mI2c);
+        Mockito.reset(mI2c);
+
+        vcnl4200.setPsInterruptThresholds(0, vcnl4200.getCurrentPsMaxRange());
+        Mockito.verify(mI2c).writeRegWord(eq(Vcnl4200.REGISTER_PROX_LOW_INT_THRESH),
+                eq((short) 0x00));
+        Mockito.verify(mI2c).writeRegWord(eq(Vcnl4200.REGISTER_PROX_HIGH_INT_THRESH),
+                eq((short) (vcnl4200.getCurrentPsMaxRange() & 0xFFFF)));
     }
 
     @Test
@@ -744,8 +769,8 @@ public class Vcnl4200Test {
         Vcnl4200 vcnl4200 = new Vcnl4200(mI2c);
         Mockito.reset(mI2c);
 
-        vcnl4200.setPsCancellationLevel((short)100);
-        Mockito.verify(mI2c).writeRegWord(eq(Vcnl4200.REGISTER_PS_CANC_LEVEL), eq((short)100));
+        vcnl4200.setPsCancellationLevel((short) 100);
+        Mockito.verify(mI2c).writeRegWord(eq(Vcnl4200.REGISTER_PS_CANC_LEVEL), eq((short) 100));
     }
 
     @Test
@@ -753,7 +778,7 @@ public class Vcnl4200Test {
         Vcnl4200 vcnl4200 = new Vcnl4200(mI2c);
         vcnl4200.close();
         mExpectedException.expect(IllegalStateException.class);
-        vcnl4200.setPsCancellationLevel((short)100);
+        vcnl4200.setPsCancellationLevel((short) 100);
     }
 
     @Test
@@ -763,7 +788,7 @@ public class Vcnl4200Test {
 
         vcnl4200.getOnDemandPsData();
         Mockito.verify(mI2c).writeRegWord(eq(Vcnl4200.REGISTER_PS_CONF_3_MS),
-                eq((short)Vcnl4200.PS_TRIGGER_ONE_TIME_CYCLE));
+                eq((short) Vcnl4200.PS_TRIGGER_ONE_TIME_CYCLE));
         Mockito.verify(mI2c).readRegWord(Vcnl4200.REGISTER_PROX_DATA);
     }
 

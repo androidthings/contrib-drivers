@@ -221,11 +221,11 @@ public class Vcnl4200 implements AutoCloseable {
     public @interface PsMultiPulseNumbers {}
 
     public static final int PS_MULTI_PULSE_1 = 0b00;
-    public static final int PS_MULTI_PULSE_2 = 0b01;
-    public static final int PS_MULTI_PULSE_4 = 0b10;
-    public static final int PS_MULTI_PULSE_8 = 0b11;
+    public static final int PS_MULTI_PULSE_2 = 0b01 << 5;
+    public static final int PS_MULTI_PULSE_4 = 0b10 << 5;
+    public static final int PS_MULTI_PULSE_8 = 0b11 << 5;
 
-    private static final int PS_MULTI_PULSE_MASK = 0b11;
+    private static final int PS_MULTI_PULSE_MASK = 0b11 << 5;
 
     /**
      * PS Smart Persistence
@@ -372,7 +372,6 @@ public class Vcnl4200 implements AutoCloseable {
         }
     }
 
-    public static final int PS_MAX_DATA_VALUE = 0xFFFF;
     // Ambient light resolution is affected by the integration time.
     public static final float[] ALS_IT_50MS_SENSITIVITY_RANGE  = { 0.024f, 1573 };
     public static final float[] ALS_IT_100MS_SENSITIVITY_RANGE = { 0.012f,  786 };
@@ -382,17 +381,19 @@ public class Vcnl4200 implements AutoCloseable {
     private I2cDevice mDevice;
     private float mAlsResolution;
     private float mAlsMaxRange;
+    private int mPsMaxRange;
 
     /**
      * Create a new VCNL4200 sensor driver connected to the given I2C bus.
      * @param bus I2C bus the sensor is connected to.
+     * @param configuration Initial configuration of the sensor.
      * @throws IOException
      */
-    public Vcnl4200(String bus) throws IOException {
+    public Vcnl4200(String bus, Configuration configuration) throws IOException {
         PeripheralManagerService pioService = new PeripheralManagerService();
         I2cDevice device = pioService.openI2cDevice(bus, I2C_ADDRESS);
         try {
-            connect(device);
+            connect(device, configuration);
         } catch (IOException|RuntimeException e) {
             try {
                 close();
@@ -403,56 +404,69 @@ public class Vcnl4200 implements AutoCloseable {
     }
 
     /**
-     * Create a new VCNL4200 sensor driver connected to the given I2C device.
-     * @param device I2C device of the sensor.
-     * @throws IOException
+     * Construct with the default configuration parameters.
      */
-    /*package*/ Vcnl4200(I2cDevice device) throws IOException {
-        connect(device);
+    public Vcnl4200(String bus) throws IOException {
+        this(bus, new Configuration.Builder().build());
     }
 
-    private void connect(I2cDevice device) throws IOException {
+    /**
+     * Create a new VCNL4200 sensor driver connected to the given I2C device.
+     * @param device I2C device of the sensor.
+     * @param configuration Initial configuration of the sensor.
+     * @throws IOException
+     */
+    /*package*/ Vcnl4200(I2cDevice device, Configuration configuration) throws IOException {
+        connect(device, configuration);
+    }
+
+    /**
+     * Package constructor with the default configuration parameters.
+     */
+    /*package*/ Vcnl4200(I2cDevice device) throws IOException {
+        this(device, new Configuration.Builder().build());
+    }
+
+    private void connect(I2cDevice device, Configuration configuration) throws IOException {
         if (mDevice != null) {
             throw new IllegalStateException("device already connected");
         }
         mDevice = device;
-        resetAlsConfiguration();
-        resetPsConfiguration();
-        updateLocalAlsConfiguration();
+        applyConfiguration(configuration);
     }
 
     /**
-     * Zeros out configuration registers for the ambient light sensor. The following settings will
-     * be applied as a consequence: ALSIntegrationTime (50ms), AlsInterruptSwitch(ALS),
-     * AlsInterruptPersistence(1), AlsInterruptEnable(false), AlsPower(true).
+     * Applies all available settings on the sensor, with values defined by the Configuration.
+     * @param configuration A set of configurable values, where all unset values are defaults.
      * @throws IOException
      * @throws IllegalStateException
      */
-    public void resetAlsConfiguration() throws IOException, IllegalStateException {
-        if (mDevice == null) {
-            throw new IllegalStateException("device is not connected");
-        }
-        mDevice.writeRegWord(REGISTER_ALS_CONF, (short)0x00);
+    public void applyConfiguration(Configuration configuration)
+            throws IOException, IllegalStateException {
+        // Apply ambient light sensor configuration:
+        setAlsIntegrationTime(configuration.getAlsIntegrationTime());
+        setAlsInterruptSwitch(configuration.getAlsInterruptSwitch());
+        setAlsInterruptPersistence(configuration.getAlsInterruptPersistence());
+        enableAlsInterrupt(configuration.isAlsInterruptEnabled());
+        enableAlsPower(configuration.isAlsPowerEnabled());
+        // Apply proximity sensor configuration:
+        setPsIredDutyCycle(configuration.getPsIredDutyCycle());
+        setPsInterruptPersistence(configuration.getPsInterruptPersistence());
+        setPsIntegrationTime(configuration.getPsIntegrationTime());
+        enablePsPower(configuration.isPsPowerEnabled());
+        setPsOutputResolution(configuration.getPsOutputResolution());
+        setPsInterruptConfiguration(configuration.getPsInterruptConfiguration());
+        setPsMultiPulseNumbers(configuration.getPsMultiPulseNumbers());
+        enablePsSmartPersistence(configuration.isPsSmartPersistenceEnabled());
+        enablePsActiveForceMode(configuration.isPsEnableActiveForceModeEnabled());
+        setPsSunlightImmunity(configuration.getPsSunlightImmunity());
+        enablePsCancellationFunction(configuration.isPsSunlightCancellationEnabled());
+        setPsSunlightCapability(configuration.getPsSunlightCapability());
+        setPsSunlightProtectMode(configuration.getPsSunlightProtectMode());
+        setPsLedCurrent(configuration.getPsLedCurrent());
+        // Update local state:
         updateLocalAlsConfiguration();
-    }
-
-    /**
-     * Zeros out the configuration registers for the proximity sensor. The following settings will
-     * be applied as a consequence: PsIredDutyCycle(1/160), PsInterruptPersistence(1),
-     * PsIntegrationTime(1T), PsPower(true), PsOutputResolution(12),
-     * PsInterruptConfiguration(disabled), PsMultiPulseNumbers(1), PsSmartPersistence(false),
-     * PsActiveForceMode(false), PsTriggerMode(no-active-force), PsSunlightImmunity(typical),
-     * PsSunlightCancellation(false), PsOperationMode(normal), PsSunlightCapability(typical),
-     * PsSunlightProtected(0x00), PsLedCurrent(50mA).
-     * @throws IOException
-     * @throws IllegalStateException
-     */
-    public void resetPsConfiguration() throws IOException, IllegalStateException {
-        if (mDevice == null) {
-            throw new IllegalStateException("device is not connected");
-        }
-        mDevice.writeRegWord(REGISTER_PS_CONF_1_2, (short)0x00);
-        mDevice.writeRegWord(REGISTER_PS_CONF_3_MS, (short)0x00);
+        updateLocalPsConfiguration();
     }
 
     /**
@@ -485,7 +499,7 @@ public class Vcnl4200 implements AutoCloseable {
      * The resolution of the ambient light sensor changes based on the current integration setting.
      * @return The resolution based on the last time the ALS configuration was set.
      */
-    public float getCurrentAlsResolution() throws IOException, IllegalStateException {
+    public float getCurrentAlsResolution() {
         return mAlsResolution;
     }
 
@@ -493,9 +507,15 @@ public class Vcnl4200 implements AutoCloseable {
      * The max range of the ambient light sensor changes based on the current integration setting.
      * @return The max range based on the last time the ALS configuration was set.
      */
-    public float getCurrentAlsMaxRange() throws IOException, IllegalStateException {
+    public float getCurrentAlsMaxRange() {
         return mAlsMaxRange;
     }
+
+    /**
+     * The max range of the proximity sensor changes based on the output resolution setting.
+     * @return The max range based on the last time the PS configuration was set.
+     */
+    public int getCurrentPsMaxRange() { return mPsMaxRange; }
 
     private void updateLocalAlsConfiguration() throws IOException, IllegalStateException {
         if (mDevice == null) {
@@ -524,6 +544,23 @@ public class Vcnl4200 implements AutoCloseable {
         }
     }
 
+    private void updateLocalPsConfiguration() throws IOException, IllegalStateException {
+        if (mDevice == null) {
+            throw new IllegalStateException("device is not connected");
+        }
+        short psConfig12 = mDevice.readRegWord(REGISTER_PS_CONF_1_2);
+        switch (psConfig12 & PS_OUT_RES_MASK) {
+            case PS_OUT_RES_12_BITS:
+                mPsMaxRange = 0xFFF;
+                break;
+            case PS_OUT_RES_16_BITS:
+                mPsMaxRange = 0xFFFF;
+                break;
+            default:
+                throw new IllegalStateException("unexpected ps output resolution");
+        }
+    }
+
     /**
      * Returns proximity sensor value. Larger counts suggest closer proximity to the sensor.
      * @return Counts reported by sensor.
@@ -534,7 +571,7 @@ public class Vcnl4200 implements AutoCloseable {
         if (mDevice == null) {
             throw new IllegalStateException("device is not connected");
         }
-        return mDevice.readRegWord(REGISTER_PROX_DATA);
+        return (mDevice.readRegWord(REGISTER_PROX_DATA) & 0xFFFF);
     }
 
     /**
@@ -630,7 +667,10 @@ public class Vcnl4200 implements AutoCloseable {
     }
 
     /**
-     * Sets the low and high thresholds at which the interrupt is fired for ALS.
+     * Sets the low and high thresholds at which the interrupt is fired for ALS. For some high
+     * thresholds, the calculation of mAlsMaxRange / mAlsResolution returns a value slightly greater
+     * than what a short can hold. In these instances, we cap the resolution to the maximum value
+     * of an unsigned short.
      * @param lowThreshold Lower boundary at which interrupt will fire, value in lux.
      * @param highThreshold Upper boundary at which interrupt will fire, value in lux.
      * @throws IOException
@@ -647,10 +687,12 @@ public class Vcnl4200 implements AutoCloseable {
         } else if (highThreshold > mAlsMaxRange) {
             throw new IllegalArgumentException("high threshold is set greater than the max range");
         }
-        mDevice.writeRegWord(REGISTER_ALS_LOW_INT_THRESH,
-                (short)(lowThreshold / mAlsResolution));
-        mDevice.writeRegWord(REGISTER_ALS_HIGH_INT_THRESH,
-                (short)(highThreshold / mAlsResolution));
+        int lowThresholdCount = (int)(lowThreshold / mAlsResolution);
+        int highThresholdCount = (int)(highThreshold / mAlsResolution);
+        lowThresholdCount = Math.min(0xFFFF, lowThresholdCount);
+        highThresholdCount = Math.min(0xFFFF, highThresholdCount);
+        mDevice.writeRegWord(REGISTER_ALS_LOW_INT_THRESH, (short)(lowThresholdCount & 0xFFFF));
+        mDevice.writeRegWord(REGISTER_ALS_HIGH_INT_THRESH, (short)(highThresholdCount & 0xFFFF));
     }
 
     private void setPsConf12(int configMask, int config)
@@ -727,6 +769,7 @@ public class Vcnl4200 implements AutoCloseable {
     public void setPsOutputResolution(@PsOutputResolution int outputResolution)
             throws IOException, IllegalStateException {
         setPsConf12(PS_OUT_RES_MASK, outputResolution);
+        updateLocalPsConfiguration();
     }
 
     /**
@@ -883,7 +926,7 @@ public class Vcnl4200 implements AutoCloseable {
             throw new IllegalArgumentException("low threshold is greater than high threshold");
         } else if (lowThreshold < 0) {
             throw new IllegalArgumentException("low threshold must be positive");
-        } else if (highThreshold > PS_MAX_DATA_VALUE) {
+        } else if (highThreshold > mPsMaxRange) {
             throw new IllegalArgumentException("high threshold is greater than the max range");
         }
         mDevice.writeRegWord(REGISTER_PROX_LOW_INT_THRESH, (short)(lowThreshold & 0xFFFF));
@@ -901,6 +944,296 @@ public class Vcnl4200 implements AutoCloseable {
                 mDevice.close();
             } finally {
                 mDevice = null;
+            }
+        }
+    }
+
+    /**
+     * Configuration class that holds the set of all modifiable controls of the sensor. Users can
+     * build an instance of this class to pass to the driver. Attributes not explicitly set by the
+     * user will default to a known, sane configuration.
+     */
+    public static class Configuration {
+        // Ambient light sensor configuration:
+        private final @AlsIntegrationTime int alsIntegrationTime;
+        private final @AlsInterruptSwitch int alsInterruptSwitch;
+        private final @AlsInterruptPersistence int alsInterruptPersistence;
+        private final boolean alsEnableInterrupt;
+        private final boolean alsEnablePower;
+        // Proximity sensor configuration:
+        private final @PsIredDutyCycle int psIredDutyCycle;
+        private final @PsInterruptPersistence int psInterruptPersistence;
+        private final @PsIntegrationTime int psIntegrationTime;
+        private final boolean psEnablePower;
+        private final @PsOutputResolution int psOutputResolution;
+        private final @PsInterruptConfiguration int psInterruptConfiguration;
+        private final @PsMultiPulseNumbers int psMultiPulseNumbers;
+        private final boolean psEnableSmartPersistence;
+        private final boolean psEnableActiveForceMode;
+        private final @PsSunlightImmunity int psSunlightImmunity;
+        private final boolean psEnableSunlightCancellation;
+        private final @PsOperationMode int psOperationMode;
+        private final @PsSunlightCapability int psSunlightCapability;
+        private final @PsSunlightProtectMode int psSunlightProtectMode;
+        private final @PsLedCurrent int psLedCurrent;
+
+        private Configuration(Builder builder) {
+            alsIntegrationTime = builder.alsIntegrationTime;
+            alsInterruptSwitch = builder.alsInterruptSwitch;
+            alsInterruptPersistence = builder.alsInterruptPersistence;
+            alsEnableInterrupt = builder.alsEnableInterrupt;
+            alsEnablePower = builder.alsEnablePower;
+
+            psIredDutyCycle = builder.psIredDutyCycle;
+            psInterruptPersistence = builder.psInterruptPersistence;
+            psIntegrationTime = builder.psIntegrationTime;
+            psEnablePower = builder.psEnablePower;
+            psOutputResolution = builder.psOutputResolution;
+            psInterruptConfiguration = builder.psInterruptConfiguration;
+            psMultiPulseNumbers = builder.psMultiPulseNumbers;
+            psEnableSmartPersistence = builder.psEnableSmartPersistence;
+            psEnableActiveForceMode = builder.psEnableActiveForceMode;
+            psSunlightImmunity = builder.psSunlightImmunity;
+            psEnableSunlightCancellation = builder.psEnableSunlightCancellation;
+            psOperationMode = builder.psOperationMode;
+            psSunlightCapability = builder.psSunlightCapability;
+            psSunlightProtectMode = builder.psSunlightProtectMode;
+            psLedCurrent = builder.psLedCurrent;
+        }
+
+        public @AlsIntegrationTime int getAlsIntegrationTime() {
+            return alsIntegrationTime;
+        }
+
+        public @AlsInterruptSwitch int getAlsInterruptSwitch() {
+            return alsInterruptSwitch;
+        }
+
+        public @AlsInterruptPersistence int getAlsInterruptPersistence() {
+            return alsInterruptPersistence;
+        }
+
+        public boolean isAlsInterruptEnabled() {
+            return alsEnableInterrupt;
+        }
+
+        public boolean isAlsPowerEnabled() {
+            return alsEnablePower;
+        }
+
+        public @PsIredDutyCycle int getPsIredDutyCycle() {
+            return psIredDutyCycle;
+        }
+
+        public @PsInterruptPersistence int getPsInterruptPersistence() {
+            return psInterruptPersistence;
+        }
+
+        public @PsIntegrationTime int getPsIntegrationTime() {
+            return psIntegrationTime;
+        }
+
+        public boolean isPsPowerEnabled() {
+            return psEnablePower;
+        }
+
+        public @PsOutputResolution int getPsOutputResolution() {
+            return psOutputResolution;
+        }
+
+        public @PsInterruptConfiguration int getPsInterruptConfiguration() {
+            return psInterruptConfiguration;
+        }
+
+        public @PsMultiPulseNumbers int getPsMultiPulseNumbers() {
+            return psMultiPulseNumbers;
+        }
+
+        public boolean isPsSmartPersistenceEnabled() {
+            return psEnableSmartPersistence;
+        }
+
+        public boolean isPsEnableActiveForceModeEnabled() {
+            return psEnableActiveForceMode;
+        }
+
+        public @PsSunlightImmunity int getPsSunlightImmunity() {
+            return psSunlightImmunity;
+        }
+
+        public boolean isPsSunlightCancellationEnabled() {
+            return psEnableSunlightCancellation;
+        }
+
+        public @PsOperationMode int getPsOperationMode() {
+            return psOperationMode;
+        }
+
+        public @PsSunlightCapability int getPsSunlightCapability() {
+            return psSunlightCapability;
+        }
+
+        public @PsSunlightProtectMode int getPsSunlightProtectMode() {
+            return psSunlightProtectMode;
+        }
+
+        public @PsLedCurrent int getPsLedCurrent() {
+            return psLedCurrent;
+        }
+
+        public final static class Builder {
+            // Ambient light sensor configuration:
+            private @AlsIntegrationTime int alsIntegrationTime;
+            private @AlsInterruptSwitch int alsInterruptSwitch;
+            private @AlsInterruptPersistence int alsInterruptPersistence;
+            private boolean alsEnableInterrupt;
+            private boolean alsEnablePower;
+            // Proximity sensor configuration:
+            private @PsIredDutyCycle int psIredDutyCycle;
+            private @PsInterruptPersistence int psInterruptPersistence;
+            private @PsIntegrationTime int psIntegrationTime;
+            private boolean psEnablePower;
+            private @PsOutputResolution int psOutputResolution;
+            private @PsInterruptConfiguration int psInterruptConfiguration;
+            private @PsMultiPulseNumbers int psMultiPulseNumbers;
+            private boolean psEnableSmartPersistence;
+            private boolean psEnableActiveForceMode;
+            private @PsSunlightImmunity int psSunlightImmunity;
+            private boolean psEnableSunlightCancellation;
+            private @PsOperationMode int psOperationMode;
+            private @PsSunlightCapability int psSunlightCapability;
+            private @PsSunlightProtectMode int psSunlightProtectMode;
+            private @PsLedCurrent int psLedCurrent;
+
+            public Builder() {
+                // Ambient light sensor default configuration:
+                alsIntegrationTime = ALS_IT_TIME_50MS;
+                alsInterruptSwitch = ALS_INT_SWITCH_ALS_CHANNEL;
+                alsInterruptPersistence = ALS_INT_PERSISTENCE_1;
+                alsEnableInterrupt = false;
+                alsEnablePower = true;
+                // Proximity sensor default configuration:
+                psIredDutyCycle = PS_IRED_DUTY_CYCLE_1_320;
+                psInterruptPersistence = PS_INT_PERSISTENCE_1;
+                psIntegrationTime = PS_IT_9;
+                psEnablePower = true;
+                psOutputResolution = PS_OUT_RES_16_BITS;
+                psInterruptConfiguration = PS_INT_CONFIG_DISABLE;
+                psMultiPulseNumbers = PS_MULTI_PULSE_4;
+                psEnableSmartPersistence = false;
+                psEnableActiveForceMode = false;
+                psSunlightImmunity = PS_SUNLIGHT_IMMUNITY_TYPICAL;
+                psEnableSunlightCancellation = false;
+                psOperationMode = PS_OP_NORMAL_WITH_INT;
+                psSunlightCapability = PS_SUNLIGHT_CAP_TYPICAL;
+                psSunlightProtectMode = PS_SUNLIGHT_PROTECT_MODE_00;
+                psLedCurrent = PS_LED_CURRENT_200MA;
+            }
+
+            public Builder setAlsIntegrationTime(@AlsIntegrationTime int alsIntegrationTime) {
+                this.alsIntegrationTime = alsIntegrationTime;
+                return this;
+            }
+
+            public Builder setAlsInterruptSwitch(@AlsInterruptSwitch int alsInterruptSwitch) {
+                this.alsInterruptSwitch = alsInterruptSwitch;
+                return this;
+            }
+
+            public Builder setAlsInterruptPersistence(
+                    @AlsInterruptPersistence int alsInterruptPersistence) {
+                this.alsInterruptPersistence = alsInterruptPersistence;
+                return this;
+            }
+
+            public Builder enableAlsInterrupt(boolean alsEnableInterrupt) {
+                this.alsEnableInterrupt = alsEnableInterrupt;
+                return this;
+            }
+
+            public Builder enableAlsPower(boolean alsEnablePower) {
+                this.alsEnablePower = alsEnablePower;
+                return this;
+            }
+
+            public Builder setPsIredDutyCycle(@PsIredDutyCycle int psIredDutyCycle) {
+                this.psIredDutyCycle = psIredDutyCycle;
+                return this;
+            }
+
+            public Builder setPsInterruptPersistence(@PsInterruptPersistence int psInterruptPersistence) {
+                this.psInterruptPersistence = psInterruptPersistence;
+                return this;
+            }
+
+            public Builder setPsIntegrationTime(@PsIntegrationTime int psIntegrationTime) {
+                this.psIntegrationTime = psIntegrationTime;
+                return this;
+            }
+
+            public Builder enablePsPower(boolean psEnablePower) {
+                this.psEnablePower = psEnablePower;
+                return this;
+            }
+
+            public Builder setPsOutputResolution(@PsOutputResolution int psOutputResolution) {
+                this.psOutputResolution = psOutputResolution;
+                return this;
+            }
+
+            public Builder setPsInterruptConfiguration(
+                    @PsInterruptConfiguration int psInterruptConfiguration) {
+                this.psInterruptConfiguration = psInterruptConfiguration;
+                return this;
+            }
+
+            public Builder setPsMultiPulseNumbers(@PsMultiPulseNumbers int psMultiPulseNumbers) {
+                this.psMultiPulseNumbers = psMultiPulseNumbers;
+                return this;
+            }
+
+            public Builder enablePsSmartPersistence(boolean psEnableSmartPersistence) {
+                this.psEnableSmartPersistence = psEnableSmartPersistence;
+                return this;
+            }
+
+            public Builder enablePsActiveForceMode(boolean psEnableActiveForceMode) {
+                this.psEnableActiveForceMode = psEnableActiveForceMode;
+                return this;
+            }
+
+            public Builder setPsSunlightImmunity(@PsSunlightImmunity int psSunlightImmunity) {
+                this.psSunlightImmunity = psSunlightImmunity;
+                return this;
+            }
+
+            public Builder enablePsSunlightCancellation(boolean psEnableSunlightCancellation) {
+                this.psEnableSunlightCancellation = psEnableSunlightCancellation;
+                return this;
+            }
+
+            public Builder setPsOperationMode(@PsOperationMode int psOperationMode) {
+                this.psOperationMode = psOperationMode;
+                return this;
+            }
+
+            public Builder setPsSunlightCapability(@PsSunlightCapability int psSunlightCapability) {
+                this.psSunlightCapability = psSunlightCapability;
+                return this;
+            }
+
+            public Builder setPsSunlightProtectMode(@PsSunlightProtectMode int psSunlightProtectMode) {
+                this.psSunlightProtectMode = psSunlightProtectMode;
+                return this;
+            }
+
+            public Builder setPsLedCurrent(@PsLedCurrent int psLedCurrent) {
+                this.psLedCurrent = psLedCurrent;
+                return this;
+            }
+
+            public Configuration build() {
+                return new Configuration(this);
             }
         }
     }
