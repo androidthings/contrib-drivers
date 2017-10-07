@@ -3,7 +3,7 @@ Rainbow Hat driver for Android Things
 
 This driver provides easy access to the peripherals available on the [Rainbow Hat for Android
 Things][product]:
-- BMP280 temperature sensor (I2C)
+- BMP280 temperature and pressure sensor (I2C)
 - HT16K33 segment display (I2C)
 - Capacitive buttons (GPIO)
 - LEDs (GPIO)
