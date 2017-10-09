@@ -34,7 +34,7 @@ The last problem we must solve, is the low voltage pause between each transmitte
 | 100                 | 110 100 10~~0~~          |
 | 110                 | 110 110 10~~0~~          |
 
-With this in mind we can represent 3 source bits by 1 destination byte. So any possible 24 bit color needs to be converted to 8 byte sized sequence of bit patterns.
+With this in mind we can represent 3 source bits by 1 destination byte. So any possible 24 bit color needs to be converted to 8 byte sized sequence of bit patterns. To prevent excessive memory usage this driver stores and maps only 12 bit numbers to their corresponding 4 byte sized bit patterns ([TwelveBitIntToBitPatternMapper.java](/ws2812b/src/main/java/com/google/android/things/contrib/driver/ws2812b/TwelveBitIntToBitPatternMapper.java)). The full 8 byte sized bit pattern for a 24 bit color data is then constructed by two 4 byte sized bit patterns ([ColorToBitPatternConverter.java](/ws2812b/src/main/java/com/google/android/things/contrib/driver/ws2812b/ColorToBitPatternConverter.java)). Last but not least, most WS2812B controllers expect GRB as order of the incoming color. So a reordering from RGB to the expected order must be done before the bit pattern conversion ([ColorChannelSequence.java](/ws2812b/src/main/java/com/google/android/things/contrib/driver/ws2812b/ColorChannelSequence.java)).
 
 Copyright 2016 Google Inc.
 
