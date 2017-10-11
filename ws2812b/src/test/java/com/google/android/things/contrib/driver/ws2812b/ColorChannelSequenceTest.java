@@ -6,8 +6,7 @@ import android.graphics.Color;
 import com.google.android.things.contrib.driver.ws2812b.util.ColorMock;
 import com.google.android.things.contrib.driver.ws2812b.util.ColorUtil;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

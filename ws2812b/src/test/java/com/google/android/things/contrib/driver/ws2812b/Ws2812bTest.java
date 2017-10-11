@@ -1,10 +1,10 @@
 package com.google.android.things.contrib.driver.ws2812b;
 
 
-import android.graphics.Color;
 import android.support.annotation.NonNull;
 
 import com.google.android.things.contrib.driver.ws2812b.util.ColorMock;
+import com.google.android.things.contrib.driver.ws2812b.util.ColorUtil;
 import com.google.android.things.contrib.driver.ws2812b.util.SimpleColorToBitPatternConverter;
 import com.google.android.things.contrib.driver.ws2812b.util.SparseArrayMockCreator;
 import com.google.android.things.pio.SpiDevice;
@@ -37,14 +37,14 @@ public class Ws2812bTest {
 
     @Test
     public void close() throws IOException {
-        Ws2812b ws2812b = createWs2812BDevice();
+        Ws2812b ws2812b = createWs2812BTestDevice();
         ws2812b.close();
         Mockito.verify(mSpiDevice).close();
     }
 
     @Test
     public void close_safeToCallTwice() throws IOException {
-        Ws2812b ws2812b = createWs2812BDevice();
+        Ws2812b ws2812b = createWs2812BTestDevice();
         ws2812b.close();
         ws2812b.close();
         // Check if the inner SPI device was only closed once
@@ -52,23 +52,22 @@ public class Ws2812bTest {
     }
 
     @Test
-    public void writeRed() throws IOException {
+    public void write_randomColors() throws IOException {
         ColorMock.mockStatic();
 
-        int color = Color.RED;
+        int[] randomColors = ColorUtil.generateRandomColors(100);
+        byte[] bytes = new SimpleColorToBitPatternConverter().convertColorsToBitPattern(randomColors);
 
-        Ws2812b ws2812b = createWs2812BDevice();
-        ws2812b.write(new int [] {Color.RED});
-
-        byte[] bytes = new SimpleColorToBitPatternConverter().constructBitPatterns(color);
+        Ws2812b ws2812b = createWs2812BTestDevice();
+        ws2812b.write(randomColors);
 
         Mockito.verify(mSpiDevice).write(bytes, bytes.length);
     }
 
     @NonNull
-    private Ws2812b createWs2812BDevice() throws IOException {
+    private Ws2812b createWs2812BTestDevice() throws IOException {
         TwelveBitIntToBitPatternMapper patternMapper = new TwelveBitIntToBitPatternMapper(SparseArrayMockCreator.createMockedSparseArray());
-        ColorToBitPatternConverter converter = new ColorToBitPatternConverter(ColorChannelSequence.RBG, patternMapper);
+        ColorToBitPatternConverter converter = new ColorToBitPatternConverter(ColorChannelSequence.RGB, patternMapper);
         return new Ws2812b(mSpiDevice, converter);
     }
 }

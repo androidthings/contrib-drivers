@@ -29,14 +29,14 @@ class TwelveBitIntToBitPatternMapper {
     private static final int BIGGEST_12_BIT_NUMBER = 0B1111_1111_1111;
     private static final List<Boolean> BIT_PATTERN_FOR_ZERO_BIT = Arrays.asList(true, false, false);
     private static final List<Boolean> BIT_PATTERN_FOR_ONE_BIT = Arrays.asList(true, true, false);
-    private static final int ONE_BYTE_BIT_MASKS[] = new int[]{  0b10000000,
-                                                                0b01000000,
-                                                                0b00100000,
-                                                                0b00010000,
-                                                                0b00001000,
-                                                                0b00000100,
-                                                                0b00000010,
-                                                                0b00000001};
+    private static final int ONE_BYTE_BIT_MASKS[] = new int[]{  0B10000000,
+                                                                0B01000000,
+                                                                0B00100000,
+                                                                0B00010000,
+                                                                0B00001000,
+                                                                0B00000100,
+                                                                0B00000010,
+                                                                0B00000001};
     @NonNull
     private final SparseArray<byte[]> mSparseArray;
 
@@ -79,12 +79,10 @@ class TwelveBitIntToBitPatternMapper {
         List<Boolean> bitPatterns = new ArrayList<>();
         int highest12BitBitMask = 1 << 11;
         for (int i = 0; i < 12; i++) {
-            if ((twelveBitNumber & highest12BitBitMask) == highest12BitBitMask)
-            {
+            if ((twelveBitNumber & highest12BitBitMask) == highest12BitBitMask){
                 bitPatterns.addAll(BIT_PATTERN_FOR_ONE_BIT);
             }
-            else
-            {
+            else{
                 bitPatterns.addAll(BIT_PATTERN_FOR_ZERO_BIT);
             }
             twelveBitNumber = twelveBitNumber << 1;
@@ -114,7 +112,7 @@ class TwelveBitIntToBitPatternMapper {
 
         if (bitPatterns.size() != 32)
         {
-            throw new IllegalStateException("Undefined bit pattern size");
+            throw new IllegalArgumentException("Undefined bit pattern size: Expected size is 32. Passed size: " + bitPatterns.size());
         }
         byte[] bitPatternsAsByteArray = new byte[4];
         bitPatternsAsByteArray [0] = convertBitPatternsToByte(bitPatterns.subList(0, 8));

@@ -7,6 +7,15 @@ import android.support.annotation.IntRange;
 
 public class ColorUtil {
 
+    @SuppressWarnings("SameParameterValue")
+    public static int []generateRandomColors(int numberOfRandomColors) {
+        int[] randomColors = new int[numberOfRandomColors];
+        for (int i = 0; i < randomColors.length; i++) {
+            randomColors[i] = generateRandomColorValue();
+        }
+        return randomColors;
+    }
+
     @IntRange(from = 0, to = 255)
     public static int generateRandomColorValue() {
         return (int) Math.round(Math.random() * 255);

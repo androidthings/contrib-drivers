@@ -5,9 +5,8 @@ import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Size;
 
-import junit.framework.Assert;
-
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.ListIterator;
 
@@ -33,7 +32,7 @@ public class ReverseBitPatternConverter {
         List<Boolean> originalBooleanBits = new ArrayList<>();
         ListIterator<Boolean> booleanBitPatternIterator = booleanBitPatterns.listIterator();
 
-        Assert.assertEquals(12 * 3, booleanBitPatterns.size());
+        checkArraySizeOrThrow(booleanBitPatterns, 12 * 3);
 
         for (int i = 0; i < 12; i++) {
             boolean bit0 = booleanBitPatternIterator.next();
@@ -87,5 +86,11 @@ public class ReverseBitPatternConverter {
             bitPattern = bitPattern << 1;
         }
         return booleanBitPattern;
+    }
+
+    private static void checkArraySizeOrThrow(Collection<?> collection, int size) {
+        if (collection.size() != size) {
+            throw new IllegalArgumentException("Array must have size " + size);
+        }
     }
 }

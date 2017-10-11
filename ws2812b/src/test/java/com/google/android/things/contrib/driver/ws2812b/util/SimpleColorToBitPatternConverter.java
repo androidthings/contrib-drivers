@@ -9,34 +9,27 @@ import java.util.Iterator;
 import java.util.List;
 
 public class SimpleColorToBitPatternConverter {
-    private static final int [] ONE_BYTE_BIT_MASKS = {
-            0b1000_0000,
-            0b0100_0000,
-            0b0010_0000,
-            0b0001_0000,
-            0b0000_1000,
-            0b0000_0100,
-            0b0000_0010,
-            0b0000_0001,
-    };
+    private static final List<Boolean> ONE_BIT_PATTERN = Arrays.asList(true, true, false);
+    private static final List<Boolean> ZERO_BIT_PATTERN = Arrays.asList(true, false, false);
 
-    public byte[] constructBitPatterns(int color)
+    public byte[] convertColorsToBitPattern(int [] colors)
     {
-        List<Boolean> booleanBitPatterns = constructBooleanBitPatterns(color);
+        List<Boolean> booleanBitPatterns = new ArrayList<>();
+        for (int color : colors) {
+            booleanBitPatterns.addAll(constructBooleanBitPatterns(color));
+        }
         booleanBitPatterns = removePauseBits(booleanBitPatterns);
-        return convertToByteArray(booleanBitPatterns);
+        return convertBitPatternToByteArray(booleanBitPatterns);
     }
 
     @NonNull
     private List<Boolean> constructBooleanBitPatterns(int color) {
         ArrayList<Boolean> bitPatterns = new ArrayList<>();
-        List<Boolean> oneBitPattern = Arrays.asList(true, true, false);
-        List<Boolean> zeroBitPattern = Arrays.asList(true, false, false);
 
         int highestBit = 1<<23;
 
         for (int i = 0; i < 24; i++) {
-            List<Boolean> bitPattern = (color & highestBit) == highestBit ?  oneBitPattern : zeroBitPattern;
+            List<Boolean> bitPattern = (color & highestBit) == highestBit ? ONE_BIT_PATTERN : ZERO_BIT_PATTERN;
             bitPatterns.addAll(bitPattern);
             color = color << 1;
         }
@@ -48,8 +41,7 @@ public class SimpleColorToBitPatternConverter {
         int i = 0;
         while (iterator.hasNext()) {
             iterator.next();
-            if (i == 8)
-            {
+            if (i == 8){
                 iterator.remove();
                 i = 0;
                 continue;
@@ -59,28 +51,39 @@ public class SimpleColorToBitPatternConverter {
         return bitPatterns;
     }
 
-    private byte[] convertToByteArray(List<Boolean> bitPatterns) {
-        int i;
+    private byte[] convertBitPatternToByteArray(List<Boolean> bitPatterns) {
+        List<List<Boolean>> eightBitPatterns = splitInEightBitPatterns(bitPatterns);
+        byte [] bytes = new byte[eightBitPatterns.size()];
+        int i = 0;
 
-        byte [] bytes = new byte[bitPatterns.size() / 8];
-        byte currentByte = 0;
-        i = 0;
-        int j = 0;
-        for (Boolean bitValue : bitPatterns) {
-            if (bitValue)
-            {
-                currentByte |= ONE_BYTE_BIT_MASKS[i];
+        for (List<Boolean> eightBitPattern : eightBitPatterns) {
+            int highestBit = 0b10000000;
+            byte currentByte = 0;
+            for (Boolean booleanBit : eightBitPattern) {
+                if (booleanBit)
+                {
+                    currentByte |= highestBit;
+                }
+                highestBit = highestBit >> 1;
             }
-            if (i == 7)
-            {
-                bytes[j++] = currentByte;
-                currentByte = 0;
-                i = 0;
-                continue;
-            }
-            i++;
+            bytes[i++] = currentByte;
         }
         return bytes;
+    }
+
+    @NonNull
+    private List<List<Boolean>> splitInEightBitPatterns(List<Boolean> bitPatterns) {
+        List<List<Boolean>> eightBitPatterns = new ArrayList<>();
+        int index = 0;
+        int numberOfBits = bitPatterns.size();
+        while (index < numberOfBits && index + 8 <= numberOfBits) {
+            eightBitPatterns.add(bitPatterns.subList(index, index + 8));
+            index += 8;
+        }
+        if (index != numberOfBits) {
+            throw new IllegalStateException("Wrong number of bit pattern size: " + numberOfBits);
+        }
+        return eightBitPatterns;
     }
 
 }
