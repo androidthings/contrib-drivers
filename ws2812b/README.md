@@ -4,7 +4,9 @@ How does it work
 The WS2812B LED controller needs 24 bits of data (8 bit per color channel) to set the color of one LED. Every further LED of a strip needs another 24 bit long block of data. The transmission of these bits is done by sending a chain of high and low voltage pulses over the data line of the LED controller. 
 Each separate bit is hereby defined by a high voltage pulse which is followed by a low voltage pulse. The recognition as 0 or 1 bit is defined by the timings of these pulses:
 
- <img src="https://rawgit.com/Ic-ks/contrib-drivers/master/ws2812b/ws2812b-timings.svg" width="100%" height="200">
+<p align="center"> 
+<img align="center" src="https://rawgit.com/Ic-ks/contrib-drivers/master/ws2812b/ws2812b-timings.svg"/>
+</p>
 
 * A 0 bit is defined by a high voltage pulse with a duration of 400 ns which is followed by a low voltage pulse of 850 ns
 * A 1 bit is defined by a high voltage pulse with a duration of 850 ns which is followed by a low voltage pulse of 400 ns
@@ -16,16 +18,19 @@ At the moment there is no direct solution to send such short timed pulses with *
 * A transmitted 1 bit results in a short high voltage pulse at the SPI MOSI (Master Out Slave In) pinout 
 * A transmitted 0 bit results in a short low voltage pulse at the MOSI pinout
 
-Now the solution gets within reach. To control WS2812B LEDs by the SPI, we must find two assemblies of bits (hereinafter bit pattern) and a frequency so that each of these bit patterns results in a sequence of voltage pulses which are recognized as 0 or 1 bit by the receiving WS2812B controller. With these two bit patterns we are able to convert every bit of an arbitrary array of color data. If then the converted data sent by SPI to the WS2812B controller, the controller will recognize the orignal color and the LEDs will shine in this colors. A possible solution for the wanted bit patterns, are two 3 bit sized patterns.
+Now the solution gets within reach. To control WS2812B LEDs by the SPI, we must find two assemblies of bits (hereinafter bit pattern) and a frequency so that each of these bit patterns results in a sequence of voltage pulses which are recognized as 0 or 1 bit by the receiving WS2812B controller. With these two bit patterns we would able to convert every bit of an arbitrary array of color data. If then the converted data is sent to the WS2812B controller by SPI, the controller will recognize the orignal color and the LEDs will shine in this colors. A possible solution for this approach, are the two 3 bit sized patterns below:
 
-<img src="https://rawgit.com/Ic-ks/contrib-drivers/master/ws2812b/ws2812b-bit-pattern.svg" width="100%" height="200">
+<p align="center"> 
+<img align="center" src="https://rawgit.com/Ic-ks/contrib-drivers/master/ws2812b/ws2812b-bit-pattern.svg"/>
+</p>
 
-The deviation from the WS2812B specified pulse duration is -16 or rather +17 nanoseconds which is within the allowed range of +/-150ns. It is possible to create a more accurate bit pattern with more than 3 bits, but the greater size of the bit pattern, the faster is the fixed size SPI buffer full and the less is the number of controllable LEDs. 
-The wanted frequency results from the 417ns:
+The deviation from the WS2812B specified pulse duration is -16 or rather +17 nanoseconds which is within the allowed range of +/-150ns. It is possible to create a more accurate bit pattern with more than 3 bits, but the greater size of the bit pattern, the faster is the fixed size SPI buffer full and the less is the number of controllable LEDs. With regard to the frequency, the calculation is done by dividing 1 by the duration of 1 bit (417ns):
 
-![equation](http://latex.codecogs.com/gif.latex?f%3D%5Cfrac%7B1%20%7D%7B417%20%5Ccdot%2010%5E%7B-9%7D%7DHz)
+<p align="center"> 
+<img align="center" src="http://latex.codecogs.com/gif.latex?f%3D%5Cfrac%7B1%20%7D%7B417%20%5Ccdot%2010%5E%7B-9%7D%7DHz"/>
+</p>
 
-The last problem we must solve, is the low voltage pause between each transmitted byte: If the the SPI sends more than 8 bits in a row, a short break in form of a low voltage pulse is done automatically. This pause pulse has the same duration as the bits, which are really sent. So it can be understood as a automatically inserted 0 bit between the 8th and the 9th bit. To keep our data safe from corruption we must handle this "inserted" bit. Fortunately, any arbitrary sequence of our described bit patterns are resulting in a row of bits where every 9th bit is a 0 bit. So a simple solution is the removing of this last bit like shown in the following table:
+One last problem remains, however: the low voltage pause between each transmitted word: If the the SPI sends more than the chosen number of bits per word, a short break in form of a low voltage pulse is done automatically. This break marks the end of every transmitted word and has the same duration as a single bit. If we would keep this pause pulse unhandled, a correct data transmission would be impossible. By considering a word size of 8 bits (maximum size) it can be understood as a automatically inserted 0 bit between the 8th and the 9th bit. Fortunately, any arbitrary sequence of our described bit patterns are resulting in a row of bits where every 9th bit is a 0 bit. So a simple solution is the removing of this last bit like shown in the following table:
 
 | Source bit sequence | Destination bit sequence | 
 | ------------------- |:------------------------:| 
