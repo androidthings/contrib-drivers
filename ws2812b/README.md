@@ -1,4 +1,59 @@
-# readme-svg-test
+WS2812B LED driver for Android Things
+=====================================
+
+This driver supports WS2812B RGB LEDs (maybe WS1812S and SK6812 run too).
+
+NOTE: these drivers are not production-ready. They are offered as sample
+implementations of Android Things user space drivers for common peripherals
+as part of the Developer Preview release. There is no guarantee
+of correctness, completeness or robustness.
+
+How to use the driver
+---------------------
+
+### Gradle dependency
+
+To use the `WS2812B` driver, simply add the line below to your project's `build.gradle`,
+where `<version>` matches the last version of the driver available on [jcenter][jcenter].
+
+```
+dependencies {
+    compile 'com.google.android.things.contrib:driver-ws2812b:<version>'
+}
+```
+
+### Sample usage
+
+```java
+import com.google.android.things.contrib.driver.ws2812b.WS2812B;
+
+// Access the LED strip:
+
+WS2812B mWs2812b;
+
+try {
+    mWs2812b = new Apa102(spiBusName);
+} catch (IOException e) {
+    // couldn't configure the device...
+}
+
+// Light it up!
+
+int[] colors = new int[] {Color.RED, Color.GREEN, Color.BLUE};
+try {
+    mWs2812b.write(colors);
+} catch (IOException e) {
+    // error setting LEDs
+}
+
+// Close the LED strip when finished:
+
+try {
+    mWs2812b.close();
+} catch (IOException e) {
+    // error closing LED strip
+}
+```
 How does it work
 ---------------------
 The WS2812B LED controller needs 24 bits of data (8 bit per color channel) to set the color of one LED. Every further LED of a strip needs another 24 bit long block of data. The transmission of these bits is done by sending a chain of high and low voltage pulses over the data line of the LED controller. 
@@ -32,17 +87,22 @@ The deviation from the WS2812B specified pulse duration is -16 or rather +17 nan
 
 One last problem remains, however: the low voltage pause between each transmitted SPI word: If the the SPI sends more than the chosen number of bits per word, a short break in form of a low voltage pulse is done automatically. This break marks the end of every transmitted word and has the same duration as a single bit. If we would keep this pause pulse unhandled, a correct data transmission would be impossible. By considering a word size of 8 bits (maximum size) it can be understood as a automatically inserted 0 bit between the 8th and the 9th bit. Fortunately, any arbitrary sequence of our described bit patterns results in a row of bits where every 9th bit is a 0 bit. So a simple solution is the removing of this last bit like shown in the following table:
 
-| Source bit sequence | Destination bit sequence | 
-| ------------------- |:------------------------:| 
-| 111                 | 110 110 11~~0~~          |
-| 011                 | 100 110 11~~0~~          |
-| 001                 | 100 100 11~~0~~          |
-| 000                 | 100 100 10~~0~~          |
-| 010                 | 100 110 10~~0~~          |
-| 100                 | 110 100 10~~0~~          |
-| 110                 | 110 110 10~~0~~          |
+| Source bit sequence | Resulting bit patterns | Removed trailing zeros   |         
+| ------------------- |:----------------------:|:------------------------:|         
+| 111                 | 110 110 11**0**        | 110 110 11               |         
+| 011                 | 100 110 11**0**        | 100 110 11               |         
+| 001                 | 100 100 11**0**        | 100 100 11               |         
+| 000                 | 100 100 10**0**        | 100 100 10               |         
+| 010                 | 100 110 10**0**        | 100 110 10               |         
+| 100                 | 110 100 10**0**        | 110 100 10               |         
+| 110                 | 110 110 10**0**        | 110 110 10               |         
 
-With this in mind we can represent 3 source bits by 1 destination byte. So any possible 24 bit color needs to be converted to 8 byte sized sequence of bit patterns. To prevent excessive memory usage this driver stores and maps only 12 bit numbers to their corresponding 4 byte sized bit patterns ([TwelveBitIntToBitPatternMapper.java](/ws2812b/src/main/java/com/google/android/things/contrib/driver/ws2812b/TwelveBitIntToBitPatternMapper.java)). The full 8 byte sized bit pattern for a 24 bit color data is then constructed by two 4 byte sized bit patterns ([ColorToBitPatternConverter.java](/ws2812b/src/main/java/com/google/android/things/contrib/driver/ws2812b/ColorToBitPatternConverter.java)). Last but not least, most WS2812B controllers expect GRB as order of the incoming color. So a reordering from RGB to the expected order must be done before the bit pattern conversion ([ColorChannelSequence.java](/ws2812b/src/main/java/com/google/android/things/contrib/driver/ws2812b/ColorChannelSequence.java)).
+With this in mind we can represent 3 source bits by 1 destination byte. So any possible 24 bit color needs to be converted to a 8 byte sized sequence of bit patterns (24 / 3 = 8 ). 
+
+To prevent excessive memory usage this driver stores and maps only 12 bit numbers to their corresponding 4 byte sized bit patterns ([TwelveBitIntToBitPatternMapper.java](/ws2812b/src/main/java/com/google/android/things/contrib/driver/ws2812b/TwelveBitIntToBitPatternMapper.java)). The full 8 byte sized bit pattern for a 24 bit color data is then constructed by two 4 byte sized bit patterns ([ColorToBitPatternConverter.java](/ws2812b/src/main/java/com/google/android/things/contrib/driver/ws2812b/ColorToBitPatternConverter.java)). Last but not least, most WS2812B controllers expect GRB as order of the incoming color. So a reordering from RGB to the expected order must be done before the bit pattern conversion ([ColorChannelSequence.java](/ws2812b/src/main/java/com/google/android/things/contrib/driver/ws2812b/ColorChannelSequence.java)).
+
+License
+-------
 
 Copyright 2016 Google Inc.
 
