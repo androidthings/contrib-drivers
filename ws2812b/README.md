@@ -1,7 +1,7 @@
 WS2812B LED driver for Android Things
 =====================================
 
-This driver supports WS2812B RGB LEDs (maybe WS1812S and SK6812 run too).
+This driver supports WS2812B LEDs (maybe WS1812S and SK6812 run too).
 
 NOTE: these drivers are not production-ready. They are offered as sample
 implementations of Android Things user space drivers for common peripherals
@@ -25,14 +25,14 @@ dependencies {
 ### Sample usage
 
 ```java
-import com.google.android.things.contrib.driver.ws2812b.WS2812B;
+import com.google.android.things.contrib.driver.ws2812b.Ws2812b;
 
 // Access the LED strip:
 
-WS2812B mWs2812b;
+Ws2812b mWs2812b;
 
 try {
-    mWs2812b = new Apa102(spiBusName);
+    mWs2812b = new Ws2812b(spiBusName);
 } catch (IOException e) {
     // couldn't configure the device...
 }
@@ -85,9 +85,9 @@ The deviation from the WS2812B specified pulse duration is -16 or rather +17 nan
 <img align="center" src="http://latex.codecogs.com/gif.latex?f%3D%5Cfrac%7B1%20%7D%7B417%20%5Ccdot%2010%5E%7B-9%7D%7DHz"/>
 </p>
 
-One last problem remains, however: the low voltage pause between each transmitted SPI word: If the the SPI sends more than the chosen number of bits per word, a short break in form of a low voltage pulse is done automatically. This break marks the end of every transmitted word and has the same duration as a single bit. If we would keep this pause pulse unhandled, a correct data transmission would be impossible. By considering a word size of 8 bits (maximum size) it can be understood as a automatically inserted 0 bit between the 8th and the 9th bit. Fortunately, any arbitrary sequence of our described bit patterns results in a row of bits where every 9th bit is a 0 bit. So a simple solution is the removing of this last bit like shown in the following table:
+One last problem remains, however: the low voltage pause between each transmitted SPI word: If the the SPI sends more than the chosen number of bits per word, a short break in form of a low voltage pulse is done automatically. This break marks the end of every transmitted word and has the same duration as a single bit. If we would keep this pause pulse unhandled, a correct data transmission would be impossible. By considering a word size of 8 bits (maximum size) it can be understood as a automatically inserted 0 bit between the 8th and the 9th bit. Fortunately, any arbitrary sequence of our described bit patterns results in a row of bits where every 9th bit is a 0 bit. So a simple solution is the removing of this last bit like shown in the table below:
 
-| Source bit sequence | Resulting bit patterns | Removed trailing zeros   |         
+| Source bit sequence | Resulting bit patterns | Removed trailing 0 bit   |         
 | ------------------- |:----------------------:|:------------------------:|         
 | 111                 | 110 110 11**0**        | 110 110 11               |         
 | 011                 | 100 110 11**0**        | 100 110 11               |         
