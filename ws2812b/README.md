@@ -12,7 +12,7 @@ Each separate bit is hereby defined by a high voltage pulse which is followed by
 * A 1 bit is defined by a high voltage pulse with a duration of 850 ns which is followed by a low voltage pulse of 400 ns
 * Each pulse can have a deviation of +/- 150 ns 
 
-At the moment there is no direct solution to send such short timed pulses with **different durations** by the API of Android Things. There is however the [Serial Peripheral Interface (SPI)](https://developer.android.com/things/sdk/pio/spi.html) which can send bits as voltage pulses. Whereas each single bit results in a pulse of the **exact same** duration. 
+At the moment there is no direct solution to send such short timed pulses with **different durations** by the API of Android Things. There is however the [Serial Peripheral Interface (SPI)](https://developer.android.com/things/sdk/pio/spi.html) which can send bits as voltage pulses. In the context of SPI it should be noted that each sent bit has a specified and **exact same duration**. 
 
 * This duration is indirectly defined by the frequency of the SPI. 
 * A transmitted 1 bit results in a short high voltage pulse at the SPI MOSI (Master Out Slave In) pinout 
@@ -30,7 +30,7 @@ The deviation from the WS2812B specified pulse duration is -16 or rather +17 nan
 <img align="center" src="http://latex.codecogs.com/gif.latex?f%3D%5Cfrac%7B1%20%7D%7B417%20%5Ccdot%2010%5E%7B-9%7D%7DHz"/>
 </p>
 
-One last problem remains, however: the low voltage pause between each transmitted word: If the the SPI sends more than the chosen number of bits per word, a short break in form of a low voltage pulse is done automatically. This break marks the end of every transmitted word and has the same duration as a single bit. If we would keep this pause pulse unhandled, a correct data transmission would be impossible. By considering a word size of 8 bits (maximum size) it can be understood as a automatically inserted 0 bit between the 8th and the 9th bit. Fortunately, any arbitrary sequence of our described bit patterns are resulting in a row of bits where every 9th bit is a 0 bit. So a simple solution is the removing of this last bit like shown in the following table:
+One last problem remains, however: the low voltage pause between each transmitted SPI word: If the the SPI sends more than the chosen number of bits per word, a short break in form of a low voltage pulse is done automatically. This break marks the end of every transmitted word and has the same duration as a single bit. If we would keep this pause pulse unhandled, a correct data transmission would be impossible. By considering a word size of 8 bits (maximum size) it can be understood as a automatically inserted 0 bit between the 8th and the 9th bit. Fortunately, any arbitrary sequence of our described bit patterns results in a row of bits where every 9th bit is a 0 bit. So a simple solution is the removing of this last bit like shown in the following table:
 
 | Source bit sequence | Destination bit sequence | 
 | ------------------- |:------------------------:| 
