@@ -101,6 +101,12 @@ With this in mind we can represent 3 source bits by 1 destination byte. So any p
 
 To prevent excessive memory usage this driver stores and maps only 12 bit numbers to their corresponding 4 byte sized bit patterns ([TwelveBitIntToBitPatternMapper.java](/ws2812b/src/main/java/com/google/android/things/contrib/driver/ws2812b/TwelveBitIntToBitPatternMapper.java)). The full 8 byte sized bit pattern for a 24 bit color data is then constructed by two 4 byte sized bit patterns ([ColorToBitPatternConverter.java](/ws2812b/src/main/java/com/google/android/things/contrib/driver/ws2812b/ColorToBitPatternConverter.java)). Last but not least, most WS2812B controllers expect GRB as order of the incoming color. So a reordering from RGB to the expected order must be done before the bit pattern conversion ([ColorChannelSequence.java](/ws2812b/src/main/java/com/google/android/things/contrib/driver/ws2812b/ColorChannelSequence.java)).
 
+References
+----------
+* https://wp.josh.com/2014/05/13/ws2812-neopixels-are-not-so-finicky-once-you-get-to-know-them/
+* https://cpldcpu.com/2014/01/14/light_ws2812-library-v2-0-part-i-understanding-the-ws2812/
+* https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf
+
 License
 -------
 
