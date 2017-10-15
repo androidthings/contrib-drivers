@@ -54,52 +54,64 @@ try {
     // error closing LED strip
 }
 ```
-How does it work
----------------------
-The WS2812B LED controller needs 24 bits of data (8 bit per color channel) to set the color of one LED. Every further LED of a strip needs another 24 bit long block of data. The transmission of these bits is done by sending a chain of high and low voltage pulses over the data line of the LED controller. 
-Each separate bit is hereby defined by a high voltage pulse which is followed by a low voltage pulse. The recognition as 0 or 1 bit is defined by the timings of these pulses:
+
+How it works
+------------
+
+### The WS2812B data format
+
+The WS2812B LED controller needs 24 bits of data (8 bits per color channel) to set the color of one LED. Every further LED of a strip needs another 24 bit long block of data. The transmission of these bits is done by sending a chain of high and low voltage pulses over the data line of the LED controller. 
+Each separate bit is hereby defined by a high voltage pulse which is followed by a low voltage pulse. The recognition as 0- or 1-bit is defined by the timings of these pulses:
 
 <p align="center"> 
 <img align="center" src="https://rawgit.com/Ic-ks/contrib-drivers/master/ws2812b/ws2812b-timings.svg"/>
 </p>
 
-* A 0 bit is defined by a high voltage pulse with a duration of 400 ns which is followed by a low voltage pulse of 850 ns
-* A 1 bit is defined by a high voltage pulse with a duration of 850 ns which is followed by a low voltage pulse of 400 ns
-* Each pulse can have a deviation of +/- 150 ns 
+* The 0-bit is defined by a high voltage pulse with a duration of 400 ns which is followed by a low voltage pulse of 850 ns
+* The 1-bit is defined by a high voltage pulse with a duration of 850 ns which is followed by a low voltage pulse of 400 ns
+* Each pulse can have a deviation of +/- 150 ns
 
-At the moment there is no direct solution to send such short timed pulses with **different durations** by the API of Android Things. There is however the [Serial Peripheral Interface (SPI)](https://developer.android.com/things/sdk/pio/spi.html) which can send bits as voltage pulses. In the context of SPI it should be noted that each sent bit has a specified and **exact same duration**. 
+At the moment there is no way to send such short timed pulses having _different durations_ via the Android Things API.
 
-* This duration is indirectly defined by the frequency of the SPI. 
-* A transmitted 1 bit results in a short high voltage pulse at the SPI MOSI (Master Out Slave In) pinout 
-* A transmitted 0 bit results in a short low voltage pulse at the MOSI pinout
+### The Serial Peripheral Interface
 
-Now the solution gets within reach. To control WS2812B LEDs by the SPI, we must find two assemblies of bits (hereinafter bit pattern) and a frequency so that each of these bit patterns results in a sequence of voltage pulses which are recognized as 0 or 1 bit by the receiving WS2812B controller. With these two bit patterns we would able to convert every bit of an arbitrary array of color data. If then the converted data is sent to the WS2812B controller by SPI, the controller will recognize the orignal color and the LEDs will shine in this colors. A possible solution for this approach, are the two 3 bit sized patterns below:
+The [Serial Peripheral Interface (SPI)](https://developer.android.com/things/sdk/pio/spi.html) can send bits as voltage pulses. Those pulses all have the same specified duration.
+
+* The pulse duration is indirectly defined by the frequency of the SPI
+* A transmitted 1-bit results in a short high voltage pulse at the SPI MOSI (Master Out Slave In) pinout 
+* A transmitted 0-bit results in a short low voltage pulse at the MOSI pinout
+
+### Approximating the WS2812B data format using SPI
+
+In order to control WS2812B LEDs via the SPI, we must find two assemblies of bits (hereinafter bit pattern) and a frequency such that each of these bit patterns results in a sequence of voltage pulses which are recognized as 0 or 1 bit by the receiving WS2812B controller. With these two bit patterns we are able to convert every bit of an arbitrary array of color data. If then the converted data is sent to the WS2812B controller by SPI, the controller will recognize the orignal color and light up the LEDs accordingly. A possible solution for this approach are the two 3 bit sized patterns below:
 
 <p align="center"> 
 <img align="center" src="https://rawgit.com/Ic-ks/contrib-drivers/master/ws2812b/ws2812b-bit-pattern.svg"/>
 </p>
 
-The deviation from the WS2812B specified pulse duration is -16 or rather +17 nanoseconds which is within the allowed range of +/-150ns. It is possible to create a more accurate bit pattern with more than 3 bits, but the greater size of the bit pattern, the faster is the fixed size SPI buffer full and the less is the number of controllable LEDs. With regard to the frequency, the calculation is done by dividing 1 by the duration of 1 bit (417ns):
+The deviation from the WS2812B specified pulse duration is -16 ns and +17 ns respectively, which is within the allowed range of +/- 150 ns. It is possible to create a more accurate bit pattern with more than 3 bits, but increasing the size of the bit pattern als reduces the number of controllable LEDs as the fixed-size SPI buffer fills up more quickly. The appropriate frequency is defined by the duration of 1 bit (417 ns):
 
 <p align="center"> 
 <img align="center" src="http://latex.codecogs.com/gif.latex?f%3D%5Cfrac%7B1%20%7D%7B417%20%5Ccdot%2010%5E%7B-9%7D%7DHz"/>
 </p>
 
-One last problem remains, however: the low voltage pause between each transmitted SPI word: If the the SPI sends more than the chosen number of bits per word, a short break in form of a low voltage pulse is done automatically. This break marks the end of every transmitted word and has the same duration as a single bit. If we would keep this pause pulse unhandled, a correct data transmission would be impossible. By considering a word size of 8 bits (maximum size) it can be understood as a automatically inserted 0 bit between the 8th and the 9th bit. Fortunately, any arbitrary sequence of our described bit patterns results in a row of bits where every 9th bit is a 0 bit. So a simple solution is the removing of this last bit like shown in the table below:
+### Handling pauses between SPI words
 
-| Source bit sequence | Resulting bit patterns | Removed trailing 0 bit   |         
-| ------------------- |:----------------------:|:------------------------:|         
-| 111                 | 110 110 11**0**        | 110 110 11               |         
-| 011                 | 100 110 11**0**        | 100 110 11               |         
-| 001                 | 100 100 11**0**        | 100 100 11               |         
-| 000                 | 100 100 10**0**        | 100 100 10               |         
-| 010                 | 100 110 10**0**        | 100 110 10               |         
-| 100                 | 110 100 10**0**        | 110 100 10               |         
-| 110                 | 110 110 10**0**        | 110 110 10               |         
+SPI will automatically insert low voltage pauses between transmitted words. This short break marks the end of a transmitted word and has the same duration as a single bit. If left unhandled, those pauses would interfere with our approximated data format and lead to incorrect colors. By considering a word size of 8 bits (maximum size), the pause can be understood as an automatically inserted 0-bit between the 8th and the 9th bit. Fortunately, all possible bit sequences yield a bit pattern where every 9th bit is a 0-bit. Hence an easy solution is to discard the last bit like shown in the table below:
 
-With this in mind we can represent 3 source bits by 1 destination byte. So any possible 24 bit color needs to be converted to a 8 byte sized sequence of bit patterns (24 / 3 = 8 ). 
+| Source bit sequence | Resulting bit pattern  | Without trailing 0-bit   |
+| ------------------- |:----------------------:|:------------------------:|
+| 000                 | 100 100 10**0**        | 100 100 10               |
+| 001                 | 100 100 11**0**        | 100 100 11               |
+| 010                 | 100 110 10**0**        | 100 110 10               |
+| 011                 | 100 110 11**0**        | 100 110 11               |
+| 100                 | 110 100 10**0**        | 110 100 10               |
+| 110                 | 110 110 10**0**        | 110 110 10               |
+| 111                 | 110 110 11**0**        | 110 110 11               |
 
-To prevent excessive memory usage this driver stores and maps only 12 bit numbers to their corresponding 4 byte sized bit patterns ([TwelveBitIntToBitPatternMapper.java](/ws2812b/src/main/java/com/google/android/things/contrib/driver/ws2812b/TwelveBitIntToBitPatternMapper.java)). The full 8 byte sized bit pattern for a 24 bit color data is then constructed by two 4 byte sized bit patterns ([ColorToBitPatternConverter.java](/ws2812b/src/main/java/com/google/android/things/contrib/driver/ws2812b/ColorToBitPatternConverter.java)). Last but not least, most WS2812B controllers expect GRB as order of the incoming color. So a reordering from RGB to the expected order must be done before the bit pattern conversion ([ColorChannelSequence.java](/ws2812b/src/main/java/com/google/android/things/contrib/driver/ws2812b/ColorChannelSequence.java)).
+With this in mind we can represent three source bits using one destination byte. So any possible 24 bit color needs to be converted to a 8 byte sized sequence of bit patterns (24 / 3 = 8). 
+
+To prevent excessive memory usage this driver stores and maps only 12 bit numbers to their corresponding 4 byte sized bit patterns ([TwelveBitIntToBitPatternMapper.java](/ws2812b/src/main/java/com/google/android/things/contrib/driver/ws2812b/TwelveBitIntToBitPatternMapper.java)). The full 8 byte sized bit pattern for 24 bits of color data is then constructed by two 4 byte sized bit patterns ([ColorToBitPatternConverter.java](/ws2812b/src/main/java/com/google/android/things/contrib/driver/ws2812b/ColorToBitPatternConverter.java)). Last but not least, most WS2812B controllers expect GRB as order of the incoming color. So a reordering from RGB to the expected order must be done before the bit pattern conversion ([ColorChannelSequence.java](/ws2812b/src/main/java/com/google/android/things/contrib/driver/ws2812b/ColorChannelSequence.java)).
 
 References
 ----------
