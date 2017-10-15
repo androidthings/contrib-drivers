@@ -31,5 +31,6 @@ include ':rainbowhat'
 include ':sensehat'
 include ':voicehat'
 include ':zxgesturesensor'
+include ':ws2812b'
 
 include ':testingutils'
