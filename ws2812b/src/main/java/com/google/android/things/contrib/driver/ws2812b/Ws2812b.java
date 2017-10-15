@@ -31,6 +31,7 @@ import java.io.IOException;
  * For more information on SPI, see:
  *   https://en.wikipedia.org/wiki/Serial_Peripheral_Interface_Bus
  * For information on the WS2812B protocol, see:
+ *   https://wp.josh.com/2014/05/13/ws2812-neopixels-are-not-so-finicky-once-you-get-to-know-them/
  *   https://cpldcpu.com/2014/01/14/light_ws2812-library-v2-0-part-i-understanding-the-ws2812/
  */
 
