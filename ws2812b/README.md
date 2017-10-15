@@ -89,7 +89,7 @@ In order to control WS2812B LEDs via the SPI, we must find two assemblies of bit
 <img align="center" src="https://rawgit.com/Ic-ks/contrib-drivers/master/ws2812b/ws2812b-bit-pattern.svg"/>
 </p>
 
-The deviation from the WS2812B specified pulse duration is -16 ns and +17 ns respectively, which is within the allowed range of +/- 150 ns. It is possible to create a more accurate bit pattern with more than 3 bits, but increasing the size of the bit pattern als reduces the number of controllable LEDs as the fixed-size SPI buffer fills up more quickly. The appropriate frequency is defined by the duration of 1 bit (417 ns):
+The deviation from the WS2812B specified pulse duration is -16 ns and +17 ns respectively, which is within the allowed range of +/- 150 ns. It is possible to create a more accurate bit pattern with more than 3 bits, but increasing the size of the bit pattern also reduces the number of controllable LEDs as the fixed-size SPI buffer fills up more quickly. The appropriate frequency is defined by the duration of 1 bit (417 ns):
 
 <p align="center"> 
 <img align="center" src="http://latex.codecogs.com/gif.latex?f%3D%5Cfrac%7B1%20%7D%7B417%20%5Ccdot%2010%5E%7B-9%7D%7DHz"/>
