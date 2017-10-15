@@ -18,7 +18,7 @@ apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion 26
-    buildToolsVersion '26.0.1'
+    buildToolsVersion '26.0.2'
 
     defaultConfig {
         minSdkVersion 26
@@ -30,7 +30,7 @@ android {
 
 repositories {                                  //
     jcenter()                                   //    <
-    maven {                                     //   <      CAN BE DELETED IF contrib-drivers was updated
+    maven {                                     //   <      CAN BE DELETED when contrib-drivers adds the google repo
         url "https://maven.google.com"          //    <
     }                                           //
 }
