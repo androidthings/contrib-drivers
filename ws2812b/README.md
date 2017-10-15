@@ -97,7 +97,7 @@ The deviation from the WS2812B specified pulse duration is -16 ns and +17 ns res
 
 ### Handling pauses between SPI words
 
-SPI will automatically insert low voltage pauses between transmitted words when it sends more than the chosen number of bits per word. This short break marks the end of a transmitted word and has the same duration as a single bit. If left unhandled, those pauses would interfere with our approximated data format and lead to incorrect colors. By considering a word size of 8 bits (maximum size), the pause can be understood as an automatically inserted 0-bit between the 8th and the 9th bit. Fortunately, all possible bit sequences yield a bit pattern where every 9th bit is a 0-bit. Hence an easy solution is to discard the last bit like shown in the table below:
+SPI will automatically insert low voltage pauses between transmitted words. This short break marks the end of a transmitted word and has the same duration as a single bit. If left unhandled, those pauses would interfere with our approximated data format and lead to incorrect colors. By considering a word size of 8 bits (maximum size), the pause can be understood as an automatically inserted 0-bit between the 8th and the 9th bit. Fortunately, all possible bit sequences yield a bit pattern where every 9th bit is a 0-bit. Hence an easy solution is to discard the last bit like shown in the table below:
 
 | Source bit sequence | Resulting bit pattern  | Without trailing 0-bit   |
 | ------------------- |:----------------------:|:------------------------:|
