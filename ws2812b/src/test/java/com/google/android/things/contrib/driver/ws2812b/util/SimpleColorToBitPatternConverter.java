@@ -52,19 +52,18 @@ public class SimpleColorToBitPatternConverter {
     }
 
     private byte[] convertBitPatternToByteArray(List<Boolean> bitPatterns) {
-        List<List<Boolean>> eightBitPatterns = splitInEightBitPatterns(bitPatterns);
+        List<List<Boolean>> eightBitPatterns = splitInEightBitParts(bitPatterns);
         byte [] bytes = new byte[eightBitPatterns.size()];
         int i = 0;
 
         for (List<Boolean> eightBitPattern : eightBitPatterns) {
-            int highestBit = 0b10000000;
+            int currentBitMask = 0b10000000;
             byte currentByte = 0;
             for (Boolean booleanBit : eightBitPattern) {
-                if (booleanBit)
-                {
-                    currentByte |= highestBit;
+                if (booleanBit) {
+                    currentByte |= currentBitMask;
                 }
-                highestBit = highestBit >> 1;
+                currentBitMask >>= 1;
             }
             bytes[i++] = currentByte;
         }
@@ -72,7 +71,7 @@ public class SimpleColorToBitPatternConverter {
     }
 
     @NonNull
-    private List<List<Boolean>> splitInEightBitPatterns(List<Boolean> bitPatterns) {
+    private List<List<Boolean>> splitInEightBitParts(List<Boolean> bitPatterns) {
         List<List<Boolean>> eightBitPatterns = new ArrayList<>();
         int index = 0;
         int numberOfBits = bitPatterns.size();
