@@ -66,12 +66,12 @@ public class RainbowHat {
         public String getSpiBus() { return "SPI3.1";}
         public String getPiezoPwm() { return "PWM2";}
         public String getServoPwm() { return "PWM1";}
-        public String getButtonA() { return "GPIO_174";}
-        public String getButtonB() { return "GPIO_175";}
-        public String getButtonC() { return "GPIO_39";}
-        public String getLedR() { return "GPIO_34";}
-        public String getLedG() { return "GPIO_32";}
-        public String getLedB() { return "GPIO_37";}
+        public String getButtonA() { return "GPIO6_IO14";}
+        public String getButtonB() { return "GPIO6_IO15";}
+        public String getButtonC() { return "GPIO2_IO07";}
+        public String getLedR() { return "GPIO2_IO02";}
+        public String getLedG() { return "GPIO2_IO00";}
+        public String getLedB() { return "GPIO2_IO05";}
     }
 
     private static final BoardDefaults BOARD = Build.DEVICE.equals("rpi3") ?
