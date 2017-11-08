@@ -29,7 +29,7 @@ android {
 }
 
 dependencies {
-    provided 'com.google.android.things:androidthings:0.4-devpreview'
+    provided 'com.google.android.things:androidthings:0.5.1-devpreview'
 
     testCompile 'org.powermock:powermock-module-junit4:1.6.6'
     testCompile 'org.powermock:powermock-api-mockito:1.6.6'

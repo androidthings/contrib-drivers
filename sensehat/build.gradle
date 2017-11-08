@@ -30,7 +30,7 @@ android {
 
 dependencies {
     compile 'com.android.support:support-annotations:24.2.0'
-    provided 'com.google.android.things:androidthings:0.4-devpreview'
+    provided 'com.google.android.things:androidthings:0.5.1-devpreview'
     androidTestCompile 'com.android.support.test:runner:0.5'
     androidTestCompile 'com.android.support.test:rules:0.5'
 }
