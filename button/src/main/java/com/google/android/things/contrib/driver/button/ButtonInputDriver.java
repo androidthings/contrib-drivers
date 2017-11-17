@@ -56,6 +56,20 @@ public class ButtonInputDriver implements AutoCloseable {
     }
 
     /**
+     * Set the time delay after an edge trigger that the button
+     * must remain stable before generating an event. Debounce
+     * is enabled by default for 100ms.
+     *
+     * Setting this value to zero disables debounce and triggers
+     * events on all edges immediately.
+     *
+     * @param delay Delay, in milliseconds, or 0 to disable.
+     */
+    public void setDebounceDelay(long delay) {
+        mDevice.setDebounceDelay(delay);
+    }
+
+    /**
      * Close the driver and the underlying device.
      * @throws IOException
      */
