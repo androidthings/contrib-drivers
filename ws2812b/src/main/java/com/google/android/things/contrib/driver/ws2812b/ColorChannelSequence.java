@@ -10,18 +10,13 @@ import java.util.Arrays;
 
 import static java.lang.annotation.RetentionPolicy.SOURCE;
 
-class ColorChannelSequence {
-    @SuppressWarnings("WeakerAccess")
+@SuppressWarnings("WeakerAccess")
+public class ColorChannelSequence {
     public static final int RGB = 1;
-    @SuppressWarnings("WeakerAccess")
     public static final int RBG = 2;
-    @SuppressWarnings("WeakerAccess")
     public static final int GRB = 3;
-    @SuppressWarnings("WeakerAccess")
     public static final int GBR = 4;
-    @SuppressWarnings("WeakerAccess")
     public static final int BRG = 5;
-    @SuppressWarnings("WeakerAccess")
     public static final int BGR = 6;
     @Sequence
     private static final int[] ALL_SEQUENCES = {RGB, RBG, GRB, GBR, BRG, BGR};
