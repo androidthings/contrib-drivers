@@ -18,6 +18,7 @@ package com.google.android.things.contrib.driver.lowpan;
 
 import android.os.Handler;
 import android.support.annotation.Nullable;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.google.android.things.pio.PeripheralManagerService;
@@ -29,6 +30,10 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
+import static com.google.android.things.userdriver.LowpanDriver.ERROR_IOFAIL;
+import static com.google.android.things.userdriver.LowpanDriver.ERROR_GARBAGE;
+import static com.google.android.things.userdriver.LowpanDriver.ERROR_TOOBIG;
+
 /**
  * Peripheral that transmits spinel frames transmitted
  * over a UART.
@@ -36,13 +41,8 @@ import java.util.Arrays;
 @SuppressWarnings("WeakerAccess")
 public class UartLowpanModule implements AutoCloseable {
 
-    public static final int HAL_ERROR_FAILED = 1;
-    public static final int HAL_ERROR_ALREADY = 2;
-    public static final int HAL_ERROR_TOOBIG  = 3;
-    public static final int HAL_ERROR_IOFAIL  = 4;
-    public static final int HAL_ERROR_GARBAGE = 5;
-
     private static final String TAG = UartLowpanModule.class.getSimpleName();
+
     private static final boolean DEBUG = false;
     private static final int MAX_SPINEL_SIZE = 1300;
     private final String mUartName;
@@ -50,18 +50,31 @@ public class UartLowpanModule implements AutoCloseable {
     private final int mHardwareFlowControl;
     private final int mBaudRate;
 
-    private enum FrameFlag { NOT_STARTED,  STARTED, UNESCAPING }
-
     private UartDevice mDevice;
-    private byte[] mInboundFrame = new byte[MAX_SPINEL_SIZE];
-    private LowpanDriverCallback mLowpanDriverCallback;
+    private @NonNull LowpanDriverCallback mLowpanDriverCallback;
+    private final byte[] mInboundRawBuffer = new byte[MAX_SPINEL_SIZE];
+    private final byte[] mInboundFrame = new byte[MAX_SPINEL_SIZE];
     private short mInboundFrameHDLCCRC;
     private int mInboundFrameSize;
-    private FrameFlag mFrameFlag;
+    private boolean mInboundUnescapeNextByte = false;
+    private ByteBuffer mOutputBufferEscaped = ByteBuffer.allocate(MAX_SPINEL_SIZE * 2 + 6);
+
+    private final UartDeviceCallback mUartDeviceCallback = new UartDeviceCallback() {
+        @Override
+        public boolean onUartDeviceDataAvailable(UartDevice uart) {
+            return UartLowpanModule.this.onUartDeviceDataAvailable(uart);
+        }
+
+        @Override
+        public void onUartDeviceError(UartDevice uart, int error) {
+            UartLowpanModule.this.onUartDeviceError(uart, error);
+        }
+    };
 
     /**
      * Create a new UartLowpanModule.
      *
+     * @param lowpanDriverCallback @see {@link LowpanDriverCallback}
      * @param uartName UART port name where the module is attached. Cannot be null.
      * @param baudRate Baud rate used for the module UART.
      * @param hardwareFlowControl hardware flow control setting for uart device
@@ -71,44 +84,53 @@ public class UartLowpanModule implements AutoCloseable {
      *        @see UartDevice#HW_FLOW_CONTROL_AUTO_RTSCTS}
      * @param handler optional {@link Handler} for UartDevice.
      */
-    public UartLowpanModule(String uartName, int baudRate, int hardwareFlowControl,
-                            @Nullable Handler handler) throws IOException {
-        try {
-            mUartName = uartName;
-            mHardwareFlowControl = hardwareFlowControl;
-            mHandler = handler;
-            mBaudRate = baudRate;
-            PeripheralManagerService manager = new PeripheralManagerService();
-            UartDevice device = manager.openUartDevice(mUartName);
-            init(device, mBaudRate, mHardwareFlowControl, mHandler);
-        } catch (IOException | RuntimeException e) {
+    public UartLowpanModule(@NonNull LowpanDriverCallback lowpanDriverCallback, String uartName,
+                            int baudRate, int hardwareFlowControl, @NonNull Handler handler) throws IOException {
+        mLowpanDriverCallback = lowpanDriverCallback;
+        mUartName = uartName;
+        mHardwareFlowControl = hardwareFlowControl;
+        mHandler = handler;
+        mBaudRate = baudRate;
+
+        final PeripheralManagerService manager = new PeripheralManagerService();
+
+        resetFrameState();
+
+        mDevice = manager.openUartDevice(mUartName);
+        mDevice.setBaudrate(mBaudRate);
+        mDevice.setDataSize(8);
+        mDevice.setHardwareFlowControl(mHardwareFlowControl);
+        mDevice.registerUartDeviceCallback(mUartDeviceCallback, mHandler);
+    }
+
+    /**
+     * Close this device and any underlying resources associated with the connection.
+     */
+    @Override
+    public synchronized void close() {
+        if (mDevice != null) {
+            mDevice.unregisterUartDeviceCallback(mUartDeviceCallback);
+            mLowpanDriverCallback = null;
             try {
-                close();
-            } catch (Exception ioe) {
+                mDevice.close();
+            } catch (IOException x) {
+                // If close fails, then we might as well rethrow and crash.
+                throw new RuntimeException(x);
             } finally {
-                throw new IOException(e.getMessage());
+                mDevice = null;
             }
         }
     }
 
     /**
-     * Create a new UartLowpanModule.
-     *
-     * @param uartName UART port name where the module is attached. Cannot be null.
-     * @param baudRate Baud rate used for the module UART.
+     * Returns true if this device has been closed and is no longer usable.
      */
-    @SuppressWarnings("unused")
-    public UartLowpanModule(String uartName, int baudRate)
-            throws IOException {
-        this(uartName, baudRate, UartDevice.HW_FLOW_CONTROL_NONE,  null);
+    public boolean isClosed() {
+        return mDevice == null;
     }
 
-    /**
-     * Set the driver callback
-     * @param lowpanDriverCallback @see {@link LowpanDriverCallback}
-     */
-    public void setLowpanDriverCallback(LowpanDriverCallback lowpanDriverCallback) {
-        mLowpanDriverCallback = lowpanDriverCallback;
+    private void onError(int error) {
+        mLowpanDriverCallback.onError(error);
     }
 
     /**
@@ -116,243 +138,169 @@ public class UartLowpanModule implements AutoCloseable {
      *
      * @param frame byte[] frame to write to ncp
      */
-    public void sendFrame(byte[] frame) {
-        byte[] outboundFrame = escapeFrame(frame, frame.length);
-        if (DEBUG) {
-            StringBuilder sb = new StringBuilder();
-            for (byte b : outboundFrame) {
-                sb.append(String.format("%02X ", b));
-            }
-            Log.d(TAG, "writing frame " + sb.toString());
-        }
-        int frameSize = outboundFrame.length;
-        try {
-            int written = mDevice.write(outboundFrame, frameSize);
-            if (frameSize != written) {
-                throw new IOException("Failed to write frames wrote " + written +
-                        " bytes, but expected " + frameSize);
-            }
-        } catch (IOException ioe) {
-            Log.d(TAG, ioe.getMessage());
-            onError(HAL_ERROR_IOFAIL);
-        }
-    }
-
-    /**
-     * Close this device and any underlying resources associated with the connection.
-     */
-    @Override
-    public void close() throws IOException {
-        if (mDevice != null) {
-            mDevice.unregisterUartDeviceCallback(mCallback);
-            mLowpanDriverCallback = null;
-            try {
-                mDevice.close();
-            } finally {
-                mDevice = null;
-            }
-        }
-    }
-
-    public void onError(int error) {
-        if (mLowpanDriverCallback != null) {
-            mLowpanDriverCallback.onError(error);
-        }
-    }
-
-    protected void reset() {
-        if (mLowpanDriverCallback == null) {
-            Log.e(TAG, "Device is closed");
+    public synchronized void sendFrame(byte[] frame) throws IOException {
+        if (frame.length > MAX_SPINEL_SIZE) {
+            Log.e(TAG, "sendFrame: ERROR_TOOBIG, " + frame.length + " > " + MAX_SPINEL_SIZE);
+            onError(ERROR_TOOBIG);
             return;
         }
-        try {
-            close();
-        } catch (IOException ioe) {
-            Log.e(TAG, "Failure trying to close uart device on reset, attempting to reopen anyway");
-        }
-        try {
-            PeripheralManagerService manager = new PeripheralManagerService();
-            UartDevice device = manager.openUartDevice(mUartName);
-            init(device, mBaudRate, mHardwareFlowControl, mHandler);
-        } catch (IOException ioe) {
-            Log.e(TAG, "Failure opening uart device on reset");
-            onError(HAL_ERROR_IOFAIL);
-        }
-    }
 
-    /**
-     * Initialize peripheral defaults from the constructor.
-     */
-    private void init(UartDevice device, int baudRate, int hardwareFlowControl, Handler handler)
-            throws IOException {
-        mDevice = device;
-        mDevice.setBaudrate(baudRate);
-        mDevice.setDataSize(8);
-        mDevice.setHardwareFlowControl(hardwareFlowControl);
-        handleFrameStart();
-        mDevice.registerUartDeviceCallback(mCallback, handler);
+        byte[] outboundFrame = escapeFrame(frame, frame.length);
+
+        int frameSize = outboundFrame.length;
+        do {
+            int written = mDevice.write(outboundFrame, frameSize);
+            if (frameSize > written) {
+                outboundFrame = Arrays.copyOfRange(outboundFrame, written, frameSize);
+                frameSize -= written;
+                continue;
+            }
+        } while(false);
     }
 
     private byte[] escapeFrame(byte[] inboundFrame, int inboundFrameLen) {
-        ByteBuffer outputBufferEscaped = ByteBuffer.allocate(MAX_SPINEL_SIZE * 2);
-        outputBufferEscaped.clear();
-        outputBufferEscaped.put(Hdlc.HDLC_BYTE_FLAG);
-        short crc = Hdlc.HDLC_SHORT_CRC_RESET;
+        mOutputBufferEscaped.clear();
+
+        // Write out the frame flag byte. Theoretically,
+        // this isn't strictly necessary for every frame,
+        // but in general the cost is low and it helps
+        // things recover more quickly when they go off
+        // the rails.
+        mOutputBufferEscaped.put(Hdlc.HDLC_BYTE_FLAG);
+
+        short crc = Hdlc.HDLC_CRC_RESET_VALUE;
+        byte current;
+
+        // This loop is for both CRC calculation and escaping.
         for (int i = 0; i < inboundFrameLen; i++) {
-            byte frameByte = inboundFrame[i];
-            crc = Hdlc.hdlcCrc16(crc, frameByte);
-            if (Hdlc.hdlcByteNeedsEscape(frameByte)) {
-                outputBufferEscaped.put(Hdlc.HDLC_BYTE_ESC);
-                outputBufferEscaped.put((byte) (frameByte ^ Hdlc.HDLC_ESCAPE_XFORM));
+            current = inboundFrame[i];
+
+            // Feed the byte into the CRC calculation.
+            crc = Hdlc.hdlcCrc16(crc, current);
+
+            // Escape the byte and write add it to the output buffer.
+            if (Hdlc.hdlcByteNeedsEscape(current)) {
+                mOutputBufferEscaped.put(Hdlc.HDLC_BYTE_ESC);
+                mOutputBufferEscaped.put((byte) (current ^ Hdlc.HDLC_ESCAPE_XFORM));
             } else {
-                outputBufferEscaped.put(frameByte);
+                mOutputBufferEscaped.put(current);
             }
         }
-        crc ^= Hdlc.HDLC_SHORT_CRC_RESET;
-        byte current = (byte) (crc & 0xff);
 
+        // Finish the CRC calculation.
+        crc ^= Hdlc.HDLC_CRC_RESET_VALUE;
+
+        // Write out the first byte of the CRC(Little-endian).
+        current = (byte) (crc & 0xff);
         if (Hdlc.hdlcByteNeedsEscape(current)) {
-            outputBufferEscaped.put(Hdlc.HDLC_BYTE_ESC);
-            outputBufferEscaped.put((byte) (current ^ Hdlc.HDLC_ESCAPE_XFORM));
+            mOutputBufferEscaped.put(Hdlc.HDLC_BYTE_ESC);
+            mOutputBufferEscaped.put((byte) (current ^ Hdlc.HDLC_ESCAPE_XFORM));
         } else {
-            outputBufferEscaped.put(current);
+            mOutputBufferEscaped.put(current);
         }
+
+        // Write out the second byte of the CRC(Little-endian).
         current = (byte) (crc >>> 8);
         if (Hdlc.hdlcByteNeedsEscape(current)) {
-            outputBufferEscaped.put(Hdlc.HDLC_BYTE_ESC);
-            outputBufferEscaped.put((byte) (current ^ Hdlc.HDLC_ESCAPE_XFORM));
+            mOutputBufferEscaped.put(Hdlc.HDLC_BYTE_ESC);
+            mOutputBufferEscaped.put((byte) (current ^ Hdlc.HDLC_ESCAPE_XFORM));
         } else {
-            outputBufferEscaped.put(current);
+            mOutputBufferEscaped.put(current);
         }
 
-        outputBufferEscaped.put(Hdlc.HDLC_BYTE_FLAG);
-        outputBufferEscaped.flip();
-        byte[] outboundFrame = new byte[outputBufferEscaped.limit()];
-        outputBufferEscaped.get(outboundFrame);
+        // Write out the frame flag byte.
+        mOutputBufferEscaped.put(Hdlc.HDLC_BYTE_FLAG);
+
+        // Return the escaped frame.
+        mOutputBufferEscaped.flip();
+
+        // Prepare our actual outbound frame
+        byte[] outboundFrame = new byte[mOutputBufferEscaped.limit()];
+        mOutputBufferEscaped.get(outboundFrame);
+
         return outboundFrame;
     }
 
     /**
-     * Callback invoked when new data arrives in the UART buffer.
+     * Invoked by mUartDeviceCallback when new data arrives in the UART buffer.
      */
-    private UartDeviceCallback mCallback = new UartDeviceCallback() {
-        @Override
-        public boolean onUartDeviceDataAvailable(UartDevice uart) {
-            try {
-                readUartBuffer();
-            } catch (IOException e) {
-                Log.w(TAG, "Unable to read UART data", e);
-                onError(HAL_ERROR_IOFAIL);
+    private synchronized boolean onUartDeviceDataAvailable(UartDevice uart) {
+        try {
+            int count;
+            while ((count = uart.read(mInboundRawBuffer, mInboundRawBuffer.length)) > 0) {
+                processBuffer(mInboundRawBuffer, count);
             }
-            return true;
+        } catch (IOException e) {
+            Log.w(TAG, "Unable to read UART data", e);
+            onError(ERROR_IOFAIL);
+            close();
         }
+        return true;
+    }
 
-        @Override
-        public void onUartDeviceError(UartDevice uart, int error) {
-            Log.w(TAG, "Error receiving incoming data: " + error);
-            onError(HAL_ERROR_IOFAIL);
-        }
-    };
-
-    private void readUartBuffer() throws IOException {
-        byte[] buffer = new byte[MAX_SPINEL_SIZE];
-        int count;
-        while ((count = mDevice.read(buffer, buffer.length)) > 0) {
-            processBuffer(buffer, count);
-        }
+    /**
+     * Invoked by mUartDeviceCallback when the UART buffer experiences an error while reading.
+     */
+    private synchronized void onUartDeviceError(UartDevice uart, int error) {
+        Log.w(TAG, "Error receiving incoming data: " + error);
+        onError(ERROR_IOFAIL);
+        close();
     }
 
     private void processBuffer(byte[] buffer, int count) {
-        if (DEBUG) {
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < count; i++) {
-                sb.append(String.format("%02X ", (byte) buffer[i]));
-            }
-            Log.d(TAG, "to wpantund <- raw " + sb.toString());
-        }
-
         for (int i = 0; i < count; i++) {
             byte current = buffer[i];
-            switch (mFrameFlag) {
-                case NOT_STARTED:
-                    if (current == Hdlc.HDLC_BYTE_FLAG) {
-                        handleFrameStart();
-                        mFrameFlag = FrameFlag.STARTED;
-                    }
-                    continue;
-                case UNESCAPING:
-                    if (current == Hdlc.HDLC_BYTE_FLAG) {
-                        handleFrameEnd();
-                        handleFrameStart();
-                        continue;
-                    }
-                    current ^= Hdlc.HDLC_ESCAPE_XFORM;
-                    mFrameFlag = FrameFlag.STARTED;
-                    break;
-                case STARTED:
-                    if (current == Hdlc.HDLC_BYTE_ESC) {
-                        mFrameFlag = FrameFlag.UNESCAPING;
-                        continue;
-                    }
-                    if (current == Hdlc.HDLC_BYTE_FLAG) {
-                        handleFrameEnd();
-                        handleFrameStart();
-                        continue;
-                    }
-                    break;
-                default:
-                    break;
+
+            if (current == Hdlc.HDLC_BYTE_FLAG) {
+                handleFrameEnd();
+                resetFrameState();
+                continue;
+
+            } else if (mInboundUnescapeNextByte) {
+                current ^= Hdlc.HDLC_ESCAPE_XFORM;
+                mInboundUnescapeNextByte = false;
+
+            } else if (current == Hdlc.HDLC_BYTE_ESC) {
+                mInboundUnescapeNextByte = true;
+                continue;
             }
 
-            if (mInboundFrameSize >= 2) {
-                mInboundFrameHDLCCRC = Hdlc.hdlcCrc16(mInboundFrameHDLCCRC,
-                        mInboundFrame[mInboundFrameSize-2]);
+            if (mInboundFrameSize == MAX_SPINEL_SIZE) {
+                Log.e(TAG, "Inbound frame too large");
+                onError(ERROR_GARBAGE);
+                mInboundFrameSize++;
+
+            } else if (mInboundFrameSize < MAX_SPINEL_SIZE) {
+                mInboundFrameHDLCCRC = Hdlc.hdlcCrc16(mInboundFrameHDLCCRC, current);
+                mInboundFrame[mInboundFrameSize++] = current;
             }
-            mInboundFrame[mInboundFrameSize++] = current;
         }
     }
 
     /**
      * Restart the buffer and clear frame properties
      */
-    private void handleFrameStart() {
-        mFrameFlag = FrameFlag.NOT_STARTED;
+    private void resetFrameState() {
+        mInboundUnescapeNextByte = false;
         mInboundFrameSize = 0;
-        mInboundFrameHDLCCRC = Hdlc.HDLC_SHORT_CRC_RESET;
+        mInboundFrameHDLCCRC = Hdlc.HDLC_CRC_RESET_VALUE;
     }
 
     /**
      * Parse a message once the frame end character is detected.
      */
     private void handleFrameEnd() {
-
         if (mInboundFrameSize <= 2) {
-            handleFrameStart();
             return;
         }
 
-        if (mLowpanDriverCallback == null) {
+        if (mInboundFrameHDLCCRC != Hdlc.HDLC_CRC_CHECK_VALUE) {
+            Log.e(TAG, String.format("Frame CRC Mismatch: Calc:0x%04X, Expected:0x%04X",
+                    mInboundFrameHDLCCRC, Hdlc.HDLC_CRC_CHECK_VALUE));
+            onError(ERROR_GARBAGE);
             return;
         }
 
-        mInboundFrameHDLCCRC ^= Hdlc.HDLC_SHORT_CRC_RESET;
-        mInboundFrameSize -= 2;
-        short frameCrc = (short) (mInboundFrame[mInboundFrameSize] & 0xff |
-                (mInboundFrame[mInboundFrameSize+1] << 8));
-        if (mInboundFrameHDLCCRC != frameCrc) {
-            Log.e(TAG, String.format("Frame CRC Mismatch: Calc:0x%04X != Frame:0x%04X",
-                    mInboundFrameHDLCCRC, frameCrc));
-            onError(HAL_ERROR_GARBAGE);
-            return;
-        }
-
-        if (DEBUG) {
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < mInboundFrameSize; i++) {
-                sb.append(String.format("%02X ", mInboundFrame[i]));
-            }
-            Log.d(TAG, "from driver to wpantund unescaped <- " + sb.toString());
-        }
-        mLowpanDriverCallback.onReceiveFrame(Arrays.copyOf(mInboundFrame, mInboundFrameSize));
+        mLowpanDriverCallback.onReceiveFrame(Arrays.copyOf(mInboundFrame, mInboundFrameSize-2));
     }
 }
