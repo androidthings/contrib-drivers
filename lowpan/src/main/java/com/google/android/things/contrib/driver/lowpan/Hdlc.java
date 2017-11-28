@@ -27,7 +27,8 @@ class Hdlc {
     static final byte HDLC_BYTE_XOFF = 0x13;
     static final byte HDLC_BYTE_SPECIAL = (byte) 0xf8;
     static final byte HDLC_ESCAPE_XFORM = 0x20;
-    static final byte HDLC_SHORT_CRC_RESET = (short) 0xffff;
+    static final short HDLC_CRC_RESET_VALUE = (short) 0xffff;
+    static final short HDLC_CRC_CHECK_VALUE = (short) 0xf0b8;
 
     private static final short SFCS_TABLE[] = {
             0x0000, 0x1189, 0x2312, 0x329b, 0x4624, 0x57ad, 0x6536, 0x74bf, (short) 0x8c48,
