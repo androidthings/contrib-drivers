@@ -19,26 +19,19 @@ package com.google.android.things.contrib.driver.voicehat;
 
 import android.support.test.filters.SmallTest;
 import android.support.test.runner.AndroidJUnit4;
-import com.google.android.things.pio.I2sDevice;
 import java.io.IOException;
 import junit.framework.Assert;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 
 @RunWith(AndroidJUnit4.class)
 @SmallTest
 public class Max98357AInstrumentationTest {
-    private VoiceHat mVoiceHat;
 
     @Before
     public void createVoiceHat() throws IOException {
         InstrumentationTestUtils.assertRaspberryPiOnly();
-        mVoiceHat = new VoiceHat(InstrumentationTestUtils.VOICE_HAT_I2S_RPI,
-          InstrumentationTestUtils.VOICE_HAT_TRIGGER_GPIO_RPI,
-          InstrumentationTestUtils.AUDIO_FORMAT_STEREO);
     }
 
     /**
@@ -48,8 +41,7 @@ public class Max98357AInstrumentationTest {
      */
     @Test
     public void testDefaultConstructor() throws IOException {
-        Max98357A dac = mVoiceHat.getDac();
-        Assert.assertNotNull(dac.getI2sDevice());
+        Max98357A dac = VoiceHat.openDac(InstrumentationTestUtils.VOICE_HAT_TRIGGER_GPIO_RPI);
         Assert.assertNotNull(dac.getNotSdModePin());
         Assert.assertNull(dac.getGainSlotPin());
     }
@@ -60,19 +52,10 @@ public class Max98357AInstrumentationTest {
      */
     @Test
     public void testCustomInterface() throws Exception {
-        Max98357A dac = new Max98357A(Mockito.mock(I2sDevice.class),
-                InstrumentationTestUtils.VOICE_HAT_BUTTON_GPIO_RPI,
+        Max98357A dac = new Max98357A(InstrumentationTestUtils.VOICE_HAT_BUTTON_GPIO_RPI,
                 InstrumentationTestUtils.VOICE_HAT_LED_GPIO_RPI);
-        Assert.assertNotNull(dac.getI2sDevice());
         Assert.assertNotNull(dac.getNotSdModePin());
         Assert.assertNotNull(dac.getGainSlotPin());
         dac.close();
-    }
-
-    @After
-    public void close() throws IOException {
-        if (mVoiceHat != null) {
-            mVoiceHat.close();
-        }
     }
 }

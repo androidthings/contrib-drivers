@@ -16,13 +16,10 @@
 
 package com.google.android.things.contrib.driver.voicehat;
 
-import android.media.AudioFormat;
 import android.support.annotation.VisibleForTesting;
 import com.google.android.things.pio.Gpio;
-import com.google.android.things.pio.I2sDevice;
 import com.google.android.things.pio.PeripheralManagerService;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 
 /**
  * Driver for audio chip Max98357A
@@ -47,45 +44,16 @@ public class Max98357A implements AutoCloseable {
      */
     public static final boolean GAIN_SLOT_DISABLE = false;
 
-    private final String mI2sBus;
-    private final I2sDevice mDevice;
     private Gpio mNotSdModeGpio;
     private Gpio mGainSlotGpio;
 
     /**
-     * Creates an interface to the chip. This constructor should only be used if this class is
-     * being constructed without the {@link VoiceHat}. Otherwise, this class will be unable to access the
-     * I2s bus since it will be locked by the VoiceHat class.
-     *
-     * @param i2sBus The name of the I2s bus to use
-     * @param notSdMode The name for the NOT_SD_MODE pin
-     * @param gainSlot The name for the GAIN_SLOT pin
-     */
-    public Max98357A(String i2sBus, String notSdMode, String gainSlot, AudioFormat audioFormat)
-            throws IOException {
-        PeripheralManagerService pioService = new PeripheralManagerService();
-        mI2sBus = i2sBus;
-        mDevice = pioService.openI2sDevice(i2sBus, audioFormat);
-        if (notSdMode != null) {
-            mNotSdModeGpio = pioService.openGpio(notSdMode);
-            mNotSdModeGpio.setDirection(Gpio.DIRECTION_OUT_INITIALLY_LOW);
-        }
-        if (gainSlot != null) {
-            mGainSlotGpio = pioService.openGpio(gainSlot);
-            mGainSlotGpio.setDirection(Gpio.DIRECTION_OUT_INITIALLY_LOW);
-        }
-    }
-
-    /**
      * Creates an interface to the chip.
      *
-     * @param device A pre-configured I2s bus
      * @param notSdMode The name for the NOT_SD_MODE pin
      * @param gainSlot The name for the GAIN_SLOT pin
      */
-    public Max98357A(I2sDevice device, String notSdMode, String gainSlot) throws IOException {
-        mI2sBus = null;
-        mDevice = device;
+    public Max98357A(String notSdMode, String gainSlot) throws IOException {
         PeripheralManagerService pioService = new PeripheralManagerService();
         if (notSdMode != null) {
             mNotSdModeGpio = pioService.openGpio(notSdMode);
@@ -95,11 +63,6 @@ public class Max98357A implements AutoCloseable {
             mGainSlotGpio = pioService.openGpio(gainSlot);
             mGainSlotGpio.setDirection(Gpio.DIRECTION_OUT_INITIALLY_LOW);
         }
-    }
-
-    @VisibleForTesting
-    /* package */ I2sDevice getI2sDevice() {
-        return mDevice;
     }
 
     @VisibleForTesting
@@ -137,34 +100,10 @@ public class Max98357A implements AutoCloseable {
     }
 
     /**
-     * Sends passthrough I2s data to the device.
-     *
-     * @param data I2s data to be sent to chip.
-     */
-    public int writeI2sData(byte[] data) throws IOException {
-        return mDevice.write(data, 0, data.length);
-    }
-
-    /**
-     * Sends passthrough I2s data to the device.
-     *
-     * @param byteBuffer I2s data to be sent to chip.
-     * @param i Offset
-     */
-    public int writeI2sData(ByteBuffer byteBuffer, int i) throws IOException {
-        return mDevice.write(byteBuffer, i);
-    }
-
-    /**
      * Closes GPIO pins and the I2s bus.
-     * @throws Exception
      */
     @Override
     public void close() throws IOException {
-        if (mI2sBus != null && mDevice != null) {
-            // This class owns the I2sDevice and is responsible for closing.
-            mDevice.close();
-        }
         mNotSdModeGpio.close();
         mGainSlotGpio.close();
     }
