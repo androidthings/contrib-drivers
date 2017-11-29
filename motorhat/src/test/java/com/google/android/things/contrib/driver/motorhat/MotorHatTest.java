@@ -1,4 +1,4 @@
-package com.example.motorhat;
+package com.google.android.things.contrib.driver.motorhat;
 
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;

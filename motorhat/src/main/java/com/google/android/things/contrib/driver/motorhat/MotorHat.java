@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.motorhat;
+package com.google.android.things.contrib.driver.motorhat;
 
 import android.support.annotation.IntDef;
 import android.support.annotation.VisibleForTesting;
