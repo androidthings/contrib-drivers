@@ -1,4 +1,9 @@
 # Changelog
+## [0.4] - 2017-11-29
+- Removes `AudioDriver` registration from VoiceHat
+- Removes uses of `I2sDevice`
+- Adds static methods to access Max98357A DAC
+- Makes VoiceHat constructor private
 
 ## [0.3] - 2017-10-01
 - Adds support for LED and button

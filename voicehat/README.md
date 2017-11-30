@@ -1,12 +1,14 @@
 Voice Hat driver for Android Things
 =====================================
 
-This driver exposes [I2S](https://developer.android.com/things/reference/com/google/android/things/pio/I2sDevice.html)
-microphone input and audio output from a [VoiceHat](https://aiyprojects.withgoogle.com/voice/) to
-standard Android audio APIs using the Android Things [AudioInputDriver](https://developer.android.com/things/reference/com/google/android/things/userdriver/AudioInputDriver.html)
-and the [AudioOutputDriver](https://developer.android.com/things/reference/com/google/android/things/userdriver/AudioOutputDriver.html).
+This driver exposes peripherals from the [VoiceHat](https://aiyprojects.withgoogle.com/voice/) to
+standard Android audio APIs using Android Things.
 
-It optionally allows the user to interact with the pushbutton and LED that are included on the PCB.
+It allows the user to interact with:
+
+* Pushbutton
+* LED
+* Max98357A DAC
 
 At this moment the driver has only been tested on the Raspberry Pi 3.
 
@@ -30,14 +32,6 @@ dependencies {
 }
 ```
 
-In your AndroidManifest, add the following three permissions:
-
-```xml
-<uses-permission android:name="android.permission.RECORD_AUDIO" />
-<uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
-<uses-permission android:name="com.google.android.things.permission.MANAGE_AUDIO_DRIVERS" />
-```
-
 ### Sample usage
 
 
@@ -46,51 +40,25 @@ In your AndroidManifest, add the following three permissions:
 import com.google.android.things.contrib.driver.voicehat.VoiceHat;
 ```
 
-```java
-// Start voice hat.
-mVoiceHat = new VoiceHat(
-    "I2S1",
-    "BCM16",
-    AUDIO_FORMAT_STEREO
-  );
-mVoiceHat.registerAudioInputDriver();
-mVoiceHat.registerAudioOutputDriver();
+### Access Max98357A DAC
+The VoiceHat uses the [Max98357A](https://datasheets.maximintegrated.com/en/ds/MAX98357A-MAX98357B.pdf)
+chip for audio I/O. To access the DAC, one can use the static method on the VoiceHat.
+On the VoiceHat, the gain slot pin is not electrically connected.
 
-// Make sure to call mVoiceHatDriver.close() in the onDestroy() method in your activity
+```java
+Max98357A dac = VoiceHat.openDac();
 ```
 
-```java
-// Start recording audio.
-mAudioRecord = new AudioRecord.Builder()
-    .setAudioSource(MediaRecorder.AudioSource.MIC)
-    .setAudioFormat(AUDIO_FORMAT_IN_MONO)
-    .setBufferSizeInBytes(inputBufferSize)
-    .build();
-
-ByteBuffer audioData = ByteBuffer.allocateDirect(SAMPLE_BLOCK_SIZE);
-int result =
-    mAudioRecord.read(audioData, audioData.capacity(), AudioRecord.READ_BLOCKING);
-if (result < 0) {
-    Log.e(TAG, "error reading from audio stream:" + result);
-    return;
-}
-// Audio data stored in `audioData`.
-```
+If you are not using the VoiceHat, you can directly construct an instance of this class.
 
 ```java
-// Play audio
-mAudioTrack = new AudioTrack.Builder()
-    .setAudioFormat(AUDIO_FORMAT_OUT_MONO)
-    .setBufferSizeInBytes(outputBufferSize)
-    .build();
-mAudioTrack.play();
-
-ByteBuffer audioData = Example.getSampleAudioData(SAMPLE_BLOCK_SIZE);
-mAudioTrack.write(audioData, audioData.remaining(), AudioTrack.WRITE_BLOCKING);
+Max98357A dac = new Max98357A("BCM16", "BCM23");
+dac.setSdMode(Max98357A.SD_MODE_LEFT);
+dac.setGainSlot(Max98357A.GAIN_SLOT_ENABLE);
 ```
 
 ### Integrating Peripherals
-You can also use the additional peripherals on the VoiceHat: a pushbutton and an LED.
+You can access the additional peripherals on the VoiceHat: a pushbutton and an LED.
 
 ```java
 Gpio led = VoiceHat.openLed();
@@ -126,7 +94,7 @@ userDriverManager.registerInputDriver(buttonInputDriver);
 License
 -------
 
-Copyright 2016 Google Inc.
+Copyright 2017 Google Inc.
 
 Licensed to the Apache Software Foundation (ASF) under one or more contributor
 license agreements.  See the NOTICE file distributed with this work for

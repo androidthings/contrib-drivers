@@ -8,7 +8,6 @@ import junit.framework.Assert;
  * A collection of common methods across tests.
  */
 public class InstrumentationTestUtils {
-    /* package */ static final String VOICE_HAT_I2S_RPI = "I2S1";
     /* package */ static final String VOICE_HAT_TRIGGER_GPIO_RPI = "BCM16";
     /* package */ static final String VOICE_HAT_BUTTON_GPIO_RPI = "BCM23";
     /* package */ static final String VOICE_HAT_LED_GPIO_RPI = "BCM25";
