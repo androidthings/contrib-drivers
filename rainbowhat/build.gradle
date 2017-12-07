@@ -31,12 +31,12 @@ android {
 dependencies {
     implementation 'com.android.support:support-annotations:24.2.0'
     compileOnly 'com.google.android.things:androidthings:0.6-devpreview'
-    implementation 'com.google.android.things.contrib:driver-apa102:0.3'
-    implementation 'com.google.android.things.contrib:driver-button:0.3'
-    implementation 'com.google.android.things.contrib:driver-bmx280:0.2'
-    implementation 'com.google.android.things.contrib:driver-ht16k33:0.3'
-    implementation 'com.google.android.things.contrib:driver-pwmspeaker:0.2'
-    implementation 'com.google.android.things.contrib:driver-pwmservo:0.2'
+    api 'com.google.android.things.contrib:driver-apa102:0.3'
+    api 'com.google.android.things.contrib:driver-button:0.3'
+    api 'com.google.android.things.contrib:driver-bmx280:0.2'
+    api 'com.google.android.things.contrib:driver-ht16k33:0.3'
+    api 'com.google.android.things.contrib:driver-pwmspeaker:0.2'
+    api 'com.google.android.things.contrib:driver-pwmservo:0.2'
     testImplementation 'com.google.android.things:androidthings:0.6-devpreview'
     testImplementation 'junit:junit:4.12'
 }

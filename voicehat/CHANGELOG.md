@@ -1,4 +1,8 @@
 # Changelog
+
+## [0.5] - 2017-12-07
+- bundle transitive peripheral dependencies
+
 ## [0.4] - 2017-11-29
 - Removes `AudioDriver` registration from VoiceHat
 - Removes uses of `I2sDevice`
