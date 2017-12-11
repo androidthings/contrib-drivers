@@ -1,5 +1,8 @@
 # Changelog
 
+## [0.6] - 2017-12-11
+- republish using proper gradle to maven dependency graph conversion
+
 ## [0.5] - 2017-12-07
 - bundle transitive peripheral dependencies
 
