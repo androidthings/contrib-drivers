@@ -57,7 +57,7 @@ subprojects {
                 artifact("$buildDir/outputs/aar/$project.name-release.aar")
                 pom.withXml {
                     def dependenciesNode = asNode().appendNode('dependencies')
-                    configurations.compile.allDependencies.each {
+                    (configurations.compile.allDependencies + configurations.api.allDependencies).each {
                         if (it.group != null
                                 && it.name != null && !"unspecified".equals(it.name)
                                 && it.version != null && !"unspecified".equals(it.version)) {
