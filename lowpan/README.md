@@ -1,10 +1,12 @@
-Lowpan driver for Android Things
+LoWPAN driver for Android Things
 =================================
 
 This driver supports UART-based LoWPAN peripherals that use
-[Spinel](https://tools.ietf.org/html/draft-rquattle-spinel-unified) (Like those running
-[OpenThread](http://openthread.io)) with the
-[recommended UART framing mechanism](https://tools.ietf.org/html/draft-rquattle-spinel-unified-00#appendix-A.1.2).
+[Spinel][spinel] protocol with the [recommended UART framing mechanism][spinelframe].
+
+The simplest way to get started using this driver is to connect one of the supported
+[OpenThread][openthread] developer kits running Network Co-Processor (NCP) firmware. For more
+details on building your own LoWPAN drivers, see the [API guide][lowpan].
 
 NOTE: these drivers are not production-ready. They are offered as sample
 implementations of Android Things user space drivers for common peripherals
@@ -53,7 +55,7 @@ mLowpanDriver.unregister();
 try {
     mLowpanDriver.close();
 } catch (IOException e) {
-    // error closing gps driver
+    // error closing lowpan driver
 }
 ```
 
@@ -77,5 +79,8 @@ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
 License for the specific language governing permissions and limitations under
 the License.
 
+[spinel]: https://tools.ietf.org/html/draft-rquattle-spinel-unified
+[spinelframe]: https://tools.ietf.org/html/draft-rquattle-spinel-unified-00#appendix-A.1.2
+[openthread]: https://openthread.io/guides/ncp/firmware
 [jcenter]: https://bintray.com/google/androidthings/contrib-driver-lowpan/_latestVersion
-[lowpan]: https://developer.android.com/training/lowpan/index.html
+[lowpan]: https://developer.android.com/things/sdk/drivers/lowpan.html
