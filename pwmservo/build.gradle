@@ -17,21 +17,22 @@
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 24
-    buildToolsVersion '24.0.3'
+    compileSdkVersion 26
+    buildToolsVersion '27.0.1'
 
     defaultConfig {
-        minSdkVersion 24
-        targetSdkVersion 24
+        minSdkVersion 26
+        targetSdkVersion 26
         versionCode 1
         versionName "1.0"
     }
 }
 
 dependencies {
-    provided 'com.google.android.things:androidthings:0.4-devpreview'
-    compile 'com.android.support:support-annotations:24.2.0'
+    compileOnly 'com.google.android.things:androidthings:0.6-devpreview'
+    implementation 'com.android.support:support-annotations:24.2.0'
 
-    testCompile 'junit:junit:4.12'
-    testCompile 'org.mockito:mockito-core:1.10.19'
+    testImplementation 'com.google.android.things:androidthings:0.6-devpreview'
+    testImplementation 'junit:junit:4.12'
+    testImplementation 'org.mockito:mockito-core:1.10.19'
 }

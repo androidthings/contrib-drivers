@@ -1,5 +1,13 @@
 # Change Log
 
+## [0.7] - 2017-12-07
+### Updated
+- bundle transitive peripheral dependencies
+
+## [0.6] - 2017-12-06
+### Updated
+- change PIO names for devpreview 0.6
+
 ## [0.5] - 2017-08-03
 ### Updated
 - added required=false to uses-library on manifests

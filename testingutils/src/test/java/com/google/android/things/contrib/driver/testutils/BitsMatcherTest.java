@@ -24,46 +24,83 @@ public class BitsMatcherTest {
 
     @Test
     public void bitsSet() {
-        BitsMatcher matcher = BitsMatcher.hasBitsSet((byte) 0b00001010); // 10
+        BitsMatcher<Byte> byteMatcher = BitsMatcher.hasBitsSet((byte) 0b00001010); // 10
 
         // bits set
-        assertTrue(matcher.matches((byte) 10));
-        assertTrue(matcher.matches((byte) 0b00001011));
-        assertTrue(matcher.matches((byte) 0b00011010));
+        assertTrue(byteMatcher.matches((byte) 10));
+        assertTrue(byteMatcher.matches((byte) 0b00001011));
+        assertTrue(byteMatcher.matches((byte) 0b00011010));
 
         // bits not set
-        assertFalse(matcher.matches((byte) 0));
-        assertFalse(matcher.matches((byte) 0b00011001));
-        assertFalse(matcher.matches((byte) 0b01000000));
+        assertFalse(byteMatcher.matches((byte) 0));
+        assertFalse(byteMatcher.matches((byte) 0b00011001));
+        assertFalse(byteMatcher.matches((byte) 0b01000000));
+
+        BitsMatcher<Short> shortMatcher =
+                BitsMatcher.hasBitsSet((short) 0b1000000000001010); // -32758
+
+        // bits set
+        assertTrue(shortMatcher.matches((short) -32758));
+        assertTrue(shortMatcher.matches((short) 0b1000000000001011));
+        assertTrue(shortMatcher.matches((short) 0b1010101010101010));
+        assertTrue(shortMatcher.matches((short) 0b1000111100001010));
+
+        // bits not set
+        assertFalse(shortMatcher.matches((short) 0));
+        assertFalse(shortMatcher.matches((short) 0b0000000000001010));
+        assertFalse(shortMatcher.matches((short) 0b1000000111100010));
+        assertFalse(shortMatcher.matches((short) 0b1000000111100001));
     }
 
     @Test
     public void bitsSet_allUnset() {
-        BitsMatcher matcher = BitsMatcher.hasBitsSet((byte) 0); // all 0s
-        assertTrue(matcher.matches((byte) 0));
-        assertFalse(matcher.matches((byte) 1));
+        BitsMatcher<Byte> byteMatcher = BitsMatcher.hasBitsSet((byte) 0); // all 0s
+        assertTrue(byteMatcher.matches((byte) 0));
+        assertFalse(byteMatcher.matches((byte) 1));
+
+        BitsMatcher<Short> shortMatcher = BitsMatcher.hasBitsSet((short) 0); // all 0s
+        assertTrue(shortMatcher.matches((short) 0));
+        assertFalse(shortMatcher.matches((short) 1));
     }
 
     @Test
     public void bitsNotSet() {
-        BitsMatcher matcher = BitsMatcher.hasBitsNotSet((byte) 0b11111100); // -4
+        BitsMatcher<Byte> byteMatcher = BitsMatcher.hasBitsNotSet((byte) 0b11111100); // -4
 
         // bits not set
-        assertTrue(matcher.matches((byte) -4));
-        assertTrue(matcher.matches((byte) 0b00001000));
-        assertTrue(matcher.matches((byte) 0b11011000));
-        assertTrue(matcher.matches((byte) 0));
+        assertTrue(byteMatcher.matches((byte) -4));
+        assertTrue(byteMatcher.matches((byte) 0b00001000));
+        assertTrue(byteMatcher.matches((byte) 0b11011000));
+        assertTrue(byteMatcher.matches((byte) 0));
 
         // bits set
-        assertFalse(matcher.matches((byte) 1));
-        assertFalse(matcher.matches((byte) 0b01000010));
-        assertFalse(matcher.matches((byte) 0b11000011));
+        assertFalse(byteMatcher.matches((byte) 1));
+        assertFalse(byteMatcher.matches((byte) 0b01000010));
+        assertFalse(byteMatcher.matches((byte) 0b11000011));
+
+        BitsMatcher<Short> shortMatcher =
+                BitsMatcher.hasBitsNotSet((short) 0b1010101000001010); // -22006
+
+        // bits not set
+        assertTrue(shortMatcher.matches((short) -22006));
+        assertTrue(shortMatcher.matches((short) 0b1010101000001010));
+        assertTrue(shortMatcher.matches((short) 0b1000101000000000));
+        assertTrue(shortMatcher.matches((short) 0));
+
+        // bits set
+        assertFalse(shortMatcher.matches((short) 1));
+        assertFalse(shortMatcher.matches((short) 0b1010101111111010));
+        assertFalse(shortMatcher.matches((short) 0b1110111000001010));
     }
 
     @Test
     public void bitsNotSet_allSet() {
-        BitsMatcher matcher = BitsMatcher.hasBitsNotSet((byte) -1); // all 1s
-        assertTrue(matcher.matches((byte) -1));
-        assertFalse(matcher.matches(Byte.MAX_VALUE)); // all 1s except MSB
+        BitsMatcher<Byte> byteMatcher = BitsMatcher.hasBitsNotSet((byte) -1); // all 1s
+        assertTrue(byteMatcher.matches((byte) -1));
+        assertFalse(byteMatcher.matches(Byte.MAX_VALUE)); // all 1s except MSB
+
+        BitsMatcher<Short> shortMatcher = BitsMatcher.hasBitsNotSet((short) -1); // all 1s
+        assertTrue(shortMatcher.matches((short) -1));
+        assertFalse(shortMatcher.matches(Short.MAX_VALUE)); // all 1s except MSB
     }
 }

@@ -48,8 +48,7 @@ subprojects {
 
     def artifactVersion = snapshot ? "LATEST" : ARTIFACT_VERSION
 
-    publishing {
-        publications {
+    publishing.publications {
             "$publicationName"(MavenPublication) {
                 groupId 'com.google.android.things.contrib'
                 artifactId "driver-$project.name"
@@ -70,7 +69,6 @@ subprojects {
                     }
                 }
             }
-        }
     }
 
     bintray {
