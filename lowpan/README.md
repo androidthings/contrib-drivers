@@ -1,17 +1,25 @@
 LoWPAN driver for Android Things
 =================================
 
-This driver supports UART-based LoWPAN peripherals that use
-[Spinel][spinel] protocol with the [recommended UART framing mechanism][spinelframe].
-
-The simplest way to get started using this driver is to connect one of the supported
-[OpenThread][openthread] developer kits running Network Co-Processor (NCP) firmware. For more
-details on building your own LoWPAN drivers, see the [API guide][lowpan].
+This driver supports UART-based LoWPAN peripherals that use the [Spinel][spinel]
+protocol with the [recommended UART framing mechanism][spinelframe]. This is the
+communications protocol supported by Network Co-Processor (NCP) devices running
+[OpenThread][openthread].
 
 NOTE: these drivers are not production-ready. They are offered as sample
 implementations of Android Things user space drivers for common peripherals
 as part of the Developer Preview release. There is no guarantee
 of correctness, completeness or robustness.
+
+Hardware support
+----------------
+
+This driver has been tested with supported [OpenThread][openthread] developer
+boards running the [pre-built NCP firmware images][firmware]. We recommend the
+[Nordic nRF52840-PDK][nordic] to get started.
+
+For more details on building your own LoWPAN drivers to support additional
+hardware, see the [API guide][lowpan].
 
 How to use the driver
 ---------------------
@@ -81,6 +89,8 @@ the License.
 
 [spinel]: https://tools.ietf.org/html/draft-rquattle-spinel-unified
 [spinelframe]: https://tools.ietf.org/html/draft-rquattle-spinel-unified-00#appendix-A.1.2
-[openthread]: https://openthread.io/guides/ncp/firmware
+[openthread]: https://openthread.io
+[firmware]: https://openthread.io/guides/ncp/firmware
+[nordic]: https://www.nordicsemi.com/eng/Products/nRF52840-Preview-DK
 [jcenter]: https://bintray.com/google/androidthings/contrib-driver-lowpan/_latestVersion
 [lowpan]: https://developer.android.com/things/sdk/drivers/lowpan.html
