@@ -40,17 +40,18 @@ Driver | Type | Usage (add to your gradle dependencies) | Note
 [driver-cap12xx](cap12xx) | capacitive touch buttons | `implementation 'com.google.android.things.contrib:driver-cap12xx:0.4'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/cap12xx) [changelog](cap12xx/CHANGELOG.md)
 [driver-gps](gps) | GPS | `implementation 'com.google.android.things.contrib:driver-gps:0.4'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/gps) [changelog](gps/CHANGELOG.md)
 [driver-ht16k33](ht16k33) | 7-digit alphanumeric segment display | `implementation 'com.google.android.things.contrib:driver-ht16k33:0.4'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/ht16k33) [changelog](ht16k33/CHANGELOG.md)
+[driver-lowpan](lowpan) | LoWPAN support over UART | `implementation 'com.google.android.things.contrib:driver-lowpan:0.2'` | [sample](https://github.com/androidthings/sample-lowpan) [changelog](lowpan/CHANGELOG.md)
 [driver-matrixkeypad](matrixkeypad) | driver for generic matrix keypads | `implementation 'com.google.android.things.contrib:driver-matrixkeypad:0.1'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/matrixkeypad) [changelog](matrixkeypad/CHANGELOG.md)
 [driver-mma7660fc](mma7660fc) | accelerometer sensor | `implementation 'com.google.android.things.contrib:driver-mma7660fc:0.3'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/mma7660fc) [changelog](mma7660fc/CHANGELOG.md)
-[driver-motorhat](motorhat) | DC Motor HAT | `implementation 'com.google.android.things.contrib:driver-motorhat:0.1'` |  [changelog](motorhat/CHANGELOG.md)
+[driver-motorhat](motorhat) | DC Motor HAT | `implementation 'com.google.android.things.contrib:driver-motorhat:0.1'` | [sample](https://github.com/androidthings/robocar) [changelog](motorhat/CHANGELOG.md)
 [driver-pwmservo](pwmservo) | PWM servo | `implementation 'com.google.android.things.contrib:driver-pwmservo:0.3'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/pwmservo) [changelog](pwmservo/CHANGELOG.md)
 [driver-pwmspeaker](pwmspeaker) | PWM speaker/buzzer | `implementation 'com.google.android.things.contrib:driver-pwmspeaker:0.3'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/pwmspeaker) [changelog](pwmspeaker/CHANGELOG.md)
-[driver-rainbowhat](rainbowhat) | metadriver for the Rainbow HAT | `implementation 'com.google.android.things.contrib:driver-rainbowhat:0.5'` | [sample](https://github.com/androidthings/weatherstation) [changelog](rainbowhat/CHANGELOG.md)
+[driver-rainbowhat](rainbowhat) | metadriver for the Rainbow HAT | `implementation 'com.google.android.things.contrib:driver-rainbowhat:0.8'` | [sample](https://github.com/androidthings/weatherstation) [changelog](rainbowhat/CHANGELOG.md)
 [driver-sensehat](sensehat) | metadriver for the Sense HAT | `implementation 'com.google.android.things.contrib:driver-sensehat:0.3'` |  [changelog](sensehat/CHANGELOG.md)
 [driver-ssd1306](ssd1306) | OLED display | `implementation 'com.google.android.things.contrib:driver-ssd1306:0.5'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/ssd1306) [changelog](ssd1306/CHANGELOG.md)
 [driver-tm1637](tm1637) | 4-digit numeric segment display | `implementation 'com.google.android.things.contrib:driver-tm1637:0.3'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/tm1637) [changelog](tm1637/CHANGELOG.md)
 [driver-vcnl4200](vcnl4200) | proximity and ambient light sensor | `implementation 'com.google.android.things.contrib:driver-vcnl4200:0.1'` | 
-[driver-voicehat](voicehat) | driver for VoiceHat | `implementation 'com.google.android.things.contrib:driver-voicehat:0.4'` | [sample](https://github.com/androidthings/sample-googleassistant) [changelog](voicehat/CHANGELOG.md)
+[driver-voicehat](voicehat) | driver for VoiceHat | `implementation 'com.google.android.things.contrib:driver-voicehat:0.6'` | [sample](https://github.com/androidthings/sample-googleassistant) [changelog](voicehat/CHANGELOG.md)
 [driver-zxgesturesensor](zxgesturesensor) | zx gesture sensor | `implementation 'com.google.android.things.contrib:driver-zxgesturesensor:0.1'` |  [changelog](zxgesturesensor/CHANGELOG.md)
 <!-- DRIVER_LIST_END -->
 
