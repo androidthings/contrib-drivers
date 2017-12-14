@@ -22,7 +22,7 @@ below to your project's `build.gradle`:
 
 ```
 dependencies {
-    compile 'com.google.android.things.contrib:driver-button:0.1'
+    implementation 'com.google.android.things.contrib:driver-button:0.1'
 }
 ```
 
