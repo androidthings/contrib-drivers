@@ -1,5 +1,9 @@
 # Change Log
 
+## [0.9] - 2017-12-18
+### Updated
+- updates dependencies
+
 ## [0.8] - 2017-12-11
 ### Updated
 - republish using proper gradle to maven dependency graph conversion
