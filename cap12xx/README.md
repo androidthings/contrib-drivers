@@ -1,7 +1,7 @@
 CAP12XX driver for Android Things
 =================================
 
-This driver supports capactive touch controls build on the CAP12XX family of chips
+This driver supports capacitive touch controls build on the CAP12XX family of chips
 (CAP1203, CAP1293, CAP1206, CAP1296, CAP1208 and CAP1298).
 
 NOTE: these drivers are not production-ready. They are offered as sample
