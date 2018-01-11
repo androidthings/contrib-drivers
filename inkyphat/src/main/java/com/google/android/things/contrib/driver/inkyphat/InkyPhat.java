@@ -84,12 +84,13 @@ public interface InkyPhat extends AutoCloseable {
      * Use this to create an instance of the {@link InkyPhat}
      */
     class Factory {
-
         public static InkyPhat create(String spiBus,
                                       String gpioBusyPin, String gpioResetPin, String gpioCommandPin,
                                       Orientation orientation) {
             PeripheralManagerService service = new PeripheralManagerService();
+            VersionChecker versionChecker = new VersionChecker(service);
             try {
+                VersionChecker.Version version = versionChecker.checkVersion(gpioBusyPin, gpioResetPin);
                 SpiDevice device = service.openSpiDevice(spiBus);
 
                 Gpio chipBusyPin = service.openGpio(gpioBusyPin);
@@ -98,12 +99,23 @@ public interface InkyPhat extends AutoCloseable {
 
                 PixelBuffer pixelBuffer = new PixelBuffer(orientation);
                 ImageConverter imageConverter = new ImageConverter(orientation);
-                return new InkyPhatTriColourDisplay(device,
-                                                    chipBusyPin, chipResetPin, chipCommandPin,
-                                                    pixelBuffer,
-                                                    imageConverter,
-                                                    new ColorConverter()
-                );
+                if (version == VersionChecker.Version.ONE) {
+                    return new InkyPhatV1(device,
+                                          chipBusyPin, chipResetPin, chipCommandPin,
+                                          pixelBuffer,
+                                          imageConverter,
+                                          new ColorConverter()
+                    );
+                } else if (version == VersionChecker.Version.TWO) {
+                    return new InkyPhatV2(device,
+                                          chipBusyPin, chipResetPin, chipCommandPin,
+                                          pixelBuffer,
+                                          imageConverter,
+                                          new ColorConverter()
+                    );
+                } else {
+                    throw new IllegalStateException(version + " is not developed or tested yet.");
+                }
             } catch (IOException e) {
                 throw new IllegalStateException("InkyPhat connection cannot be opened.", e);
             }
