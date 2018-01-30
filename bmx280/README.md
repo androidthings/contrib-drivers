@@ -50,7 +50,7 @@ try {
 // Close the environmental sensor when finished:
 
 try {
-    mBmx102.close();
+    mBmx280.close();
 } catch (IOException e) {
     // error closing sensor
 }
