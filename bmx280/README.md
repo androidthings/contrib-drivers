@@ -34,7 +34,7 @@ Bmx280 mBmx280;
 
 try {
     mBmx280 = new Bmx280(i2cBusName);
-    mBxm280.setTemperatureOversampling(Bmx280.OVERSAMPLING_1X);
+    mBmx280.setTemperatureOversampling(Bmx280.OVERSAMPLING_1X);
 } catch (IOException e) {
     // couldn't configure the device...
 }
