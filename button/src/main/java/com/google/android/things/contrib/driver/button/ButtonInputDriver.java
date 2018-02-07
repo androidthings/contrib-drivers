@@ -90,7 +90,7 @@ public class ButtonInputDriver implements AutoCloseable {
      */
     public void register() {
         if (mDevice == null) {
-            throw new IllegalStateException("cannot registered closed driver");
+            throw new IllegalStateException("cannot register closed driver");
         }
         if (mDriver == null) {
             mDriver = build(mDevice, mKeycode);
