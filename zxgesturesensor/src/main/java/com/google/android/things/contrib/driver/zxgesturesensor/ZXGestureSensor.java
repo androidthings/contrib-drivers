@@ -18,7 +18,7 @@ package com.google.android.things.contrib.driver.zxgesturesensor;
 
 import android.os.Handler;
 
-import com.google.android.things.pio.PeripheralManagerService;
+import com.google.android.things.pio.PeripheralManager;
 
 import java.io.IOException;
 
@@ -33,17 +33,17 @@ import java.io.IOException;
 public abstract class ZXGestureSensor implements AutoCloseable {
     protected static final String TAG = "ZXGESTURESENSOR";
 
-    protected PeripheralManagerService pioService;
+    protected PeripheralManager pioService;
 
     protected GestureDetector mGestureDetector;
 
     protected ZXGestureSensor() {
-        pioService = new PeripheralManagerService();
+        pioService = PeripheralManager.getInstance();
         mGestureDetector = new SimpleGestureDetector(null);
     }
 
     protected ZXGestureSensor(Handler handler) {
-        pioService = new PeripheralManagerService();
+        pioService = PeripheralManager.getInstance();
         mGestureDetector = new SimpleGestureDetector(handler);
     }
 

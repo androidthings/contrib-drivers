@@ -1,5 +1,10 @@
 # Change Log
 
+## [0.5] - 2018-02-09
+### Updated
+- update to Android Things devpreview-0.7
+- change manager initialization syntax
+
 ## [0.4] - 2017-08-03
 ### Added
 - Humidity support for the BME280 class of sensors

@@ -23,7 +23,7 @@ import android.view.ViewConfiguration;
 
 import com.google.android.things.pio.Gpio;
 import com.google.android.things.pio.GpioCallback;
-import com.google.android.things.pio.PeripheralManagerService;
+import com.google.android.things.pio.PeripheralManager;
 
 import java.io.IOException;
 
@@ -68,7 +68,7 @@ public class Button implements AutoCloseable {
      * @throws IOException
      */
     public Button(String pin, LogicState logicLevel) throws IOException {
-        PeripheralManagerService pioService = new PeripheralManagerService();
+        PeripheralManager pioService = PeripheralManager.getInstance();
         Gpio buttonGpio = pioService.openGpio(pin);
         try {
             connect(buttonGpio, logicLevel);
@@ -104,7 +104,7 @@ public class Button implements AutoCloseable {
     private GpioCallback mInterruptCallback = new InterruptCallback();
 
     @VisibleForTesting
-    /*package*/ class InterruptCallback extends GpioCallback {
+    /*package*/ class InterruptCallback implements GpioCallback {
         @Override
         public boolean onGpioEdge(Gpio gpio) {
             try {

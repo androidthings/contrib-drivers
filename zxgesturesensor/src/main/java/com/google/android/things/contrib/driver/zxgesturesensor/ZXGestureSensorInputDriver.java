@@ -21,7 +21,7 @@ import android.util.Log;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 
-import com.google.android.things.userdriver.InputDriver;
+import com.google.android.things.userdriver.input.InputDriver;
 import com.google.android.things.userdriver.UserDriverManager;
 
 import java.io.IOException;
@@ -175,7 +175,7 @@ public class ZXGestureSensorInputDriver implements AutoCloseable {
         }
         if (mDriver == null) {
             mDriver = build(mSensor, mKeyMap);
-            UserDriverManager.getManager().registerInputDriver(mDriver);
+            UserDriverManager.getInstance().registerInputDriver(mDriver);
         }
     }
 
@@ -184,7 +184,7 @@ public class ZXGestureSensorInputDriver implements AutoCloseable {
      */
     public void unregister() {
         if (mDriver != null) {
-            UserDriverManager.getManager().unregisterInputDriver(mDriver);
+            UserDriverManager.getInstance().unregisterInputDriver(mDriver);
             mDriver = null;
         }
     }

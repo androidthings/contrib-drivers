@@ -1,4 +1,10 @@
 # Change Log
+
+## [0.6] - 2018-02-09
+### Updated
+- update to Android Things devpreview-0.7
+- change manager initialization syntax
+
 ## [0.5] - 2017-11-20
 - added `setDebounceDelay` to `ButtonInputDriver`
 

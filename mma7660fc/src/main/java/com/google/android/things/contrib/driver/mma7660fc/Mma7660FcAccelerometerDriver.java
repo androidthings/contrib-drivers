@@ -20,9 +20,9 @@ import android.hardware.Sensor;
 import android.hardware.SensorManager;
 
 import com.google.android.things.userdriver.UserDriverManager;
-import com.google.android.things.userdriver.UserSensor;
-import com.google.android.things.userdriver.UserSensorDriver;
-import com.google.android.things.userdriver.UserSensorReading;
+import com.google.android.things.userdriver.sensor.UserSensor;
+import com.google.android.things.userdriver.sensor.UserSensorDriver;
+import com.google.android.things.userdriver.sensor.UserSensorReading;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -78,7 +78,7 @@ public class Mma7660FcAccelerometerDriver implements AutoCloseable {
         }
         if (mUserSensor == null) {
             mUserSensor = build(mDevice);
-            UserDriverManager.getManager().registerSensor(mUserSensor);
+            UserDriverManager.getInstance().registerSensor(mUserSensor);
         }
     }
 
@@ -87,7 +87,7 @@ public class Mma7660FcAccelerometerDriver implements AutoCloseable {
      */
     public void unregister() {
         if (mUserSensor != null) {
-            UserDriverManager.getManager().unregisterSensor(mUserSensor);
+            UserDriverManager.getInstance().unregisterSensor(mUserSensor);
             mUserSensor = null;
         }
     }

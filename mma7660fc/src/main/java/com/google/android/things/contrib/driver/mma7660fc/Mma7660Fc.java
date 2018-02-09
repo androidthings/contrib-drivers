@@ -19,7 +19,7 @@ package com.google.android.things.contrib.driver.mma7660fc;
 import android.support.annotation.IntDef;
 
 import com.google.android.things.pio.I2cDevice;
-import com.google.android.things.pio.PeripheralManagerService;
+import com.google.android.things.pio.PeripheralManager;
 
 import java.io.IOException;
 import java.lang.annotation.Retention;
@@ -89,7 +89,7 @@ public class Mma7660Fc implements AutoCloseable {
      * @throws IOException
      */
     public Mma7660Fc(String bus) throws IOException {
-        PeripheralManagerService pioService = new PeripheralManagerService();
+        PeripheralManager pioService = PeripheralManager.getInstance();
         I2cDevice device = pioService.openI2cDevice(bus, I2C_ADDRESS);
         try {
             connect(device);

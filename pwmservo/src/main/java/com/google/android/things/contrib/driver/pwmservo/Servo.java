@@ -18,7 +18,7 @@ package com.google.android.things.contrib.driver.pwmservo;
 
 import android.support.annotation.VisibleForTesting;
 
-import com.google.android.things.pio.PeripheralManagerService;
+import com.google.android.things.pio.PeripheralManager;
 import com.google.android.things.pio.Pwm;
 
 import java.io.IOException;
@@ -61,7 +61,7 @@ public class Servo implements AutoCloseable {
      * @throws IOException
      */
     public Servo(String pin, double frequencyHz) throws IOException {
-        PeripheralManagerService pioService = new PeripheralManagerService();
+        PeripheralManager pioService = PeripheralManager.getInstance();
         Pwm device = pioService.openPwm(pin);
         try {
             connect(device, frequencyHz);

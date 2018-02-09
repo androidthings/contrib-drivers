@@ -26,7 +26,7 @@ import android.util.Log;
 import com.google.android.things.pio.Gpio;
 import com.google.android.things.pio.GpioCallback;
 import com.google.android.things.pio.I2cDevice;
-import com.google.android.things.pio.PeripheralManagerService;
+import com.google.android.things.pio.PeripheralManager;
 
 import java.io.IOException;
 import java.lang.annotation.Retention;
@@ -194,7 +194,7 @@ public class Cap12xx implements AutoCloseable {
             throws IOException {
         mChipConfiguration = chip;
         try {
-            PeripheralManagerService manager = new PeripheralManagerService();
+            PeripheralManager manager = PeripheralManager.getInstance();
             I2cDevice device = manager.openI2cDevice(i2cName, I2C_ADDRESS);
             Gpio alertPin = null;
             if (alertName != null) {
@@ -517,7 +517,7 @@ public class Cap12xx implements AutoCloseable {
     private GpioCallback mAlertPinCallback = new AlertCallback();
 
     @VisibleForTesting
-    /*package*/ class AlertCallback extends GpioCallback {
+    /*package*/ class AlertCallback implements GpioCallback {
         @Override
         public boolean onGpioEdge(Gpio gpio) {
             handleInterrupt();

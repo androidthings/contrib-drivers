@@ -19,7 +19,7 @@ package com.google.android.things.contrib.driver.vcnl4200;
 import android.support.annotation.IntDef;
 
 import com.google.android.things.pio.I2cDevice;
-import com.google.android.things.pio.PeripheralManagerService;
+import com.google.android.things.pio.PeripheralManager;
 
 import java.io.IOException;
 
@@ -390,7 +390,7 @@ public class Vcnl4200 implements AutoCloseable {
      * @throws IOException
      */
     public Vcnl4200(String bus, Configuration configuration) throws IOException {
-        PeripheralManagerService pioService = new PeripheralManagerService();
+        PeripheralManager pioService = PeripheralManager.getInstance();
         I2cDevice device = pioService.openI2cDevice(bus, I2C_ADDRESS);
         try {
             connect(device, configuration);

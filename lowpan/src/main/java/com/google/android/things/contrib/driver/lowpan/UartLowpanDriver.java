@@ -21,8 +21,8 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.google.android.things.pio.UartDevice;
-import com.google.android.things.userdriver.LowpanDriver;
-import com.google.android.things.userdriver.LowpanDriverCallback;
+import com.google.android.things.userdriver.lowpan.LowpanDriver;
+import com.google.android.things.userdriver.lowpan.LowpanDriverCallback;
 import com.google.android.things.userdriver.UserDriverManager;
 
 import java.io.IOException;
@@ -172,7 +172,7 @@ public class UartLowpanDriver extends LowpanDriver implements AutoCloseable {
      */
     @SuppressWarnings("unused")
     public void register() {
-        final UserDriverManager manager = UserDriverManager.getManager();
+        final UserDriverManager manager = UserDriverManager.getInstance();
         manager.registerLowpanDriver(this);
     }
 
@@ -180,7 +180,7 @@ public class UartLowpanDriver extends LowpanDriver implements AutoCloseable {
      * Unregister this driver with the Android lowpan framework.
      */
     public void unregister() {
-        final UserDriverManager manager = UserDriverManager.getManager();
+        final UserDriverManager manager = UserDriverManager.getInstance();
         manager.unregisterLowpanDriver(this);
     }
 

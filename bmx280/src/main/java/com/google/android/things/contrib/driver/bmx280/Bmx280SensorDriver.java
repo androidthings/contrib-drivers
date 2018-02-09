@@ -19,9 +19,9 @@ package com.google.android.things.contrib.driver.bmx280;
 import android.hardware.Sensor;
 
 import com.google.android.things.userdriver.UserDriverManager;
-import com.google.android.things.userdriver.UserSensor;
-import com.google.android.things.userdriver.UserSensorDriver;
-import com.google.android.things.userdriver.UserSensorReading;
+import com.google.android.things.userdriver.sensor.UserSensor;
+import com.google.android.things.userdriver.sensor.UserSensorDriver;
+import com.google.android.things.userdriver.sensor.UserSensorReading;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -97,7 +97,7 @@ public class Bmx280SensorDriver implements AutoCloseable {
 
         if (mTemperatureUserDriver == null) {
             mTemperatureUserDriver = new TemperatureUserDriver();
-            UserDriverManager.getManager().registerSensor(mTemperatureUserDriver.getUserSensor());
+            UserDriverManager.getInstance().registerSensor(mTemperatureUserDriver.getUserSensor());
         }
     }
 
@@ -112,7 +112,7 @@ public class Bmx280SensorDriver implements AutoCloseable {
 
         if (mPressureUserDriver == null) {
             mPressureUserDriver = new PressureUserDriver();
-            UserDriverManager.getManager().registerSensor(mPressureUserDriver.getUserSensor());
+            UserDriverManager.getInstance().registerSensor(mPressureUserDriver.getUserSensor());
         }
     }
 
@@ -127,7 +127,7 @@ public class Bmx280SensorDriver implements AutoCloseable {
 
         if (mHumidityUserDriver == null) {
             mHumidityUserDriver = new HumidityUserDriver();
-            UserDriverManager.getManager().registerSensor(mHumidityUserDriver.getUserSensor());
+            UserDriverManager.getInstance().registerSensor(mHumidityUserDriver.getUserSensor());
         }
     }
 
@@ -136,7 +136,7 @@ public class Bmx280SensorDriver implements AutoCloseable {
      */
     public void unregisterTemperatureSensor() {
         if (mTemperatureUserDriver != null) {
-            UserDriverManager.getManager().unregisterSensor(mTemperatureUserDriver.getUserSensor());
+            UserDriverManager.getInstance().unregisterSensor(mTemperatureUserDriver.getUserSensor());
             mTemperatureUserDriver = null;
         }
     }
@@ -146,7 +146,7 @@ public class Bmx280SensorDriver implements AutoCloseable {
      */
     public void unregisterPressureSensor() {
         if (mPressureUserDriver != null) {
-            UserDriverManager.getManager().unregisterSensor(mPressureUserDriver.getUserSensor());
+            UserDriverManager.getInstance().unregisterSensor(mPressureUserDriver.getUserSensor());
             mPressureUserDriver = null;
         }
     }
@@ -156,7 +156,7 @@ public class Bmx280SensorDriver implements AutoCloseable {
      */
     public void unregisterHumiditySensor() {
         if (mHumidityUserDriver != null) {
-            UserDriverManager.getManager().unregisterSensor(mHumidityUserDriver.getUserSensor());
+            UserDriverManager.getInstance().unregisterSensor(mHumidityUserDriver.getUserSensor());
             mHumidityUserDriver = null;
         }
     }
@@ -171,7 +171,7 @@ public class Bmx280SensorDriver implements AutoCloseable {
         }
     }
 
-    private class PressureUserDriver extends UserSensorDriver {
+    private class PressureUserDriver implements UserSensorDriver {
         // DRIVER parameters
         // documented at https://source.android.com/devices/sensors/hal-interface.html#sensor_t
         private static final float DRIVER_MAX_RANGE = Bmx280.MAX_PRESSURE_HPA;
@@ -220,7 +220,7 @@ public class Bmx280SensorDriver implements AutoCloseable {
         }
     }
 
-    private class TemperatureUserDriver extends UserSensorDriver {
+    private class TemperatureUserDriver implements UserSensorDriver {
         // DRIVER parameters
         // documented at https://source.android.com/devices/sensors/hal-interface.html#sensor_t
         private static final float DRIVER_MAX_RANGE = Bmx280.MAX_TEMP_C;
@@ -269,7 +269,7 @@ public class Bmx280SensorDriver implements AutoCloseable {
         }
     }
 
-    private class HumidityUserDriver extends UserSensorDriver {
+    private class HumidityUserDriver implements UserSensorDriver {
         // DRIVER parameters
         // documented at https://source.android.com/devices/sensors/hal-interface.html#sensor_t
         private static final float DRIVER_MAX_RANGE = Bmx280.MAX_HUM_RH;

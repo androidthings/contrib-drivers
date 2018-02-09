@@ -22,7 +22,7 @@ import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 
 import com.google.android.things.pio.I2cDevice;
-import com.google.android.things.pio.PeripheralManagerService;
+import com.google.android.things.pio.PeripheralManager;
 
 import java.io.IOException;
 
@@ -43,7 +43,7 @@ public class LedMatrix implements AutoCloseable {
      * @throws IOException
      */
     public LedMatrix(String bus) throws IOException {
-        PeripheralManagerService pioService = new PeripheralManagerService();
+        PeripheralManager pioService = PeripheralManager.getInstance();
         mDevice = pioService.openI2cDevice(bus, SenseHat.I2C_ADDRESS);
     }
 

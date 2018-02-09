@@ -5,7 +5,7 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.util.Log;
 import com.google.android.things.pio.Gpio;
-import com.google.android.things.pio.PeripheralManagerService;
+import com.google.android.things.pio.PeripheralManager;
 import java.io.IOException;
 
 public class MatrixKeypad implements AutoCloseable {
@@ -64,7 +64,7 @@ public class MatrixKeypad implements AutoCloseable {
 
     public MatrixKeypad(String[] rowPins, String[] colPins, int[] keyCodes,
             Handler handler) throws IOException {
-        PeripheralManagerService pioService = new PeripheralManagerService();
+        PeripheralManager pioService = PeripheralManager.getInstance();
         mGpioRows = new Gpio[rowPins.length];
         mGpioCols = new Gpio[colPins.length];
         mKeyCodes = keyCodes;

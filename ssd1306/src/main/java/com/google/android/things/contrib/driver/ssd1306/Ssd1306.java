@@ -19,7 +19,7 @@ package com.google.android.things.contrib.driver.ssd1306;
 import android.graphics.Bitmap;
 
 import com.google.android.things.pio.I2cDevice;
-import com.google.android.things.pio.PeripheralManagerService;
+import com.google.android.things.pio.PeripheralManager;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -145,7 +145,7 @@ public class Ssd1306 implements Closeable {
      * @throws IOException
      */
     public Ssd1306(String i2cName, int i2cAddress, int width, int height) throws IOException {
-        I2cDevice device = new PeripheralManagerService().openI2cDevice(i2cName, i2cAddress);
+        I2cDevice device = PeripheralManager.getInstance().openI2cDevice(i2cName, i2cAddress);
         try {
             init(device, width, height);
         } catch (IOException | RuntimeException e) {

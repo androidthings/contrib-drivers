@@ -19,7 +19,7 @@ package com.google.android.things.contrib.driver.apa102;
 import android.graphics.Color;
 import android.support.annotation.VisibleForTesting;
 
-import com.google.android.things.pio.PeripheralManagerService;
+import com.google.android.things.pio.PeripheralManager;
 import com.google.android.things.pio.SpiDevice;
 
 import java.io.IOException;
@@ -118,7 +118,7 @@ public class Apa102 implements AutoCloseable {
     public Apa102(String spiBusPort, Mode ledMode, Direction direction) throws IOException {
         mLedMode = ledMode;
         mDirection = direction;
-        PeripheralManagerService pioService = new PeripheralManagerService();
+        PeripheralManager pioService = PeripheralManager.getInstance();
         mDevice = pioService.openSpiDevice(spiBusPort);
         try {
             configure(mDevice);

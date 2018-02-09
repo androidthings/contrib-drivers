@@ -22,7 +22,7 @@ import android.location.LocationManager;
 import android.os.Handler;
 import android.support.annotation.VisibleForTesting;
 
-import com.google.android.things.userdriver.GpsDriver;
+import com.google.android.things.userdriver.location.GpsDriver;
 import com.google.android.things.userdriver.UserDriverManager;
 
 import java.io.IOException;
@@ -146,7 +146,7 @@ public class NmeaGpsDriver implements AutoCloseable {
      */
     public void register() {
         if (mDriver == null) {
-            UserDriverManager manager = UserDriverManager.getManager();
+            UserDriverManager manager = UserDriverManager.getInstance();
             mDriver = new GpsDriver();
             manager.registerGpsDriver(mDriver);
         }
@@ -157,7 +157,7 @@ public class NmeaGpsDriver implements AutoCloseable {
      */
     public void unregister() {
         if (mDriver != null) {
-            UserDriverManager manager = UserDriverManager.getManager();
+            UserDriverManager manager = UserDriverManager.getInstance();
             manager.unregisterGpsDriver();
             mDriver = null;
         }

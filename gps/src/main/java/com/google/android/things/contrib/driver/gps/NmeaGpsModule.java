@@ -20,7 +20,7 @@ import android.os.Handler;
 import android.support.annotation.VisibleForTesting;
 import android.util.Log;
 
-import com.google.android.things.pio.PeripheralManagerService;
+import com.google.android.things.pio.PeripheralManager;
 import com.google.android.things.pio.UartDevice;
 import com.google.android.things.pio.UartDeviceCallback;
 
@@ -59,7 +59,7 @@ public class NmeaGpsModule implements AutoCloseable {
      */
     public NmeaGpsModule(String uartName, int baudRate, Handler handler) throws IOException {
         try {
-            PeripheralManagerService manager = new PeripheralManagerService();
+            PeripheralManager manager = PeripheralManager.getInstance();
             UartDevice device = manager.openUartDevice(uartName);
             init(device, baudRate, handler);
         } catch (IOException | RuntimeException e) {

@@ -20,7 +20,7 @@ import android.view.InputDevice;
 import android.view.KeyEvent;
 import com.google.android.things.contrib.driver.matrixkeypad.MatrixKeypad.OnKeyEventListener;
 import com.google.android.things.pio.Gpio;
-import com.google.android.things.userdriver.InputDriver;
+import com.google.android.things.userdriver.input.InputDriver;
 import com.google.android.things.userdriver.UserDriverManager;
 import java.io.IOException;
 
@@ -85,7 +85,7 @@ public class MatrixKeypadInputDriver implements AutoCloseable {
                     .setVersion(DEVICE_VERSION)
                     .setKeys(mKeyCodes)
                     .build();
-            UserDriverManager.getManager().registerInputDriver(mInputDriver);
+            UserDriverManager.getInstance().registerInputDriver(mInputDriver);
         }
     }
 
@@ -109,7 +109,7 @@ public class MatrixKeypadInputDriver implements AutoCloseable {
 
     public void unregister() {
         if (mInputDriver != null) {
-            UserDriverManager.getManager().unregisterInputDriver(mInputDriver);
+            UserDriverManager.getInstance().unregisterInputDriver(mInputDriver);
             mInputDriver = null;
         }
     }

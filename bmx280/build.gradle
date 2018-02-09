@@ -29,10 +29,10 @@ android {
 }
 
 dependencies {
-    compileOnly 'com.google.android.things:androidthings:0.6-devpreview'
+    compileOnly 'com.google.android.things:androidthings:0.7-devpreview'
     implementation 'com.android.support:support-annotations:24.2.0'
 
-    testImplementation 'com.google.android.things:androidthings:0.6-devpreview'
+    testImplementation 'com.google.android.things:androidthings:0.7-devpreview'
     testImplementation project(':testingutils')
     testImplementation 'junit:junit:4.12'
     testImplementation 'org.mockito:mockito-core:1.10.19'

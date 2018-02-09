@@ -20,7 +20,7 @@ import android.support.annotation.IntDef;
 import android.support.annotation.VisibleForTesting;
 
 import com.google.android.things.pio.I2cDevice;
-import com.google.android.things.pio.PeripheralManagerService;
+import com.google.android.things.pio.PeripheralManager;
 
 import java.io.IOException;
 import java.lang.annotation.Retention;
@@ -187,7 +187,7 @@ public class Bmx280 implements AutoCloseable {
      * @throws IOException
      */
     public Bmx280(String bus, int address) throws IOException {
-        PeripheralManagerService pioService = new PeripheralManagerService();
+        PeripheralManager pioService = PeripheralManager.getInstance();
         I2cDevice device = pioService.openI2cDevice(bus, address);
         try {
             connect(device);

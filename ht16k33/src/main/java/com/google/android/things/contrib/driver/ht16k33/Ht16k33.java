@@ -19,7 +19,7 @@ package com.google.android.things.contrib.driver.ht16k33;
 import android.support.annotation.VisibleForTesting;
 
 import com.google.android.things.pio.I2cDevice;
-import com.google.android.things.pio.PeripheralManagerService;
+import com.google.android.things.pio.PeripheralManager;
 
 import java.io.IOException;
 
@@ -52,7 +52,7 @@ public class Ht16k33 implements AutoCloseable {
      * @param bus
      */
     public Ht16k33(String bus) throws IOException {
-        PeripheralManagerService pioService = new PeripheralManagerService();
+        PeripheralManager pioService = PeripheralManager.getInstance();
         I2cDevice device = pioService.openI2cDevice(bus, I2C_ADDRESS);
         connect(device);
     }

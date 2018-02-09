@@ -17,7 +17,7 @@
 package com.google.android.things.contrib.driver.adcv2x;
 
 import com.google.android.things.pio.I2cDevice;
-import com.google.android.things.pio.PeripheralManagerService;
+import com.google.android.things.pio.PeripheralManager;
 
 import java.io.IOException;
 
@@ -77,7 +77,7 @@ public class Adcv2x implements AutoCloseable {
      *
      * @param bus I2C Bus Address. Typically the default "I2C1", stored as {@link #DEFAULT_BUS},
      *            but could be something else. Find what's connected with
-     *            {@link PeripheralManagerService#getI2cBusList()}.
+     *            {@link PeripheralManager#getI2cBusList()}.
      *
      * @param address The closed address jumper on the back of the board. Useful for connecting
      *                multiple boards. Use the static ints enclosed in this class.
@@ -88,7 +88,7 @@ public class Adcv2x implements AutoCloseable {
      * @throws IOException Connection error
      */
     public Adcv2x(String bus, int address) throws IOException {
-        PeripheralManagerService pioService = new PeripheralManagerService();
+        PeripheralManager pioService = PeripheralManager.getInstance();
         I2cDevice device = pioService.openI2cDevice(bus, address);
 
         try {

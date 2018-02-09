@@ -142,11 +142,6 @@ public class ZXGestureSensorUart extends ZXGestureSensor {
             }
             return true;
         }
-
-        @Override
-        public void onUartDeviceError(UartDevice uart, int error) {
-            super.onUartDeviceError(uart, error);
-        }
     };
 
     /**

@@ -20,9 +20,9 @@ import android.hardware.Sensor;
 
 import com.google.android.things.contrib.driver.vcnl4200.Vcnl4200.Configuration;
 import com.google.android.things.userdriver.UserDriverManager;
-import com.google.android.things.userdriver.UserSensor;
-import com.google.android.things.userdriver.UserSensorDriver;
-import com.google.android.things.userdriver.UserSensorReading;
+import com.google.android.things.userdriver.sensor.UserSensor;
+import com.google.android.things.userdriver.sensor.UserSensorDriver;
+import com.google.android.things.userdriver.sensor.UserSensorReading;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -71,7 +71,7 @@ public class Vcnl4200SensorDriver implements AutoCloseable {
 
         if (mProximityUserDriver == null) {
             mProximityUserDriver = new ProximityUserDriver();
-            UserDriverManager.getManager().registerSensor(mProximityUserDriver.getUserSensor());
+            UserDriverManager.getInstance().registerSensor(mProximityUserDriver.getUserSensor());
         }
     }
 
@@ -80,7 +80,7 @@ public class Vcnl4200SensorDriver implements AutoCloseable {
      */
     public void unregisterProximitySensor() {
         if (mProximityUserDriver != null) {
-            UserDriverManager.getManager().unregisterSensor(mProximityUserDriver.getUserSensor());
+            UserDriverManager.getInstance().unregisterSensor(mProximityUserDriver.getUserSensor());
             mProximityUserDriver = null;
         }
     }
@@ -96,7 +96,7 @@ public class Vcnl4200SensorDriver implements AutoCloseable {
 
         if (mAmbientLightUserDriver == null) {
             mAmbientLightUserDriver = new AmbientLightUserDriver();
-            UserDriverManager.getManager().registerSensor(mAmbientLightUserDriver.getUserSensor());
+            UserDriverManager.getInstance().registerSensor(mAmbientLightUserDriver.getUserSensor());
         }
     }
 
@@ -105,12 +105,12 @@ public class Vcnl4200SensorDriver implements AutoCloseable {
      */
     public void unregisterAmbientLightSensor() {
         if (mAmbientLightUserDriver != null) {
-            UserDriverManager.getManager().unregisterSensor(mAmbientLightUserDriver.getUserSensor());
+            UserDriverManager.getInstance().unregisterSensor(mAmbientLightUserDriver.getUserSensor());
             mAmbientLightUserDriver = null;
         }
     }
 
-    private class ProximityUserDriver extends UserSensorDriver {
+    private class ProximityUserDriver implements UserSensorDriver {
         private static final float DRIVER_POWER = 800; // Max IRED driving current.
         private static final float DRIVER_RESOLUTION = 1.0f;  // Driver reports integer values
         private static final int DRIVER_MIN_DELAY_US = 5 * 1000; // For 1/160 duty cycle
@@ -157,7 +157,7 @@ public class Vcnl4200SensorDriver implements AutoCloseable {
         }
     }
 
-    private class AmbientLightUserDriver extends UserSensorDriver {
+    private class AmbientLightUserDriver implements UserSensorDriver {
         private static final float DRIVER_POWER = 1; // ALS power consumption is around 213 uA.
         // The min and max delay for measurements is affected by the configured integration time.
         private static final int DRIVER_MIN_DELAY_US = 80 * 1000;

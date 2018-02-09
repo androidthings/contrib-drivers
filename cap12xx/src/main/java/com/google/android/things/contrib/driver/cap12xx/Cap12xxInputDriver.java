@@ -24,7 +24,7 @@ import android.view.InputDevice;
 import android.view.KeyEvent;
 
 import com.google.android.things.contrib.driver.cap12xx.Cap12xx.Configuration;
-import com.google.android.things.userdriver.InputDriver;
+import com.google.android.things.userdriver.input.InputDriver;
 import com.google.android.things.userdriver.UserDriverManager;
 
 import java.io.IOException;
@@ -211,7 +211,7 @@ public class Cap12xxInputDriver implements AutoCloseable {
      */
     public void register() {
         if (mInputDriver == null) {
-            UserDriverManager manager = UserDriverManager.getManager();
+            UserDriverManager manager = UserDriverManager.getInstance();
             mInputDriver = buildInputDriver();
             manager.registerInputDriver(mInputDriver);
         }
@@ -222,7 +222,7 @@ public class Cap12xxInputDriver implements AutoCloseable {
      */
     public void unregister() {
         if (mInputDriver != null) {
-            UserDriverManager manager = UserDriverManager.getManager();
+            UserDriverManager manager = UserDriverManager.getInstance();
             manager.unregisterInputDriver(mInputDriver);
             mInputDriver = null;
         }

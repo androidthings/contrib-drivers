@@ -19,7 +19,7 @@ import android.support.annotation.IntDef;
 import android.support.annotation.VisibleForTesting;
 
 import com.google.android.things.pio.I2cDevice;
-import com.google.android.things.pio.PeripheralManagerService;
+import com.google.android.things.pio.PeripheralManager;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -77,7 +77,7 @@ public class MotorHat implements AutoCloseable {
     }
 
     public MotorHat(String i2cBusName, int i2cAddress) throws IOException {
-        PeripheralManagerService pioService = new PeripheralManagerService();
+        PeripheralManager pioService = PeripheralManager.getInstance();
         I2cDevice device = pioService.openI2cDevice(i2cBusName, i2cAddress);
         try {
             initialize(device);

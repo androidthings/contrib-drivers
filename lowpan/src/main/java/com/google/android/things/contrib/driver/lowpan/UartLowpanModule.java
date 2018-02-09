@@ -21,18 +21,18 @@ import android.support.annotation.Nullable;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
-import com.google.android.things.pio.PeripheralManagerService;
+import com.google.android.things.pio.PeripheralManager;
 import com.google.android.things.pio.UartDevice;
 import com.google.android.things.pio.UartDeviceCallback;
-import com.google.android.things.userdriver.LowpanDriverCallback;
+import com.google.android.things.userdriver.lowpan.LowpanDriverCallback;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
-import static com.google.android.things.userdriver.LowpanDriver.ERROR_IOFAIL;
-import static com.google.android.things.userdriver.LowpanDriver.ERROR_GARBAGE;
-import static com.google.android.things.userdriver.LowpanDriver.ERROR_TOOBIG;
+import static com.google.android.things.userdriver.lowpan.LowpanDriver.ERROR_IOFAIL;
+import static com.google.android.things.userdriver.lowpan.LowpanDriver.ERROR_GARBAGE;
+import static com.google.android.things.userdriver.lowpan.LowpanDriver.ERROR_TOOBIG;
 
 /**
  * Peripheral that transmits spinel frames transmitted
@@ -122,7 +122,7 @@ public class UartLowpanModule implements AutoCloseable {
         mBaudRate = baudRate;
         mUnexpectedCloseListener = unexpectedCloseListener;
 
-        final PeripheralManagerService manager = new PeripheralManagerService();
+        final PeripheralManager manager = PeripheralManager.getInstance();
 
         resetFrameState();
 

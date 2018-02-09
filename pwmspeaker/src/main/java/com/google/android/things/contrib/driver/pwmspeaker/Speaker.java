@@ -18,7 +18,7 @@ package com.google.android.things.contrib.driver.pwmspeaker;
 
 import android.support.annotation.VisibleForTesting;
 
-import com.google.android.things.pio.PeripheralManagerService;
+import com.google.android.things.pio.PeripheralManager;
 import com.google.android.things.pio.Pwm;
 
 import java.io.IOException;
@@ -32,7 +32,7 @@ public class Speaker implements AutoCloseable {
      * Create a Speaker connected to the given PWM pin name
      */
     public Speaker(String pin) throws IOException {
-        PeripheralManagerService pioService = new PeripheralManagerService();
+        PeripheralManager pioService = PeripheralManager.getInstance();
         Pwm device = pioService.openPwm(pin);
         try {
             connect(device);

@@ -42,7 +42,7 @@
 package com.google.android.things.contrib.driver.tm1637;
 
 import com.google.android.things.pio.Gpio;
-import com.google.android.things.pio.PeripheralManagerService;
+import com.google.android.things.pio.PeripheralManager;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -54,7 +54,7 @@ class I2cBitBangDevice implements Closeable {
 
     public I2cBitBangDevice(int i2cAddress, String pinData, String pinClock) throws IOException {
         mAddress = i2cAddress;
-        PeripheralManagerService pioService = new PeripheralManagerService();
+        PeripheralManager pioService = PeripheralManager.getInstance();
         try {
             mData = pioService.openGpio(pinData);
             mData.setDirection(Gpio.DIRECTION_OUT_INITIALLY_LOW);

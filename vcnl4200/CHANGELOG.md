@@ -5,5 +5,5 @@
 - update to Android Things devpreview-0.7
 - change manager initialization syntax
 
-## [0.1] - 2017-11-27
-- initial version with support for DC motors
+## [0.1] - 2017-10-05
+- initial version
