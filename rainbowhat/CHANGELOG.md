@@ -1,5 +1,10 @@
 # Change Log
 
+## [0.10] - 2018-02-09
+### Updated
+- update to Android Things devpreview-0.7
+- change manager initialization syntax
+
 ## [0.9] - 2017-12-18
 ### Updated
 - updates dependencies

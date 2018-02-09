@@ -18,7 +18,7 @@ package com.google.android.things.contrib.driver.voicehat;
 
 import android.support.annotation.VisibleForTesting;
 import com.google.android.things.pio.Gpio;
-import com.google.android.things.pio.PeripheralManagerService;
+import com.google.android.things.pio.PeripheralManager;
 import java.io.IOException;
 
 /**
@@ -54,7 +54,7 @@ public class Max98357A implements AutoCloseable {
      * @param gainSlot The name for the GAIN_SLOT pin
      */
     public Max98357A(String notSdMode, String gainSlot) throws IOException {
-        PeripheralManagerService pioService = new PeripheralManagerService();
+        PeripheralManager pioService = PeripheralManager.getInstance();
         if (notSdMode != null) {
             mNotSdModeGpio = pioService.openGpio(notSdMode);
             mNotSdModeGpio.setDirection(Gpio.DIRECTION_OUT_INITIALLY_LOW);

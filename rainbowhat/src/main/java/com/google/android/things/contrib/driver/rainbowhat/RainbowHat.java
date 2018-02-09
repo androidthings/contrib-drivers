@@ -27,7 +27,7 @@ import com.google.android.things.contrib.driver.ht16k33.AlphanumericDisplay;
 import com.google.android.things.contrib.driver.pwmservo.Servo;
 import com.google.android.things.contrib.driver.pwmspeaker.Speaker;
 import com.google.android.things.pio.Gpio;
-import com.google.android.things.pio.PeripheralManagerService;
+import com.google.android.things.pio.PeripheralManager;
 
 import java.io.IOException;
 
@@ -135,7 +135,7 @@ public class RainbowHat {
         return openLed(BOARD.getLedB());
     }
     public static Gpio openLed(String pin) throws IOException {
-        PeripheralManagerService pioService = new PeripheralManagerService();
+        PeripheralManager pioService = PeripheralManager.getInstance();
         Gpio ledGpio = pioService.openGpio(pin);
         ledGpio.setDirection(Gpio.DIRECTION_OUT_INITIALLY_LOW);
         return ledGpio;

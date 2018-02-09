@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.7] - 2018-02-09
+### Updated
+- update to Android Things devpreview-0.7
+- change manager initialization syntax
+
 ## [0.6] - 2017-12-11
 - republish using proper gradle to maven dependency graph conversion
 

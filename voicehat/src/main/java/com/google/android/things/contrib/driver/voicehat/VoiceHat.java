@@ -21,7 +21,7 @@ import com.google.android.things.contrib.driver.button.Button;
 import com.google.android.things.contrib.driver.button.Button.LogicState;
 import com.google.android.things.contrib.driver.button.ButtonInputDriver;
 import com.google.android.things.pio.Gpio;
-import com.google.android.things.pio.PeripheralManagerService;
+import com.google.android.things.pio.PeripheralManager;
 import java.io.IOException;
 
 /**
@@ -87,7 +87,7 @@ public class VoiceHat {
      * @return LED on the VoiceHat
      */
     public static Gpio openLed(String ledGpioPin) throws IOException {
-        PeripheralManagerService pioService = new PeripheralManagerService();
+        PeripheralManager pioService = PeripheralManager.getInstance();
         Gpio led = pioService.openGpio(ledGpioPin);
         led.setDirection(Gpio.DIRECTION_OUT_INITIALLY_LOW);
         return led;
