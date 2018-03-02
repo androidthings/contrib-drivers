@@ -66,9 +66,6 @@ This keypad has four rows and three columns. We will provide arrays correspondin
 the pins for each column, and the keycodes for each button. The keycodes should be entered from
 left-to-right, top-to-bottom.
 
-Note that due to [a current bug](https://issuetracker.google.com/issues/63321348), the POUND key
-will not be emitted, so that button will be represented in this example by NUMPAD_ENTER.
-
 ```java
 // Start keypad.
 mMatrixKeypadDriver = new MatrixKeypadDriver(
