@@ -28,12 +28,24 @@ public class AlphanumericDisplay extends Ht16k33 {
     private ByteBuffer mBuffer = ByteBuffer.allocate(8);
 
     /**
-     * Create a new driver for a HT16K33 based alphanumeric display connected on the given I2C bus.
+     * Create a new driver for a HT16K33 based alphanumeric display connected on the given I2C bus
+     * using the {@link Ht16k33#I2C_ADDRESS default I2C address}.
      * @param bus
      * @throws IOException
      */
     public AlphanumericDisplay(String bus) throws IOException {
         super(bus);
+    }
+
+    /**
+     * Create a new driver for a HT16K33 based alphanumeric display connected on the given I2C bus
+     * and using the given I2C address.
+     * @param bus
+     * @param i2cAddress
+     * @throws IOException
+     */
+    public AlphanumericDisplay(String bus, int i2cAddress) throws IOException {
+        super(bus, i2cAddress);
     }
 
     /**

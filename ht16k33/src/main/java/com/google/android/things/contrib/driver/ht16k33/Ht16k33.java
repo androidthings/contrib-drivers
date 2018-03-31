@@ -28,7 +28,7 @@ public class Ht16k33 implements AutoCloseable {
     private static final String TAG = Ht16k33.class.getSimpleName();
 
     /**
-     * I2C slave address.
+     * Default I2C slave address.
      */
     public static final int I2C_ADDRESS = 0x70;
 
@@ -48,12 +48,23 @@ public class Ht16k33 implements AutoCloseable {
     private I2cDevice mDevice;
 
     /**
-     * Create a new driver for a HT16K33 peripheral connected on the given I2C bus.
+     * Create a new driver for a HT16K33 peripheral connected on the given I2C bus using the
+     * {@link #I2C_ADDRESS default I2C address}.
      * @param bus
      */
     public Ht16k33(String bus) throws IOException {
+        this(bus, I2C_ADDRESS);
+    }
+
+    /**
+     * Create a new driver for a HT16K33 peripheral connected on the given I2C bus and using the
+     * given I2C address.
+     * @param bus
+     * @param i2cAddress
+     */
+    public Ht16k33(String bus, int i2cAddress) throws IOException {
         PeripheralManager pioService = PeripheralManager.getInstance();
-        I2cDevice device = pioService.openI2cDevice(bus, I2C_ADDRESS);
+        I2cDevice device = pioService.openI2cDevice(bus, i2cAddress);
         connect(device);
     }
 
