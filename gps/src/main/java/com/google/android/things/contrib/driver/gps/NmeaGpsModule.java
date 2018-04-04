@@ -45,9 +45,10 @@ public class NmeaGpsModule implements AutoCloseable {
      *
      * @param uartName UART port name where the module is attached. Cannot be null.
      * @param baudRate Baud rate used for the module UART.
+     * @param accuracy specified accuracy, in meters CEP.
      */
-    public NmeaGpsModule(String uartName, int baudRate) throws IOException {
-        this(uartName, baudRate, null);
+    public NmeaGpsModule(String uartName, int baudRate, float accuracy) throws IOException {
+        this(uartName, baudRate, accuracy, null);
     }
 
     /**
@@ -55,13 +56,14 @@ public class NmeaGpsModule implements AutoCloseable {
      *
      * @param uartName UART port name where the module is attached. Cannot be null.
      * @param baudRate Baud rate used for the module UART.
+     * @param accuracy specified accuracy, in meters CEP.
      * @param handler optional {@link Handler} for software polling and callback events.
      */
-    public NmeaGpsModule(String uartName, int baudRate, Handler handler) throws IOException {
+    public NmeaGpsModule(String uartName, int baudRate, float accuracy, Handler handler) throws IOException {
         try {
             PeripheralManager manager = PeripheralManager.getInstance();
             UartDevice device = manager.openUartDevice(uartName);
-            init(device, baudRate, handler);
+            init(device, baudRate, accuracy, handler);
         } catch (IOException | RuntimeException e) {
             close();
             throw e;
@@ -72,29 +74,20 @@ public class NmeaGpsModule implements AutoCloseable {
      * Constructor invoked from unit tests.
      */
     @VisibleForTesting
-    /*package*/ NmeaGpsModule(UartDevice device, int baudRate,
+    /*package*/ NmeaGpsModule(UartDevice device, int baudRate, float accuracy,
                               Handler handler) throws IOException {
-        init(device, baudRate, handler);
+        init(device, baudRate, accuracy, handler);
     }
 
     /**
      * Initialize peripheral defaults from the constructor.
      */
-    private void init(UartDevice device, int baudRate, Handler handler) throws IOException {
+    private void init(UartDevice device, int baudRate, float accuracy, Handler handler) throws IOException {
         mDevice = device;
         mDevice.setBaudrate(baudRate);
-        mDevice.registerUartDeviceCallback(mCallback, handler);
-
-        mParser = new NmeaParser();
-    }
-
-    /**
-     * Provide the measured accuracy from the GPS module specification.
-     *
-     * @param accuracy specified accuracy, in meters CEP.
-     */
-    public void setGpsAccuracy(float accuracy) {
+        mDevice.registerUartDeviceCallback(handler, mCallback);
         mGpsAccuracy = accuracy;
+        mParser = new NmeaParser(accuracy);
     }
 
     /**

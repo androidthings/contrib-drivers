@@ -1,5 +1,10 @@
 # Change Log
 
+## [0.6] - 2018-04-12
+### Updated
+- update to Android Things devpreview-0.8
+- add callbacks for NMEA and status
+
 ## [0.5] - 2018-02-09
 ### Updated
 - update to Android Things devpreview-0.7

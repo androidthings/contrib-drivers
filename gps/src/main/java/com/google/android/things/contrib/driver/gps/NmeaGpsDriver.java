@@ -17,12 +17,12 @@
 package com.google.android.things.contrib.driver.gps;
 
 import android.content.Context;
+import android.location.GnssStatus;
 import android.location.Location;
-import android.location.LocationManager;
 import android.os.Handler;
 import android.support.annotation.VisibleForTesting;
 
-import com.google.android.things.userdriver.location.GpsDriver;
+import com.google.android.things.userdriver.location.GnssDriver;
 import com.google.android.things.userdriver.UserDriverManager;
 
 import java.io.IOException;
@@ -32,10 +32,9 @@ import java.io.IOException;
  * GPS module and forward events to the Android location framework.
  */
 @SuppressWarnings("WeakerAccess")
-public class NmeaGpsDriver implements AutoCloseable {
+public class NmeaGpsDriver extends GnssDriver implements AutoCloseable {
 
     private Context mContext;
-    private GpsDriver mDriver;
     private NmeaGpsModule mGpsModule;
 
     /**
@@ -64,8 +63,8 @@ public class NmeaGpsDriver implements AutoCloseable {
      */
     public NmeaGpsDriver(Context context, String uartName, int baudRate,
                          float accuracy, Handler handler) throws IOException {
-        NmeaGpsModule module = new NmeaGpsModule(uartName, baudRate, handler);
-        init(context, module, accuracy);
+        NmeaGpsModule module = new NmeaGpsModule(uartName, baudRate, accuracy, handler);
+        init(context, module);
     }
 
     /**
@@ -73,16 +72,15 @@ public class NmeaGpsDriver implements AutoCloseable {
      */
     @VisibleForTesting
     /*package*/ NmeaGpsDriver(Context context, NmeaGpsModule module) throws IOException {
-        init(context, module, module.getGpsAccuracy());
+        init(context, module);
     }
 
     /**
      * Initialize peripherals from the constructor.
      */
-    private void init(Context context, NmeaGpsModule module, float accuracy) {
+    private void init(Context context, NmeaGpsModule module) {
         mContext = context.getApplicationContext();
         mGpsModule = module;
-        mGpsModule.setGpsAccuracy(accuracy);
         mGpsModule.setGpsModuleCallback(mCallback);
     }
 
@@ -90,54 +88,23 @@ public class NmeaGpsDriver implements AutoCloseable {
      * Callback invoked by the GPS module when new data
      * arrives over the UART.
      */
-    private Location mLastKnownLocation = new Location(LocationManager.GPS_PROVIDER);
     private GpsModuleCallback mCallback = new GpsModuleCallback() {
         @Override
-        public void onGpsSatelliteStatus(boolean active, int satellites) { }
+        public void onGpsSatelliteStatus(GnssStatus status) {
+            reportStatus(status);
+        }
 
         @Override
         public void onGpsTimeUpdate(long timestamp) { }
 
         @Override
-        public void onGpsPositionUpdate(long timestamp,
-                                        double latitude, double longitude, double altitude) {
-            if (mDriver != null) {
-                mLastKnownLocation.setTime(timestamp);
-                // We cannot compute accuracy from NMEA data alone.
-                // Assume that a valid fix has the quoted accuracy of the module.
-                // Framework requires accuracy in DRMS.
-                mLastKnownLocation.setAccuracy(mGpsModule.getGpsAccuracy() * 1.2f);
-
-
-                mLastKnownLocation.setLatitude(latitude);
-                mLastKnownLocation.setLongitude(longitude);
-                if (altitude != -1) {
-                    mLastKnownLocation.setAltitude(altitude);
-                } else {
-                    mLastKnownLocation.removeAltitude();
-                }
-                mLastKnownLocation.removeSpeed();
-                mLastKnownLocation.removeBearing();
-
-                // Is the location update ready to send?
-                if (mLastKnownLocation.hasAccuracy() && mLastKnownLocation.getTime() != 0) {
-                    mDriver.reportLocation(mLastKnownLocation);
-                }
-            }
+        public void onGpsLocationUpdate(Location location) {
+            reportLocation(location);
         }
 
-
         @Override
-        public void onGpsSpeedUpdate(float speed, float bearing) {
-            if (mDriver != null) {
-                mLastKnownLocation.setSpeed(speed);
-                mLastKnownLocation.setBearing(bearing);
-
-                // Is the location update ready to send?
-                if (mLastKnownLocation.hasAccuracy() && mLastKnownLocation.getTime() != 0) {
-                    mDriver.reportLocation(mLastKnownLocation);
-                }
-            }
+        public void onNmeaMessage(String nmeaMessage) {
+            reportNmea(nmeaMessage);
         }
     };
 
@@ -145,22 +112,16 @@ public class NmeaGpsDriver implements AutoCloseable {
      * Register this driver with the Android location framework.
      */
     public void register() {
-        if (mDriver == null) {
-            UserDriverManager manager = UserDriverManager.getInstance();
-            mDriver = new GpsDriver();
-            manager.registerGpsDriver(mDriver);
-        }
+        UserDriverManager manager = UserDriverManager.getInstance();
+        manager.registerGnssDriver(this);
     }
 
     /**
      * Unregister this driver with the Android location framework.
      */
     public void unregister() {
-        if (mDriver != null) {
-            UserDriverManager manager = UserDriverManager.getInstance();
-            manager.unregisterGpsDriver();
-            mDriver = null;
-        }
+        UserDriverManager manager = UserDriverManager.getInstance();
+        manager.unregisterGnssDriver();
     }
 
     /**

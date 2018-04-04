@@ -16,6 +16,9 @@
 
 package com.google.android.things.contrib.driver.gps;
 
+import android.location.GnssStatus;
+import android.location.Location;
+
 /**
  * Callback invoked when new data is emitted from a
  * GPS module.
@@ -24,11 +27,9 @@ public abstract class GpsModuleCallback {
     /**
      * Callback reporting GPS satellite status.
      *
-     * @param active true if module has locked enough satellites to get a fix,
-     *               false otherwise.
-     * @param satellites Number of satellites the module has locked.
+     * @param status Latest status information from GPS module.
      */
-    public abstract void onGpsSatelliteStatus(boolean active, int satellites);
+    public abstract void onGpsSatelliteStatus(GnssStatus status);
 
     /**
      * Callback reporting an updated date/time from
@@ -41,19 +42,14 @@ public abstract class GpsModuleCallback {
     /**
      * Callback reporting a location fix from the GPS module.
      *
-     * @param timestamp Timestamp of the fix, in milliseconds.
-     * @param latitude Latitude, in degrees
-     * @param longitude Longitude, in degrees
-     * @param altitude Altitude, in meters, above WGS-84.
-     *                 Will be -1 if altitude is not available.
+     * @param location Latest location update.
      */
-    public abstract void onGpsPositionUpdate(long timestamp, double latitude, double longitude, double altitude);
+    public abstract void onGpsLocationUpdate(Location location);
 
     /**
-     * Callback reporting speed and heading information from
-     * the GPS module.
-     * @param speed Speed, in meters per second.
-     * @param bearing Heading, in degrees.
+     * Callback reporting raw NMEA sentences from the GPS module.
+     *
+     * @param nmeaMessage NMEA message data.
      */
-    public abstract void onGpsSpeedUpdate(float speed, float bearing);
+    public abstract void onNmeaMessage(String nmeaMessage);
 }
