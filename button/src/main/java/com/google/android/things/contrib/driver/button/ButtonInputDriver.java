@@ -17,17 +17,13 @@
 package com.google.android.things.contrib.driver.button;
 
 import android.support.annotation.VisibleForTesting;
-import android.view.InputDevice;
-import android.view.KeyEvent;
-
-import com.google.android.things.userdriver.input.InputDriver;
 import com.google.android.things.userdriver.UserDriverManager;
-
+import com.google.android.things.userdriver.input.InputDriver;
+import com.google.android.things.userdriver.input.InputDriverEvent;
 import java.io.IOException;
 
 public class ButtonInputDriver implements AutoCloseable {
     private static final String DRIVER_NAME = "Button";
-    private static final int DRIVER_VERSION = 1;
 
     private Button mDevice;
     private int mKeycode;
@@ -109,18 +105,17 @@ public class ButtonInputDriver implements AutoCloseable {
     }
 
     static InputDriver build(Button button, final int keyCode) {
-        final InputDriver inputDriver = new InputDriver.Builder(InputDevice.SOURCE_CLASS_BUTTON)
+        final InputDriver inputDriver = new InputDriver.Builder()
                 .setName(DRIVER_NAME)
-                .setVersion(DRIVER_VERSION)
-                .setKeys(new int[]{keyCode})
+                .setSupportedKeys(new int[]{keyCode})
                 .build();
+        final InputDriverEvent inputEvent = new InputDriverEvent();
         button.setOnButtonEventListener(new Button.OnButtonEventListener() {
             @Override
             public void onButtonEvent(Button b, boolean pressed) {
-                int keyAction = pressed ? KeyEvent.ACTION_DOWN : KeyEvent.ACTION_UP;
-                inputDriver.emit(new KeyEvent[]{
-                        new KeyEvent(keyAction, keyCode)
-                });
+                inputEvent.clear();
+                inputEvent.setKeyPressed(keyCode, pressed);
+                inputDriver.emit(inputEvent);
             }
         });
         return inputDriver;

@@ -91,7 +91,7 @@ public class Cap12xxTest {
         mDriver = new Cap12xx(mI2c, mGpio, CONFIGURATION);
         verify(mGpio).setDirection(Gpio.DIRECTION_IN);
         verify(mGpio).setEdgeTriggerType(Gpio.EDGE_FALLING);
-        verify(mGpio).registerGpioCallback(any(GpioCallback.class), any(Handler.class));
+        verify(mGpio).registerGpioCallback(any(Handler.class), any(GpioCallback.class));
 
         // setInputsEnabled
         verify(mI2c).writeRegByte(0x21, (byte) 0xFF);

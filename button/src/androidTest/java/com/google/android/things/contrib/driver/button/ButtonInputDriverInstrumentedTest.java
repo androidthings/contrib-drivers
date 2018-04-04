@@ -18,6 +18,7 @@ package com.google.android.things.contrib.driver.button;
 import android.support.test.rule.ActivityTestRule;
 import android.view.KeyEvent;
 
+import junit.framework.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 
