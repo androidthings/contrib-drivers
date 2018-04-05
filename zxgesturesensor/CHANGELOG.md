@@ -1,4 +1,8 @@
 # Change Log
+## [0.3] - 2018-04-05
+### Updated
+- update to Android Things devpreview-0.8
+- change InputDriver instantiation and emitted events
 
 ## [0.2] - 2018-02-09
 ### Updated

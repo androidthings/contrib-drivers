@@ -247,7 +247,7 @@ public class Cap12xx implements AutoCloseable {
             // Configure hardware interrupt trigger
             mAlertPin.setDirection(Gpio.DIRECTION_IN);
             mAlertPin.setEdgeTriggerType(Gpio.EDGE_FALLING);
-            mAlertPin.registerGpioCallback(mAlertPinCallback, mInputHandler);
+            mAlertPin.registerGpioCallback(mInputHandler, mAlertPinCallback);
         } else {
             // Begin software interrupt polling
             mInputHandler.post(mPollingCallback);

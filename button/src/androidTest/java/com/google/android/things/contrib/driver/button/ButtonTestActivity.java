@@ -34,7 +34,7 @@ public class ButtonTestActivity extends Activity {
 
     private static final String TAG = "ButtonTestActivity";
 
-    public static final int KEYCODE = KeyEvent.KEYCODE_A;
+    public static final int KEYCODE = KeyEvent.KEYCODE_ENTER;
 
     private Gpio mGpio;
     private Button mButton;

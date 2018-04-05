@@ -22,6 +22,7 @@ import com.google.android.things.contrib.driver.matrixkeypad.MatrixKeypad.OnKeyE
 import com.google.android.things.pio.Gpio;
 import com.google.android.things.userdriver.input.InputDriver;
 import com.google.android.things.userdriver.UserDriverManager;
+import com.google.android.things.userdriver.input.InputDriverEvent;
 import java.io.IOException;
 
 /**
@@ -29,23 +30,18 @@ import java.io.IOException;
  * to the system.
  */
 public class MatrixKeypadInputDriver implements AutoCloseable {
-    private static final String TAG = MatrixKeypadInputDriver.class.getSimpleName();
     private static final String DEVICE_NAME = "Matrix Keypad";
-    private static final int DEVICE_VERSION = 1;
 
     private MatrixKeypad mMatrixKeypad;
     private InputDriver mInputDriver;
     private int[] mKeyCodes;
+    private InputDriverEvent mInputEvent = new InputDriverEvent();
     private OnKeyEventListener mMatrixKeyCallback = new OnKeyEventListener() {
         @Override
         public void onKeyEvent(MatrixKey matrixKey) {
-            if (matrixKey.isPressed()) {
-                mInputDriver.emit(new KeyEvent[]{new KeyEvent(KeyEvent.ACTION_DOWN,
-                        matrixKey.getKeyCode())});
-            } else {
-                mInputDriver.emit(new KeyEvent[]{new KeyEvent(KeyEvent.ACTION_UP,
-                        matrixKey.getKeyCode())});
-            }
+            mInputEvent.clear();
+            mInputEvent.setKeyPressed(matrixKey.getKeyCode(), matrixKey.isPressed());
+            mInputDriver.emit(mInputEvent);
         }
     };
 
@@ -80,10 +76,9 @@ public class MatrixKeypadInputDriver implements AutoCloseable {
 
     public void register() {
         if (mInputDriver == null) {
-            mInputDriver = new InputDriver.Builder(InputDevice.SOURCE_CLASS_BUTTON)
+            mInputDriver = new InputDriver.Builder()
                     .setName(DEVICE_NAME)
-                    .setVersion(DEVICE_VERSION)
-                    .setKeys(mKeyCodes)
+                    .setSupportedKeys(mKeyCodes)
                     .build();
             UserDriverManager.getInstance().registerInputDriver(mInputDriver);
         }

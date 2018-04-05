@@ -24,6 +24,7 @@ import android.view.KeyEvent;
 import com.google.android.things.userdriver.input.InputDriver;
 import com.google.android.things.userdriver.UserDriverManager;
 
+import com.google.android.things.userdriver.input.InputDriverEvent;
 import java.io.IOException;
 import java.util.EnumMap;
 
@@ -196,21 +197,22 @@ public class ZXGestureSensorInputDriver implements AutoCloseable {
         for (int i = 0; i < keyMap.size(); i++) {
             keys[i] = (int)oKeys[i];
         }
-        final InputDriver inputDriver = new InputDriver.Builder(InputDevice.SOURCE_CLASS_BUTTON)
+        final InputDriver inputDriver = new InputDriver.Builder()
                 .setName(DRIVER_NAME)
-                .setVersion(DRIVER_VERSION)
-                .setKeys(keys)
+                .setSupportedKeys(keys)
                 .build();
+        final InputDriverEvent inputEvent = new InputDriverEvent();
         sensor.setListener(new ZXGestureSensor.OnGestureEventListener() {
             @Override
             public void onGestureEvent(ZXGestureSensor sensor,
                                        ZXGestureSensor.Gesture gesture, int params) {
                 if (keyMap.containsKey(gesture)) {
-                    inputDriver.emit(new KeyEvent[]{
-                            new KeyEvent(
-                                    KeyEvent.ACTION_DOWN, keyMap.get(gesture)),
-                            new KeyEvent(KeyEvent.ACTION_UP, keyMap.get(gesture))
-                    });
+                    inputEvent.clear();
+                    inputEvent.setKeyPressed(keyMap.get(gesture), true);
+                    inputDriver.emit(inputEvent);
+                    inputEvent.clear();
+                    inputEvent.setKeyPressed(keyMap.get(gesture), false);
+                    inputDriver.emit(inputEvent);
                 }
             }
         });

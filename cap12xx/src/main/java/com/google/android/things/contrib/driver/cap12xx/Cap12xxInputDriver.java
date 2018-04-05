@@ -27,6 +27,7 @@ import com.google.android.things.contrib.driver.cap12xx.Cap12xx.Configuration;
 import com.google.android.things.userdriver.input.InputDriver;
 import com.google.android.things.userdriver.UserDriverManager;
 
+import com.google.android.things.userdriver.input.InputDriverEvent;
 import java.io.IOException;
 
 /**
@@ -40,7 +41,6 @@ public class Cap12xxInputDriver implements AutoCloseable {
 
     // Driver parameters
     private static final String DRIVER_NAME = "Cap12xx";
-    private static final int DRIVER_VERSION = 1;
 
     private Cap12xx mPeripheralDevice;
     // Framework input driver
@@ -196,13 +196,13 @@ public class Cap12xxInputDriver implements AutoCloseable {
             return;
         }
 
+        InputDriverEvent inputEvent = new InputDriverEvent();
         // Emit an event for each defined input channel
         for (int i = 0; i < mKeycodes.length; i++) {
-            int keyAction = status[i] ? KeyEvent.ACTION_DOWN : KeyEvent.ACTION_UP;
             int keyCode = mKeycodes[i];
-            mInputDriver.emit(new KeyEvent[]{
-                    new KeyEvent(keyAction, keyCode)
-            });
+            inputEvent.clear();
+            inputEvent.setKeyPressed(keyCode, status[i]);
+            mInputDriver.emit(inputEvent);
         }
     }
 
@@ -233,10 +233,9 @@ public class Cap12xxInputDriver implements AutoCloseable {
      * uses to emit input events based on the driver's event codes list.
      */
     private InputDriver buildInputDriver() {
-        return new InputDriver.Builder(InputDevice.SOURCE_CLASS_BUTTON)
+        return new InputDriver.Builder()
                 .setName(DRIVER_NAME)
-                .setVersion(DRIVER_VERSION)
-                .setKeys(mKeycodes)
+                .setSupportedKeys(mKeycodes)
                 .build();
     }
 
