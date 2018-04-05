@@ -130,7 +130,7 @@ public class UartLowpanModule implements AutoCloseable {
         mDevice.setBaudrate(mBaudRate);
         mDevice.setDataSize(8);
         mDevice.setHardwareFlowControl(mHardwareFlowControl);
-        mDevice.registerUartDeviceCallback(mUartDeviceCallback, mHandler);
+        mDevice.registerUartDeviceCallback(mHandler, mUartDeviceCallback);
     }
 
     /**
