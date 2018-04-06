@@ -31,7 +31,7 @@ dependencies {
     api 'com.google.android.things.contrib:driver-apa102:0.6'
     api 'com.google.android.things.contrib:driver-button:0.7'
     api 'com.google.android.things.contrib:driver-bmx280:0.5'
-    api 'com.google.android.things.contrib:driver-ht16k33:0.5'
+    api 'com.google.android.things.contrib:driver-ht16k33:0.6'
     api 'com.google.android.things.contrib:driver-pwmspeaker:0.4'
     api 'com.google.android.things.contrib:driver-pwmservo:0.4'
 
