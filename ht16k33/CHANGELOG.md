@@ -1,5 +1,9 @@
 # Change Log
 
+## [0.6] - 2018-04-03
+### Updated
+- Added alternate constructors taking an I2C address
+
 ## [0.5] - 2018-02-09
 ### Updated
 - update to Android Things devpreview-0.7
