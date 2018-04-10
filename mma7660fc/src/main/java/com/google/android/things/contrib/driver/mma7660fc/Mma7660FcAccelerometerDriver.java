@@ -37,7 +37,6 @@ public class Mma7660FcAccelerometerDriver implements AutoCloseable {
     private static final int DRIVER_MIN_DELAY_US = Math.round(1000000.f/Mma7660Fc.MAX_FREQ_HZ);
     private static final int DRIVER_MAX_DELAY_US = Math.round(1000000.f/Mma7660Fc.MIN_FREQ_HZ);
     private static final int DRIVER_VERSION = 1;
-    private static final String DRIVER_REQUIRED_PERMISSION = "";
     private Mma7660Fc mDevice;
     private UserSensor mUserSensor;
 
@@ -102,7 +101,6 @@ public class Mma7660FcAccelerometerDriver implements AutoCloseable {
                 .setResolution(DRIVER_RESOLUTION)
                 .setPower(DRIVER_POWER)
                 .setMinDelay(DRIVER_MIN_DELAY_US)
-                .setRequiredPermission(DRIVER_REQUIRED_PERMISSION)
                 .setMaxDelay(DRIVER_MAX_DELAY_US)
                 .setUuid(UUID.randomUUID())
                 .setDriver(new UserSensorDriver() {

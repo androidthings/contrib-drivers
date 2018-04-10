@@ -32,7 +32,6 @@ public class Vcnl4200SensorDriver implements AutoCloseable {
     private static final String DRIVER_VENDOR = "Vishay Semiconductors";
     private static final String DRIVER_NAME = "VCNL4200";
     private static final int DRIVER_VERSION = 1;
-    private static final String DRIVER_REQUIRED_PERMISSION = "";
 
     private ProximityUserDriver mProximityUserDriver;
     private AmbientLightUserDriver mAmbientLightUserDriver;
@@ -132,7 +131,6 @@ public class Vcnl4200SensorDriver implements AutoCloseable {
                         .setResolution(DRIVER_RESOLUTION)
                         .setPower(DRIVER_POWER)
                         .setMinDelay(DRIVER_MIN_DELAY_US)
-                        .setRequiredPermission(DRIVER_REQUIRED_PERMISSION)
                         .setMaxDelay(DRIVER_MAX_DELAY_US)
                         .setUuid(UUID.randomUUID())
                         .setDriver(this)
@@ -180,7 +178,6 @@ public class Vcnl4200SensorDriver implements AutoCloseable {
                         .setResolution(mDevice.getCurrentAlsResolution())
                         .setPower(DRIVER_POWER)
                         .setMinDelay(DRIVER_MIN_DELAY_US)
-                        .setRequiredPermission(DRIVER_REQUIRED_PERMISSION)
                         .setMaxDelay(DRIVER_MAX_DELAY_US)
                         .setUuid(UUID.randomUUID())
                         .setDriver(this)
