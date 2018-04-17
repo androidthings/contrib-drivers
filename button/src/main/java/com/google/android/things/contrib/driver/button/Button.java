@@ -47,6 +47,7 @@ public class Button implements AutoCloseable {
     private Handler mDebounceHandler;
     private CheckDebounce mPendingCheckDebounce;
     private long mDebounceDelay = ViewConfiguration.getTapTimeout();
+    private String mPinName;
 
     /**
      * Interface definition for a callback to be invoked when a Button event occurs.
@@ -69,7 +70,8 @@ public class Button implements AutoCloseable {
      */
     public Button(String pin, LogicState logicLevel) throws IOException {
         PeripheralManager pioService = PeripheralManager.getInstance();
-        Gpio buttonGpio = pioService.openGpio(pin);
+        mPinName = pin;
+        Gpio buttonGpio = pioService.openGpio(mPinName);
         try {
             connect(buttonGpio, logicLevel);
         } catch (IOException|RuntimeException e) {
@@ -129,6 +131,16 @@ public class Button implements AutoCloseable {
 
             return true;
         }
+    }
+    
+    /**
+     * Returns the pin name given to instantiate the button.
+     * Can be used to identify a button through an array
+     *
+     * @return name of the pin used to instantiate the button
+     */
+    public String name() {
+        return mPinName;   
     }
 
     /**
