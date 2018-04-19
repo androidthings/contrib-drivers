@@ -32,7 +32,7 @@ import com.google.android.things.contrib.driver.apa102.Apa102;
 Apa102 mApa102;
 
 try {
-    mApa102 = new Apa102(spiBusName, Apa102.Mode.RGB);
+    mApa102 = new Apa102(spiBusName, Apa102.Mode.BGR);
 } catch (IOException e) {
     // couldn't configure the device...
 }
