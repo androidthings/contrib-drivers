@@ -44,7 +44,7 @@ public class LedMatrix implements AutoCloseable {
      */
     public LedMatrix(String bus) throws IOException {
         PeripheralManager pioService = PeripheralManager.getInstance();
-        mDevice = pioService.openI2cDevice(bus, SenseHat.I2C_ADDRESS);
+        mDevice = pioService.openI2cDevice(bus, SenseHat.I2C_DISPLAY_ADDRESS);
     }
 
     /* package */ LedMatrix(I2cDevice device) {

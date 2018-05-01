@@ -23,12 +23,13 @@ import java.io.IOException;
  */
 @SuppressWarnings({"unused", "WeakerAccess"})
 public class SenseHat {
-    public static final int I2C_ADDRESS =  0x46;
-    public static final String BUS_DISPLAY = "I2C1";
+    public static final int I2C_DISPLAY_ADDRESS =  0x46;
+    public static final int I2C_LPS25H_ADDRESS =  0x46;
+    public static final String BUS_NAME = "I2C1";
     public static final int DISPLAY_WIDTH = LedMatrix.WIDTH;
     public static final int DISPLAY_HEIGHT = LedMatrix.HEIGHT;
 
     public static LedMatrix openDisplay() throws IOException {
-        return new LedMatrix(BUS_DISPLAY);
+        return new LedMatrix(BUS_NAME);
     }
 }
