@@ -4,7 +4,7 @@ Sense Hat driver for Android Things
 This driver provides easy access to the peripherals available on the Raspberry Pi [Sense Hat][product]:
 - 8x8 LED matrix
 - TODO: 5 buttons joystick
-- TODO: Sensors
+- TODO: Sensors other then LPS25H
 
 
 NOTE: these drivers are not production-ready. They are offered as sample
@@ -53,6 +53,17 @@ display.draw(bitmap);
 ```
 // Close the display when done.
 display.close();
+```
+```
+                try (BaroTemp bt = SenseHat.openBaroTemp()) {
+                    bt.setBarometerOffset(-6.2);
+                    Log.i(TAG, "PressureRaw: " + bt.getBarometerRaw());
+                    Log.i(TAG, "TemperatureRaw: " + bt.getTemperatureRaw());
+                    Log.i(TAG, "Pressure: " + bt.getBarometer());
+                    Log.i(TAG, "Temperature: " + bt.getTemperature());
+                } catch (Exception e) {
+                    Log.e(TAG, "Oops", e);
+                }
 ```
 
 License
