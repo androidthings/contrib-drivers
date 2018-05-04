@@ -32,4 +32,8 @@ public class SenseHat {
     public static LedMatrix openDisplay() throws IOException {
         return new LedMatrix(BUS_NAME);
     }
+
+    public static BaroTemp openBaroTemp() throws IOException {
+        return new BaroTemp(BUS_NAME);
+    }
 }
