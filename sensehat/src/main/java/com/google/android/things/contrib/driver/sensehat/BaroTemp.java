@@ -3,9 +3,14 @@ package com.google.android.things.contrib.driver.sensehat;
 import com.google.android.things.pio.I2cDevice;
 import com.google.android.things.pio.PeripheralManager;
 
-import java.io.Closeable;
 import java.io.IOException;
 
+/**
+ * This class allows access to the LPS25H on the SenseHat.
+ * <p>
+ * See also: https://www.pololu.com/file/download/LPS25H.pdf?file_id=0J761</p>
+ * <p>Source code referenced: https://github.com/tkurbad/mipSIE/blob/master/python/AltIMU-10v5/i2c.py</p>
+ */
 public class BaroTemp implements AutoCloseable {
     private I2cDevice mDevice;
     // Register addresses
@@ -40,9 +45,10 @@ public class BaroTemp implements AutoCloseable {
     private final int LPS_THS_P_L = 0x30; //  Pressure interrupt threshold, low byte
     private final int LPS_THS_P_H = 0x31; //  Pressure interrupt threshold, high byte
 
-    // The next two registers need special soldering 
+    // The next two registers need special soldering
     private final int LPS_RPDS_L = 0x39;//  Pressure offset for differential pressure computing, low byte
     private final int LPS_RPDS_H = 0x3A; //  Differential offset, high byte
+    private int milliBarAdjust = 0;
 
     /**
      * Create a new barometric pressure and temperature sensor driver connected on the given I2C bus.
@@ -57,53 +63,11 @@ public class BaroTemp implements AutoCloseable {
         mDevice.writeRegByte(LPS_CTRL_REG1, (byte) 0);
         // power up, data rate 12.5Hz (10110000)
         mDevice.writeRegByte(LPS_CTRL_REG1, (byte) 0xb0);
+        if (0xBD != (mDevice.readRegByte(LPS_WHO_AM_I) & 0xFF)) {
+            throw new IOException("This does not seem to be a LPS25H");
+        }
     }
 
-    /**
-     * Closes this resource, relinquishing any underlying resources.
-     * This method is invoked automatically on objects managed by the
-     * {@code try}-with-resources statement.
-     * <p>
-     * <p>While this interface method is declared to throw {@code
-     * Exception}, implementers are <em>strongly</em> encouraged to
-     * declare concrete implementations of the {@code close} method to
-     * throw more specific exceptions, or to throw no exception at all
-     * if the close operation cannot fail.
-     * <p>
-     * <p> Cases where the close operation may fail require careful
-     * attention by implementers. It is strongly advised to relinquish
-     * the underlying resources and to internally <em>mark</em> the
-     * resource as closed, prior to throwing the exception. The {@code
-     * close} method is unlikely to be invoked more than once and so
-     * this ensures that the resources are released in a timely manner.
-     * Furthermore it reduces problems that could arise when the resource
-     * wraps, or is wrapped, by another resource.
-     * <p>
-     * <p><em>Implementers of this interface are also strongly advised
-     * to not have the {@code close} method throw {@link
-     * InterruptedException}.</em>
-     * <p>
-     * This exception interacts with a thread's interrupted status,
-     * and runtime misbehavior is likely to occur if an {@code
-     * InterruptedException} is {@linkplain Throwable#addSuppressed
-     * suppressed}.
-     * <p>
-     * More generally, if it would cause problems for an
-     * exception to be suppressed, the {@code AutoCloseable.close}
-     * method should not throw it.
-     * <p>
-     * <p>Note that unlike the {@link Closeable#close close}
-     * method of {@link Closeable}, this {@code close} method
-     * is <em>not</em> required to be idempotent.  In other words,
-     * calling this {@code close} method more than once may have some
-     * visible side effect, unlike {@code Closeable.close} which is
-     * required to have no effect if called more than once.
-     * <p>
-     * However, implementers of this interface are strongly encouraged
-     * to make their {@code close} methods idempotent.
-     *
-     * @throws Exception if this resource cannot be closed
-     */
     @Override
     public void close() throws IOException {
         if (mDevice != null) {
@@ -122,25 +86,85 @@ public class BaroTemp implements AutoCloseable {
     }
 
     private int readSigned24(int a0, int a1, int a2) throws IOException {
-        int ret = mDevice.readRegByte(a0);
-        ret |= ((int) mDevice.readRegByte(a1)) << 8;
-        ret |= ((int) mDevice.readRegByte(a2)) << 16;
+        int ret = (mDevice.readRegByte(a0) & 0xFF);
+        ret += ((int) mDevice.readRegByte(a1) & 0xFF) << 8;
+        ret += ((int) mDevice.readRegByte(a2) & 0xFF) << 16;
         if (ret < 8388608) return ret;
         else return ret - 16777216;
     }
 
     private int readSigned16(int a0, int a1) throws IOException {
         int ret = (mDevice.readRegByte(a0) & 0xFF);
-        ret |= (mDevice.readRegByte(a1) & 0xFF) << 8;
+        ret += (mDevice.readRegByte(a1) & 0xFF) << 8;
         if (ret < 32768) return ret;
         else return ret - 65536;
     }
 
-    public int getBarometerRaw() throws IOException {
-        return readSigned24(LPS_PRESS_OUT_XL, LPS_PRESS_OUT_L, LPS_PRESS_OUT_H);
+    /**
+     * The sensor seems to have an offset to the actual pressure. You can find your local "real" pressure quite easily on the web. Get the measured value from the
+     * sensor and compute the difference. The value obtained can be passed to this method to "calibrate" your board's sensor.
+     *
+     * @param hPa difference to actual air pressure
+     * @throws IOException from I2cDevice
+     */
+    public void setBarometerOffset(double hPa) throws IOException {
+        this.milliBarAdjust = (int) Math.round(hPa * 4096);
     }
 
+    /**
+     * Fetch raw value, see the data sheet. Note that this call waits for data to be available.
+     *
+     * @return The raw sensor value, adjusted by the given offset (if any).
+     * @throws IOException from I2cDevice
+     */
+    public int getBarometerRaw() throws IOException {
+        // wait for data available
+        while (0 == (mDevice.readRegByte(LPS_STATUS_REG) & 2)) {
+            try {
+                Thread.sleep(1);
+            } catch (InterruptedException e) {
+                throw new IOException(e);
+            }
+        }
+        return readSigned24(LPS_PRESS_OUT_XL, LPS_PRESS_OUT_L, LPS_PRESS_OUT_H) + milliBarAdjust;
+    }
+
+    /**
+     * Fetch raw value, see the data sheet. Note that this call waits for data to be available.
+     *
+     * @return The raw sensor value.
+     * @throws IOException from I2cDevice
+     */
     public int getTemperatureRaw() throws IOException {
+        // wait for data available
+        while (0 == (mDevice.readRegByte(LPS_STATUS_REG) & 1)) {
+            try {
+                Thread.sleep(1);
+            } catch (InterruptedException e) {
+                throw new IOException(e);
+            }
+        }
         return readSigned16(LPS_TEMP_OUT_L, LPS_TEMP_OUT_H);
+    }
+
+    /**
+     * Fetch air pressure in hPa (milli bar). Note that this call waits for data to be available.
+     *
+     * @return The current air pressure, adjusted by the given offset (if any).
+     * @throws IOException from I2cDevice
+     */
+    public double getBarometer() throws IOException {
+        return getBarometerRaw() / 4096.0;
+    }
+
+    /**
+     * Fetch the temperature in degrees Celcius. Note that the design of the SenseHat makes this more the
+     * temperature of the board then the actual (room) temperature!
+     *
+     * @return The temperature as reported by the sensor.
+     * @throws IOException from I2cDevice
+     */
+    public double getTemperature() throws IOException {
+        return 42.5 + getTemperatureRaw() / 480.0;
     }
 }
