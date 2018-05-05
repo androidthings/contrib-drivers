@@ -55,15 +55,17 @@ display.draw(bitmap);
 display.close();
 ```
 ```
-                try (BaroTemp bt = SenseHat.openBaroTemp()) {
-                    bt.setBarometerOffset(-6.2);
-                    Log.i(TAG, "PressureRaw: " + bt.getBarometerRaw());
-                    Log.i(TAG, "TemperatureRaw: " + bt.getTemperatureRaw());
-                    Log.i(TAG, "Pressure: " + bt.getBarometer());
-                    Log.i(TAG, "Temperature: " + bt.getTemperature());
-                } catch (Exception e) {
-                    Log.e(TAG, "Oops", e);
-                }
+    // just a snippet that verifies the device is working
+    // your actual use would of course be much more awesome
+    try (BaroTemp bt = SenseHat.openBaroTemp()) {
+        bt.setBarometerOffset(-6.2);
+        Log.i(TAG, "PressureRaw: " + bt.getBarometerRaw());
+        Log.i(TAG, "TemperatureRaw: " + bt.getTemperatureRaw());
+        Log.i(TAG, "Pressure: " + bt.getBarometer());
+        Log.i(TAG, "Temperature: " + bt.getTemperature());
+    } catch (Exception e) {
+        Log.e(TAG, "Oops", e);
+    }
 ```
 
 License
