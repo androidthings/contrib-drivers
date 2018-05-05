@@ -27,5 +27,5 @@ android {
 
 dependencies {
     implementation 'com.android.support:support-annotations:27.1.0'
-    compileOnly 'com.google.android.things:androidthings:0.8-devpreview'
+    compileOnly 'com.google.android.things:androidthings:1.0'
 }
