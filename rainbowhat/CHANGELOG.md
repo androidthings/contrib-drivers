@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.0] - 2018-05-05
+### Updated
+- update to Android Things 1.0
+
 ## [0.11] - 2018-04-29
 ### Updated
 - update to use latest drivers compatible with devpreview-0.8
