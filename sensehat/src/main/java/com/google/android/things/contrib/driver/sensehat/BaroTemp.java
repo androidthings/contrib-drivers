@@ -48,7 +48,7 @@ public class BaroTemp implements AutoCloseable {
     // The next two registers need special soldering
     private final int LPS_RPDS_L = 0x39;//  Pressure offset for differential pressure computing, low byte
     private final int LPS_RPDS_H = 0x3A; //  Differential offset, high byte
-    private int milliBarAdjust = 0;
+    private int mMillibarAdjust = 0;
 
     /**
      * Create a new barometric pressure and temperature sensor driver connected on the given I2C bus.
@@ -101,18 +101,25 @@ public class BaroTemp implements AutoCloseable {
     }
 
     /**
-     * The sensor seems to have an offset to the actual pressure. You can find your local "real" pressure quite easily on the web. Get the measured value from the
-     * sensor and compute the difference. The value obtained can be passed to this method to "calibrate" your board's sensor.
+     * The sensor seems to have an offset to the actual pressure. You can find your local "real"
+     * pressure quite easily on the web. Get the measured value from the sensor and compute the
+     * difference. The value obtained can be passed to this method to "calibrate" your board's
+     * sensor. In the author's case the difference was 6.2 hPa which is quite significant. This
+     * error was confirmed with another (unrelated) sensor.
      *
-     * @param hPa difference to actual air pressure
+     * @param hPa difference to actual air pressure in hectoPascal (hPa) or millibar.
      * @throws IOException from I2cDevice
      */
     public void setBarometerOffset(double hPa) throws IOException {
-        this.milliBarAdjust = (int) Math.round(hPa * 4096);
+        this.mMillibarAdjust = (int) Math.round(hPa * 4096);
     }
 
     /**
-     * Fetch raw value, see the data sheet. Note that this call waits for data to be available.
+     * Fetch raw value, see the data sheet. <p>Note that this call waits for data to be available.
+     * From the data sheet the (selected) refresh rate is 12.5 Hz so the max wait could be
+     * 1000/12.5 = 80 milliseconds with an average of 40 milliseconds. Call from asynchronous code
+     * if this is an issue. If your code calls this method less frequently then 12.5 times per
+     * second there will be no wait.</p>
      *
      * @return The raw sensor value, adjusted by the given offset (if any).
      * @throws IOException from I2cDevice
@@ -126,11 +133,15 @@ public class BaroTemp implements AutoCloseable {
                 throw new IOException(e);
             }
         }
-        return readSigned24(LPS_PRESS_OUT_XL, LPS_PRESS_OUT_L, LPS_PRESS_OUT_H) + milliBarAdjust;
+        return readSigned24(LPS_PRESS_OUT_XL, LPS_PRESS_OUT_L, LPS_PRESS_OUT_H) + mMillibarAdjust;
     }
 
     /**
-     * Fetch raw value, see the data sheet. Note that this call waits for data to be available.
+     * Fetch raw value, see the data sheet. <p>Note that this call waits for data to be available.
+     * From the data sheet the (selected) refresh rate is 12.5 Hz so the max wait could be
+     * 1000/12.5 = 80 milliseconds with an average of 40 milliseconds. Call from asynchronous code
+     * if this is an issue. If your code calls this method less frequently then 12.5 times per
+     * second there will be no wait.</p>
      *
      * @return The raw sensor value.
      * @throws IOException from I2cDevice
@@ -148,9 +159,13 @@ public class BaroTemp implements AutoCloseable {
     }
 
     /**
-     * Fetch air pressure in hPa (milli bar). Note that this call waits for data to be available.
+     * Fetch air pressure in hPa (millibar). <p>Note that this call waits for data to be available.
+     * From the data sheet the (selected) refresh rate is 12.5 Hz so the max wait could be
+     * 1000/12.5 = 80 milliseconds with an average of 40 milliseconds. Call from asynchronous code
+     * if this is an issue. If your code calls this method less frequently then 12.5 times per
+     * second there will be no wait.</p>
      *
-     * @return The current air pressure, adjusted by the given offset (if any).
+     * @return The current air pressure in hPa(millibar), adjusted by the given offset (if any).
      * @throws IOException from I2cDevice
      */
     public double getBarometer() throws IOException {
@@ -158,10 +173,15 @@ public class BaroTemp implements AutoCloseable {
     }
 
     /**
-     * Fetch the temperature in degrees Celcius. Note that the design of the SenseHat makes this more the
-     * temperature of the board then the actual (room) temperature!
+     * Fetch the temperature in degrees Celcius. Note that the design of the SenseHat makes this
+     * more the temperature of the board then the actual (room) temperature!
+     * <p>Also note that this call waits for data to be available.
+     * From the data sheet the (selected) refresh rate is 12.5 Hz so the max wait could be
+     * 1000/12.5 = 80 milliseconds with an average of 40 milliseconds. Call from asynchronous code
+     * if this is an issue. If your code calls this method less frequently then 12.5 times per
+     * second there will be no wait.</p>
      *
-     * @return The temperature as reported by the sensor.
+     * @return The temperature as reported by the sensor in degrees Celcius.
      * @throws IOException from I2cDevice
      */
     public double getTemperature() throws IOException {
