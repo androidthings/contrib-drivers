@@ -25,7 +25,7 @@ dependencies {
 ### Sample usage
 
 Use the `NumericDisplay` class to easily drive a 7-segment display. Use the `Tm1637` class when
-driving other types of [TM1637 led matrices](led_matrices)
+driving other types of [TM1637 led matrices][led_matrices]
 ```java
 import com.google.android.things.contrib.driver.tm1637.NumericDisplay;
 
