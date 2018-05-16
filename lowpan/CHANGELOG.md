@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0] - 2018-05-05
+### Updated
+- update to Android Things 1.0
+
 ## [0.4] - 2018-04-12
 ### Updated
 - update to Android Things devpreview-0.8

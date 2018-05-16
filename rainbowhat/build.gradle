@@ -27,15 +27,15 @@ android {
 }
 
 dependencies {
-    compileOnly 'com.google.android.things:androidthings:0.8-devpreview'
-    api 'com.google.android.things.contrib:driver-apa102:0.7'
-    api 'com.google.android.things.contrib:driver-button:0.7'
-    api 'com.google.android.things.contrib:driver-bmx280:0.6'
-    api 'com.google.android.things.contrib:driver-ht16k33:0.6'
-    api 'com.google.android.things.contrib:driver-pwmspeaker:0.5'
-    api 'com.google.android.things.contrib:driver-pwmservo:0.5'
+    compileOnly 'com.google.android.things:androidthings:1.0'
+    api 'com.google.android.things.contrib:driver-apa102:1.0'
+    api 'com.google.android.things.contrib:driver-button:1.0'
+    api 'com.google.android.things.contrib:driver-bmx280:1.0'
+    api 'com.google.android.things.contrib:driver-ht16k33:1.0'
+    api 'com.google.android.things.contrib:driver-pwmspeaker:1.0'
+    api 'com.google.android.things.contrib:driver-pwmservo:1.0'
 
-    androidTestImplementation 'com.google.android.things:androidthings:0.8-devpreview'
+    androidTestImplementation 'com.google.android.things:androidthings:1.0'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
     androidTestImplementation 'org.mockito:mockito-core:1.10.19'
     androidTestImplementation 'com.google.dexmaker:dexmaker:1.2'

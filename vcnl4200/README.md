@@ -16,7 +16,7 @@ How to use the driver
 ### Gradle dependency
 
 To use the `vcnl4200` driver, simply add the line below to your project's `build.gradle`,
-where `<version>` matches the last version of the driver available on [jcenter](jcenter).
+where `<version>` matches the last version of the driver available on [jcenter][jcenter].
 
 ```
 dependencies {

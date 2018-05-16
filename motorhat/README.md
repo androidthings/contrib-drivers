@@ -2,7 +2,7 @@ Motor Hat driver for Android Things
 ===================================
 
 This driver provides access to and control of motor peripherals connected through the [Adafruit
-DC and Stepper Motor HAT](product).
+DC and Stepper Motor HAT][product].
 
 NOTE: these drivers are not production-ready. They are offered as sample
 implementations of Android Things user space drivers for common peripherals
@@ -15,7 +15,7 @@ How to use the driver
 ### Gradle dependency
 
 To use the `motorhat` driver, simply add the line below to your project's `build.gradle`,
-where `<version>` matches the last version of the driver available on [jcenter](jcenter).
+where `<version>` matches the last version of the driver available on [jcenter][jcenter].
 
 ```
 dependencies {
@@ -68,7 +68,7 @@ try {
 Acknowledgments
 ---------------
 
-Inspired by the [Adafruit MotorHAT Python Library](pythonlib), and the [Android Robocar](robocar)
+Inspired by the [Adafruit MotorHAT Python Library][pythonlib], and the [Android Robocar][robocar]
 Hackster project by Antonio Zugaldia and Halim Salameh.
 
 License
