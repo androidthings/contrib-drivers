@@ -34,7 +34,10 @@ Bmx280 mBmx280;
 
 try {
     mBmx280 = new Bmx280(i2cBusName);
+    // Configure driver settings according to your use case
     mBmx280.setTemperatureOversampling(Bmx280.OVERSAMPLING_1X);
+    // Ensure the driver is powered and not sleeping before trying to read from it
+    mBmx280.setMode(Bmx280.MODE_NORMAL);
 } catch (IOException e) {
     // couldn't configure the device...
 }
@@ -50,6 +53,7 @@ try {
 // Close the environmental sensor when finished:
 
 try {
+    // If nothing else needs to read sensor values, consider calling setMode(Bmx280.MODE_SLEEP)
     mBmx280.close();
 } catch (IOException e) {
     // error closing sensor
