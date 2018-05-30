@@ -16,6 +16,7 @@
 
 package com.google.android.things.contrib.driver.ht16k33;
 
+import android.support.annotation.VisibleForTesting;
 import android.text.TextUtils;
 
 import com.google.android.things.pio.I2cDevice;
@@ -23,6 +24,10 @@ import com.google.android.things.pio.I2cDevice;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+/**
+ * I2C wrapper class for 14-segment displays powered by an ht16k33 chip, providing methods for
+ * displaying common types of data.
+ */
 public class AlphanumericDisplay extends Ht16k33 {
 
     private ByteBuffer mBuffer = ByteBuffer.allocate(8);
@@ -51,9 +56,9 @@ public class AlphanumericDisplay extends Ht16k33 {
     /**
      * Create a new driver for a HT16K33 based alphanumeric display from a given I2C device.
      * @param device
-     * @throws IOException
      */
-    /*package*/ AlphanumericDisplay(I2cDevice device) throws IOException {
+    @VisibleForTesting
+    /*package*/ AlphanumericDisplay(I2cDevice device) {
         super(device);
     }
 
@@ -113,7 +118,7 @@ public class AlphanumericDisplay extends Ht16k33 {
         mBuffer.clear();
         mBuffer.mark();
 
-        short prevFontData  = 0;
+        short prevFontData = 0;
         for (char c : s.toCharArray()) {
             short fontData = (short) Font.DATA[c];
             if (c == '.' && prevFontData != Font.DATA['.']) {

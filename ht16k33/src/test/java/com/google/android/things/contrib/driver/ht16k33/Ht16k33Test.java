@@ -15,6 +15,9 @@
  */
 package com.google.android.things.contrib.driver.ht16k33;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.mockito.Mockito.times;
+
 import com.google.android.things.pio.I2cDevice;
 
 import org.junit.Rule;
@@ -26,9 +29,6 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import java.io.IOException;
-
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.mockito.Mockito.times;
 
 public class Ht16k33Test {
 
@@ -138,6 +138,45 @@ public class Ht16k33Test {
         driver.close();
         mExpectedException.expect(IllegalStateException.class);
         driver.writeColumn(1, (short) 5);
+    }
+
+    @Test
+    public void writeSegments() throws IOException {
+        Ht16k33 driver = new Ht16k33(mI2c);
+        short[] segments = {
+                Ht16k33.SEGMENT_TOP,
+                Ht16k33.SEGMENT_RIGHT_TOP,
+                Ht16k33.SEGMENT_RIGHT_BOTTOM,
+                Ht16k33.SEGMENT_BOTTOM,
+                Ht16k33.SEGMENT_LEFT_BOTTOM,
+                Ht16k33.SEGMENT_LEFT_TOP,
+                Ht16k33.SEGMENT_CENTER_LEFT,
+                Ht16k33.SEGMENT_CENTER_RIGHT,
+                Ht16k33.SEGMENT_DIAGONAL_LEFT_TOP,
+                Ht16k33.SEGMENT_CENTER_TOP,
+                Ht16k33.SEGMENT_DIAGONAL_RIGHT_TOP,
+                Ht16k33.SEGMENT_DIAGONAL_LEFT_BOTTOM,
+                Ht16k33.SEGMENT_CENTER_BOTTOM,
+                Ht16k33.SEGMENT_DIAGONAL_RIGHT_BOTTOM,
+                Ht16k33.SEGMENT_DOT
+        };
+        // test all segments
+        for (final short s: segments) {
+            driver.writeColumn(0, s);
+            Mockito.verify(mI2c, times(1)).writeRegWord(0, s);
+        }
+        // test a combination
+        final short SIGMA = Ht16k33.SEGMENT_TOP | Ht16k33.SEGMENT_BOTTOM
+                | Ht16k33.SEGMENT_DIAGONAL_LEFT_TOP | Ht16k33.SEGMENT_DIAGONAL_LEFT_BOTTOM;
+        driver.writeColumn(0, SIGMA);
+        Mockito.verify(mI2c, times(1)).writeRegWord(0, SIGMA);
+    }
+
+    @Test
+    public void close() throws IOException {
+        Ht16k33 driver = new Ht16k33(mI2c);
+        driver.close();
+        Mockito.verify(mI2c).close();
     }
 
     @Test

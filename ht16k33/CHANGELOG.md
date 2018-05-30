@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.1] - 2018-05-30
+### Updated
+- Added constants for individual segments for finer display control
+
 ## [1.0] - 2018-05-05
 ### Updated
 - update to Android Things 1.0
