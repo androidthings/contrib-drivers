@@ -124,7 +124,7 @@ public class Ssd1306 implements Closeable {
      * @throws IOException
      */
     public Ssd1306(String i2cName) throws IOException {
-        this(i2cName, I2C_ADDRESS_SA0_HIGH);
+        this(i2cName, I2C_ADDRESS_SA0_LOW);
     }
 
     /**
@@ -136,7 +136,7 @@ public class Ssd1306 implements Closeable {
      * @throws IOException
      */
     public Ssd1306(String i2cName, int width, int height) throws IOException {
-        this(i2cName, I2C_ADDRESS_SA0_HIGH, width, height);
+        this(i2cName, I2C_ADDRESS_SA0_LOW, width, height);
     }
 
     /**
