@@ -38,10 +38,24 @@ public class Ssd1306 implements Closeable {
     private static final int DEFAULT_HEIGHT = 64;
 
     /**
-     * I2C address for this peripheral
+     * @deprecated Use {@link #I2C_ADDRESS_SA0_LOW} instead.
      */
+    @Deprecated
     public static final int I2C_ADDRESS = 0x3C;
+    /**
+     * @deprecated Use {@link #I2C_ADDRESS_SA0_HIGH} instead.
+     */
+    @Deprecated
     public static final int I2C_ADDRESS_ALT = 0x3D;
+
+    /**
+     * I2C address for this peripheral when SA0 pin is connected to ground.
+     */
+    public static final int I2C_ADDRESS_SA0_LOW =  0x3C;
+    /**
+     * I2C address for this peripheral when SA0 pin is high.
+     */
+    public static final int I2C_ADDRESS_SA0_HIGH = 0x3D;
 
     // Protocol constants
     private static final int COMMAND_ACTIVATE_SCROLL = 0x2F;
@@ -110,7 +124,7 @@ public class Ssd1306 implements Closeable {
      * @throws IOException
      */
     public Ssd1306(String i2cName) throws IOException {
-        this(i2cName, I2C_ADDRESS);
+        this(i2cName, I2C_ADDRESS_SA0_HIGH);
     }
 
     /**
@@ -121,8 +135,8 @@ public class Ssd1306 implements Closeable {
      * @param height display height in pixels.
      * @throws IOException
      */
-    public Ssd1306(String i2cName,  int width, int height) throws IOException {
-        this(i2cName, I2C_ADDRESS, width, height);
+    public Ssd1306(String i2cName, int width, int height) throws IOException {
+        this(i2cName, I2C_ADDRESS_SA0_HIGH, width, height);
     }
 
     /**
