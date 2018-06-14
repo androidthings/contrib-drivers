@@ -61,19 +61,28 @@ public class Cap12xx implements AutoCloseable {
      * that are not common across the entire device family.
      */
     public enum Configuration {
-        // Channel Count, Max Touch Inputs
-        CAP1203(3,3),
-        CAP1293(3,3),
-        CAP1206(6,4),
-        CAP1296(6,4),
-        CAP1208(8,4),
-        CAP1298(8,4);
+        // Channel Count, Max Touch Inputs, LED Count
+        CAP1203(3,3,0),
+        CAP1293(3,3,0),
+        CAP1206(6,4,0),
+        CAP1296(6,4,0),
+        CAP1208(8,4,0),
+        CAP1298(8,4,0),
+        CAP1105(5,3,0),
+        CAP1106(6,4,0),
+        CAP1126(6,4,2),
+        CAP1128(8,4,2),
+        CAP1133(3,3,3),
+        CAP1166(6,4,6),
+        CAP1188(8,4,8);
 
         final int channelCount;
         final int maxTouch;
-        Configuration(int channelCount, int maxTouch) {
+        final int ledCount;
+        Configuration(int channelCount, int maxTouch, int ledCount) {
             this.channelCount = channelCount;
             this.maxTouch = maxTouch;
+            this.ledCount = ledCount;
         }
     }
 
@@ -121,22 +130,46 @@ public class Cap12xx implements AutoCloseable {
      */
     public static final int SENSITIVITY_LOW = 0b01100000;    // 2x
 
+    @Retention(RetentionPolicy.SOURCE)
+    @IntDef({LED_FADE_INSTANT, LED_FADE_FAST, LED_FADE_SLOW})
+    public @interface LedFade {}
+    /**
+     * Constant to turn the LEDs on and off instantly.
+     */
+    public static final int LED_FADE_INSTANT = 0b00000000; // 0ms
+    /**
+     * Constant to turn the LEDs on and off with a fast fade.
+     */
+    public static final int LED_FADE_FAST = 0b00001001;    // 250ms
+    /**
+     * Constant to turn the LEDs on and off with a slow fade.
+     */
+    public static final int LED_FADE_SLOW = 0b00011011;    // 750ms
+
     // Software polling delay
     private static final int SOFTWAREPOLL_DELAY_MS = 16;
 
+    // Max LED brightness.
+    private static final int MAX_LED_BRIGHTNESS = 0b1111;
+
     // CAP12xx register map
-    private static final int REG_MAIN_CONTROL  = 0x00;
-    private static final int REG_INPUT_STATUS  = 0x03;
-    private static final int REG_INPUT_DELTA   = 0x10;
-    private static final int REG_SENSE_CFG     = 0x1F;
-    private static final int REG_INPUT_EN      = 0x21;
-    private static final int REG_INPUT_CFG     = 0x22;
-    private static final int REG_INPUT_CFG2    = 0x23;
-    private static final int REG_SAMPLING_CFG  = 0x24;
-    private static final int REG_INTERRUPT_EN  = 0x27;
-    private static final int REG_REPEAT_EN     = 0x28;
-    private static final int REG_MTOUCH_CFG    = 0x2A;
-    private static final int REG_INPUT_THRESH  = 0x30;
+    private static final int REG_MAIN_CONTROL   = 0x00;
+    private static final int REG_INPUT_STATUS   = 0x03;
+    private static final int REG_LED_STATUS     = 0x04;
+    private static final int REG_INPUT_DELTA    = 0x10;
+    private static final int REG_SENSE_CFG      = 0x1F;
+    private static final int REG_INPUT_EN       = 0x21;
+    private static final int REG_INPUT_CFG      = 0x22;
+    private static final int REG_INPUT_CFG2     = 0x23;
+    private static final int REG_SAMPLING_CFG   = 0x24;
+    private static final int REG_INTERRUPT_EN   = 0x27;
+    private static final int REG_REPEAT_EN      = 0x28;
+    private static final int REG_MTOUCH_CFG     = 0x2A;
+    private static final int REG_INPUT_THRESH   = 0x30;
+    private static final int REG_LED_INPUT_LINK = 0x72;
+    private static final int REG_LED_CONTROL    = 0x74;
+    private static final int REG_LED_PWM        = 0x93;
+    private static final int REG_LED_FADE       = 0x94;
 
     private I2cDevice mDevice;
     private Gpio mAlertPin;
@@ -260,6 +293,13 @@ public class Cap12xx implements AutoCloseable {
         setRepeatRate(REPEAT_NORMAL);
         setSensitivity(SENSITIVITY_NORMAL);
 
+        if (mChipConfiguration.ledCount > 0) {
+            setLedFade(LED_FADE_INSTANT); // Turn off LED fading
+            setLedBrightness(1); // Set LEDs to max brightness
+            setLedInputLinkEnabled(false); // Unlink LEDs and sensor inputs
+            mDevice.writeRegByte(REG_LED_CONTROL, (byte) 0x00); // Turn LEDs off
+        }
+
         // These configs are not exposed yet. Reduce cycle time to 35ms and sampling time to 640us.
         mDevice.writeRegByte(REG_SAMPLING_CFG, (byte) 0b00110100);
     }
@@ -318,6 +358,40 @@ public class Cap12xx implements AutoCloseable {
         byte value = mDevice.readRegByte(REG_SENSE_CFG);
         value = BitwiseUtil.applyBitRange(value, sensitivity, 0x70); // DELTA_SENSE bits
         mDevice.writeRegByte(REG_SENSE_CFG, value);
+    }
+
+    /**
+     * Set the fade speed of the LEDs.
+     *
+     * <p>The default is {@link #LED_FADE_INSTANT}.
+     *
+     * @param ledFade one of {@link #LED_FADE_INSTANT},
+     *                    {@link #LED_FADE_FAST}, or {@link #LED_FADE_SLOW}.
+     *
+     * @throws IOException
+     * @throws IllegalArgumentException
+     */
+    public void setLedFade(@LedFade int ledFade) throws IOException, IllegalArgumentException {
+        assertLedSupport();
+        mDevice.writeRegByte(REG_LED_FADE, (byte) ledFade);
+    }
+
+    /**
+     * Set the brightness of the LEDs.
+     *
+     * @param ledBrightness the desired brightness of the leds in the range of [0, 1].
+     *
+     * @throws IOException
+     * @throws IllegalArgumentException
+     */
+    public void setLedBrightness(float ledBrightness) throws IOException, IllegalArgumentException {
+        assertLedSupport();
+        if (ledBrightness < 0 || ledBrightness > 1) {
+            throw new IllegalArgumentException("LED brightness must be between 0 and 1");
+        }
+        int val = Math.round(ledBrightness * MAX_LED_BRIGHTNESS);
+        byte brightness = (byte)(val << 4);
+        mDevice.writeRegByte(REG_LED_PWM, brightness);
     }
 
     /**
@@ -401,6 +475,48 @@ public class Cap12xx implements AutoCloseable {
     }
 
     /**
+     * Get the current status of the given LED.
+     *
+     * @param ledIndex LED to read.
+     * @return true if LED is on, false otherwise.
+     *
+     * @throws IOException
+     * @throws IllegalArgumentException
+     */
+    public boolean readLedState(int ledIndex) throws IOException, IllegalArgumentException {
+        assertLedSupport();
+        if (ledIndex < 0 || ledIndex >= mChipConfiguration.ledCount) {
+            throw new IllegalArgumentException("Input channel must be between 0 and "
+                    + (mChipConfiguration.ledCount-1));
+        }
+
+        byte status = readLedStatus();
+        return BitwiseUtil.isBitSet(status, ledIndex);
+    }
+
+    /**
+     * Turn an LED on or off.
+     *
+     * @throws IOException
+     * @throws IllegalArgumentException
+     */
+    public void setLedState(int ledIndex, boolean state) throws IOException, IllegalArgumentException {
+        assertLedSupport();
+        if (ledIndex < 0 || ledIndex >= mChipConfiguration.ledCount) {
+            throw new IllegalArgumentException("Input channel must be between 0 and "
+                    + (mChipConfiguration.ledCount-1));
+        }
+
+        byte value = readLedStatus();
+        if (state) {
+            value = BitwiseUtil.setBit(value, ledIndex);
+        } else {
+            value = BitwiseUtil.clearBit(value, ledIndex);
+        }
+        mDevice.writeRegByte(REG_LED_CONTROL, value);
+    }
+
+    /**
      * Return the number of input channels supported by this controller.
      */
     public int getInputChannelCount() {
@@ -413,6 +529,13 @@ public class Cap12xx implements AutoCloseable {
      */
     public int getMaximumTouchPoints() {
         return mChipConfiguration.maxTouch;
+    }
+
+    /**
+     * Return the number of LEDs supported by this controller.
+     */
+    public int getLedCount() {
+        return mChipConfiguration.ledCount;
     }
 
     /**
@@ -481,6 +604,20 @@ public class Cap12xx implements AutoCloseable {
     }
 
     /**
+     * Set LED behavior to light up when the corresponding input is triggered.
+     * @param enable true to enable all LEDs, false to disable them.
+     * @throws IOException
+     */
+    public void setLedInputLinkEnabled(boolean enable) throws IOException {
+        assertLedSupport();
+        if (enable) {
+            mDevice.writeRegByte(REG_LED_INPUT_LINK, (byte) 0xFF); // All channels ON
+        } else {
+            mDevice.writeRegByte(REG_LED_INPUT_LINK, (byte) 0x00); // All channels OFF
+        }
+    }
+
+    /**
      * Read the active touch status of all input channels as a bitmask.
      * Each bit is set to "1" if the input is active, and "0" if inactive.
      *
@@ -508,6 +645,19 @@ public class Cap12xx implements AutoCloseable {
         }
 
         return statusFlags;
+    }
+
+    /**
+     * Read the active status of all LEDs as a bitmask.
+     * Each bit is set to "1" if the LED is on, and "0" if off.
+     *
+     * @return Bitmask containing the status of all LEDs.
+     *
+     * @throws IOException
+     */
+    private byte readLedStatus() throws IOException {
+        assertLedSupport();
+        return mDevice.readRegByte(REG_LED_STATUS);
     }
 
     /**
@@ -564,6 +714,15 @@ public class Cap12xx implements AutoCloseable {
             }
         } catch (IOException e) {
             Log.w(TAG, "Unable to process interrupt event", e);
+        }
+    }
+
+    /**
+     * Gate LED functionality to only be called on chips that support LEDs.
+     */
+    private void assertLedSupport() {
+        if (mChipConfiguration.ledCount < 0) {
+            throw new IllegalArgumentException("LEDs not supported on this device");
         }
     }
 }

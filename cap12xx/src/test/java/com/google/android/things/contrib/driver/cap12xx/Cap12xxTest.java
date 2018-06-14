@@ -68,7 +68,7 @@ public class Cap12xxTest {
     public ExpectedException mExpectedException = ExpectedException.none();
 
     // Configuration used for all tests
-    private static final Configuration CONFIGURATION = Configuration.CAP1298;
+    private static final Configuration CONFIGURATION = Configuration.CAP1188;
 
     private Cap12xx mDriver;
 
@@ -109,6 +109,14 @@ public class Cap12xxTest {
         // setSensitivity
         Mockito.verify(mI2c).writeRegByte(eq(0x1F),
                 byteThat(hasBitsSet((byte) (0x70 & Cap12xx.SENSITIVITY_NORMAL))));
+        // setLedFade
+        Mockito.verify(mI2c).writeRegByte(0x94, (byte) Cap12xx.LED_FADE_INSTANT);
+        // setLedBrightness
+        Mockito.verify(mI2c).writeRegByte(0x93, (byte) 0xF0);
+        // setLedInputLinkEnabled
+        Mockito.verify(mI2c).writeRegByte(0x72, (byte) 0x00);
+        // Turn off LEDs.
+        Mockito.verify(mI2c).writeRegByte(0x74, (byte) 0x00);
 
         assertEquals(CONFIGURATION.channelCount, mDriver.getInputChannelCount());
         assertEquals(CONFIGURATION.maxTouch, mDriver.getMaximumTouchPoints());
@@ -146,6 +154,30 @@ public class Cap12xxTest {
     public void readInputChannel_throwsIfTooSLarge() throws IOException {
         mExpectedException.expect(IllegalArgumentException.class);
         mDriver.readInputChannel(CONFIGURATION.channelCount + 1);
+    }
+
+    @Test
+    public void readLedState_throwsIfTooSmall() throws IOException {
+        mExpectedException.expect(IllegalArgumentException.class);
+        mDriver.readLedState(-1);
+    }
+
+    @Test
+    public void readLedState_throwsIfTooSLarge() throws IOException {
+        mExpectedException.expect(IllegalArgumentException.class);
+        mDriver.readLedState(CONFIGURATION.ledCount + 1);
+    }
+
+    @Test
+    public void setLedState_throwsIfTooSmall() throws IOException {
+        mExpectedException.expect(IllegalArgumentException.class);
+        mDriver.setLedState(-1, true);
+    }
+
+    @Test
+    public void setLedState_throwsIfTooSLarge() throws IOException {
+        mExpectedException.expect(IllegalArgumentException.class);
+        mDriver.setLedState(CONFIGURATION.ledCount + 1, true);
     }
 
     @Test
@@ -224,6 +256,14 @@ public class Cap12xxTest {
     }
 
     @Test
+    public void setLedInputLinkEnabled() throws IOException {
+        mDriver.setLedInputLinkEnabled(true);
+        verify(mI2c).writeRegByte(0x72, (byte) 0xFF);
+        mDriver.setLedInputLinkEnabled(false);
+        verify(mI2c).writeRegByte(0x72, (byte) 0);
+    }
+
+    @Test
     public void setRepeatRate() throws IOException {
         mDriver.setRepeatRate(Cap12xx.REPEAT_DISABLE);
         verify(mI2c).writeRegByte(0x28, (byte) 0);
@@ -258,6 +298,40 @@ public class Cap12xxTest {
         mDriver.setSensitivity(Cap12xx.SENSITIVITY_HIGH);
         // mask for this sensitivity is zero, so invert the check
         verify(mI2c).writeRegByte(eq(0x1F), byteThat(hasBitsNotSet((byte) ~0x70)));
+    }
+
+    @Test
+    public void setLedFade() throws IOException {
+        mDriver.setLedFade(Cap12xx.LED_FADE_FAST);
+        verify(mI2c).writeRegByte(0x94, (byte) Cap12xx.LED_FADE_FAST);
+
+        Mockito.reset(mI2c);
+
+        mDriver.setLedFade(Cap12xx.LED_FADE_SLOW);
+        verify(mI2c).writeRegByte(0x94, (byte) Cap12xx.LED_FADE_SLOW);
+    }
+
+    @Test
+    public void setLedBrightness() throws IOException {
+        mDriver.setLedBrightness(0);
+        verify(mI2c).writeRegByte(0x93, (byte) 0x00);
+
+        Mockito.reset(mI2c);
+
+        mDriver.setLedBrightness(1);
+        verify(mI2c).writeRegByte(0x93, (byte) 0xF0);
+    }
+
+    @Test
+    public void setLedBrightness_throwsIfTooSmall() throws IOException {
+        mExpectedException.expect(IllegalArgumentException.class);
+        mDriver.setLedBrightness(-0.1f);
+    }
+
+    @Test
+    public void setLedBrightness_throwsIfTooLarge() throws IOException {
+        mExpectedException.expect(IllegalArgumentException.class);
+        mDriver.setLedBrightness(1.1f);
     }
 
     @Test
