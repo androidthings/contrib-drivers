@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.1] - 2018-06-19
+### Fixed
+- Support partial GSV satellite messages
+
 ## [1.0] - 2018-05-05
 ### Updated
 - update to Android Things 1.0

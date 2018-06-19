@@ -26,6 +26,7 @@ import com.google.android.things.pio.UartDeviceCallback;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.text.ParseException;
 
 /**
  * Peripheral that generates NMEA location sentences transmitted
@@ -197,7 +198,11 @@ public class NmeaGpsModule implements AutoCloseable {
         byte[] raw = new byte[mMessageBuffer.limit()];
         mMessageBuffer.get(raw);
 
-        mParser.processMessageFrame(raw);
+        try {
+            mParser.processMessageFrame(raw);
+        } catch (ParseException e) {
+            Log.e(TAG, "Unable to parse NMEA message", e);
+        }
 
         // Reset the buffer state
         resetBuffer();

@@ -37,7 +37,6 @@ import java.util.TimeZone;
  * location components.
  */
 /*package*/ class NmeaParser {
-    private static final String TAG = "NmeaParser";
 
     // Message framing characters
     private static final byte FRAME_START = 0x24;    // $
@@ -74,18 +73,13 @@ import java.util.TimeZone;
         return FRAME_END;
     }
 
-    /*package*/ void processMessageFrame(byte[] message) {
+    /*package*/ void processMessageFrame(byte[] message) throws ParseException {
         if (message == null || message.length < 1) {
-            Log.w(TAG, "Invalid message frame");
-            return;
+            throw new ParseException("Invalid message frame", 0);
         }
 
         // Validate the checksum
         int index = validateChecksum(message);
-        if (index < 0) {
-            // Invalid checksum, do not parse
-            return;
-        }
 
         // Report the raw, validated message
         String nmea = new String(message, 0, index);
@@ -114,7 +108,7 @@ import java.util.TimeZone;
     /**
      * Validate the message contents against the checksum.
      */
-    private int validateChecksum(byte[] message) {
+    private int validateChecksum(byte[] message) throws ParseException {
         int index = 0;
         int messageSum = message[index++];
         while (index < message.length) {
@@ -127,14 +121,12 @@ import java.util.TimeZone;
 
         // Index is pointing to checksum start
         if (index >= (message.length - 2)) {
-            Log.w(TAG, "Checksum missing from incoming message");
-            return -1;
+            throw new ParseException("Checksum missing from incoming message", index);
         }
 
         int checkSum = convertAsciiByte(message[index+1], message[index+2]);
         if (messageSum != checkSum) {
-            Log.w(TAG, "Invalid checksum (" + messageSum + "), expected " + checkSum);
-            return -1;
+            throw new ParseException("Invalid checksum (" + messageSum + "), expected " + checkSum, index);
         }
 
         return index;
@@ -144,10 +136,9 @@ import java.util.TimeZone;
      * Parse the contents of a GPGGA sentence
      * @param nmea Sentence tokens
      */
-    private void handleFixInformation(String[] nmea) {
+    private void handleFixInformation(String[] nmea) throws ParseException {
         if (nmea.length < 12) {
-            Log.w(TAG, "Invalid GGA Message");
-            return;
+            throw new ParseException("Invalid GGA Message", nmea.length);
         }
 
         int quality = Integer.parseInt(nmea[6]);
@@ -176,10 +167,9 @@ import java.util.TimeZone;
      * Parse the contents of a GPGSV sentence
      * @param nmea Sentence tokens
      */
-    private void handleSatelliteData(String[] nmea) {
-        if (nmea.length < 19) {
-            Log.w(TAG, "Invalid GSV Message");
-            return;
+    private void handleSatelliteData(String[] nmea) throws ParseException {
+        if (nmea.length < 4) {
+            throw new ParseException("Invalid GSV Message", nmea.length);
         }
 
         int satelliteCount = Integer.parseInt(nmea[3]);
@@ -189,7 +179,7 @@ import java.util.TimeZone;
         }
 
         // Parse the satellites in this message
-        for (int i = 4; i < 19; i += 4) {
+        for (int i = 4; (i + 3) < nmea.length; i += 4) {
             if (!nmea[i].isEmpty()) {
                 Satellite sat = new Satellite();
                 sat.svid = Integer.parseInt(nmea[i]);
@@ -214,10 +204,9 @@ import java.util.TimeZone;
      * Parse the contents of a GPGLL sentence
      * @param nmea Sentence tokens
      */
-    private void handleLatLngData(String[] nmea) {
+    private void handleLatLngData(String[] nmea) throws ParseException {
         if (nmea.length < 7) {
-            Log.w(TAG, "Invalid GLL Message");
-            return;
+            throw new ParseException("Invalid GLL Message", nmea.length);
         }
 
         String status = nmea[6];
@@ -236,10 +225,9 @@ import java.util.TimeZone;
      * Parse the contents of a GPRMC sentence
      * @param nmea Sentence tokens
      */
-    private void handleRecommendedMinimum(String[] nmea) {
+    private void handleRecommendedMinimum(String[] nmea) throws ParseException {
         if (nmea.length < 11) {
-            Log.w(TAG, "Invalid RMC Message");
-            return;
+            throw new ParseException("Invalid RMC Message", nmea.length);
         }
 
         String status = nmea[2];

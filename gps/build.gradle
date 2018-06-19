@@ -22,10 +22,16 @@ android {
     defaultConfig {
         minSdkVersion DEFAULT_MIN_SDK_VERSION
         targetSdkVersion DEFAULT_TARGET_SDK_VERSION
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 }
 
 dependencies {
     implementation 'com.android.support:support-annotations:27.1.0'
     compileOnly 'com.google.android.things:androidthings:1.0'
+
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    androidTestImplementation 'com.google.android.things:androidthings:1.0'
+    androidTestImplementation 'junit:junit:4.12'
+    androidTestImplementation 'org.mockito:mockito-android:2.7.15'
 }
