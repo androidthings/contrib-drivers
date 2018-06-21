@@ -75,7 +75,7 @@ public class Apa102 implements AutoCloseable {
     // Device SPI Configuration constants
     private static final int SPI_BPW = 8; // Bits per word
     private static final int SPI_FREQUENCY = 1000000;
-    private static final int SPI_MODE = SpiDevice.MODE2;
+    private static final int SPI_MODE_DEFAULT = SpiDevice.MODE2;
 
     // Protocol constants for APA102c
     // Start frame: 0x00000000
@@ -105,7 +105,7 @@ public class Apa102 implements AutoCloseable {
      * @param ledMode The {@link Mode} indicating the red/green/blue byte ordering for the device.
      */
     public Apa102(String spiBusPort, Mode ledMode) throws IOException {
-        this(spiBusPort, ledMode, Direction.NORMAL);
+        this(spiBusPort, ledMode, Direction.NORMAL, SPI_MODE_DEFAULT);
     }
 
     /**
@@ -116,12 +116,25 @@ public class Apa102 implements AutoCloseable {
      * @param direction The {@link Direction} or the led strip.
      */
     public Apa102(String spiBusPort, Mode ledMode, Direction direction) throws IOException {
+        this(spiBusPort, ledMode, direction, SPI_MODE_DEFAULT);
+    }
+
+    /**
+     * Create a new Apa102 driver.
+     *
+     * @param spiBusPort Name of the SPI bus
+     * @param ledMode The {@link Mode} indicating the red/green/blue byte ordering for the device.
+     * @param direction The {@link Direction} or the led strip.
+     * @param spiMode the SPI device mode for the bus. Default is MODE2
+     */
+    public Apa102(String spiBusPort, Mode ledMode, Direction direction, int spiMode)
+            throws IOException {
         mLedMode = ledMode;
         mDirection = direction;
         PeripheralManager pioService = PeripheralManager.getInstance();
         mDevice = pioService.openSpiDevice(spiBusPort);
         try {
-            configure(mDevice);
+            configure(mDevice, spiMode);
         } catch (IOException|RuntimeException e) {
             try {
                 close();
@@ -142,14 +155,14 @@ public class Apa102 implements AutoCloseable {
         mLedMode = ledMode;
         mDirection = direction;
         mDevice = device;
-        configure(mDevice);
+        configure(mDevice, SPI_MODE_DEFAULT);
     }
 
-    private void configure(SpiDevice device) throws IOException {
+    private void configure(SpiDevice device, int spiMode) throws IOException {
         // Note: You may need to set bit justification for your board.
         // mDevice.setBitJustification(SPI_BITJUST);
         device.setFrequency(SPI_FREQUENCY);
-        device.setMode(SPI_MODE);
+        device.setMode(spiMode);
         device.setBitsPerWord(SPI_BPW);
     }
 
