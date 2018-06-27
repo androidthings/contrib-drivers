@@ -16,13 +16,13 @@ For your convenience, drivers in this repository are also published to JCenter
 as Maven artifacts. Look at their artifact and group ID in their build.gradle
 and add them as dependencies to your own project.
 
-For example, to use the `button` driver, version `0.1`, simply add the line
+For example, to use the `button` driver, version `1.0`, simply add the line
 below to your project's `build.gradle`:
 
 
 ```
 dependencies {
-    implementation 'com.google.android.things.contrib:driver-button:0.1'
+    implementation 'com.google.android.things.contrib:driver-button:1.0'
 }
 ```
 
@@ -33,7 +33,6 @@ Current contrib drivers
 <!-- DRIVER_LIST_START -->
 Driver | Type | Usage (add to your gradle dependencies) | Note
 :---:|:---:| --- | ---
-[driver-adcv2x](adcv2x) | Sparkfun ADC Block for Intel Edison | `implementation 'com.google.android.things.contrib:driver-adcv2x:1.0'` |  [changelog](adcv2x/CHANGELOG.md)
 [driver-apa102](apa102) | RGB LED strip | `implementation 'com.google.android.things.contrib:driver-apa102:1.0'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/apa102) [changelog](apa102/CHANGELOG.md)
 [driver-bmx280](bmx280) | temperature, pressure and humidity sensor | `implementation 'com.google.android.things.contrib:driver-bmx280:1.0'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/bmx280) [changelog](bmx280/CHANGELOG.md)
 [driver-button](button) | push button over GPIO | `implementation 'com.google.android.things.contrib:driver-button:1.0'` | [sample](https://github.com/androidthings/sample-button) [changelog](button/CHANGELOG.md)
@@ -54,6 +53,13 @@ Driver | Type | Usage (add to your gradle dependencies) | Note
 [driver-voicehat](voicehat) | driver for VoiceHat | `implementation 'com.google.android.things.contrib:driver-voicehat:1.0'` | [sample](https://github.com/androidthings/sample-googleassistant) [changelog](voicehat/CHANGELOG.md)
 [driver-zxgesturesensor](zxgesturesensor) | zx gesture sensor | `implementation 'com.google.android.things.contrib:driver-zxgesturesensor:1.0'` |  [changelog](zxgesturesensor/CHANGELOG.md)
 <!-- DRIVER_LIST_END -->
+
+
+Deprecated drivers
+------------------
+Driver | Type | Usage (add to your gradle dependencies) | Reason |
+:---:|:---:| --- | --- |
+driver-adcv2x | Sparkfun ADC Block for Intel Edison | `implementation 'com.google.android.things.contrib:driver-adcv2x:1.0'` | Superseded by [driver-adc](adc)
 
 License
 -------

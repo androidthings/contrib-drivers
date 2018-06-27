@@ -1,8 +1,15 @@
-ADCV2x Driver for Android Things
+ADC Drivers for Android Things
 ====================================
 
-This driver supports the [Sparkfun ADC Block for Edison](https://www.sparkfun.com/products/13770) 
-for reading analog devices.
+This driver supports the following analog to digital converters (ADCs):
+
+| Driver | ADC | Module |
+| :----: | --- | ------ |
+| MCP3xxx | MCP3002 | [SparkFun](https://www.sparkfun.com/products/8636)
+| MCP3xxx | MCP3004 |
+| MCP3xxx | MCP3008 | [Adafruit](https://www.adafruit.com/product/856)
+| ADS1xxx | ADS1013, ADS1014, ADS1015 | [Adafruit](https://www.adafruit.com/product/1083)
+| ADS1xxx | ADS1113, ADS1114, ADS1115 | [Adafruit](https://www.adafruit.com/product/1085)
 
 NOTE: these drivers are not production-ready. They are offered as sample
 implementations of Android Things user space drivers for common peripherals
@@ -14,38 +21,40 @@ How to use the driver
 
 ### Gradle dependency
 
-To use the `adcv2x` driver, simply add the line below to your project's `build.gradle`,
+To use the `adc` driver, simply add the line below to your project's `build.gradle`,
 where `<version>` matches the last version of the driver available on [jcenter][jcenter].
 
 ```
 dependencies {
-    compile 'com.google.android.things.contrib:driver-adcv2x:<version>'
+    compile 'com.google.android.things.contrib:driver-adc:<version>'
 }
 ```
 
 ### Sample usage
 
 ```java
-import com.google.android.things.contrib.driver.adcv2x.Adcv2x;
+import com.google.android.things.contrib.driver.adc.ads1xxx.Ads1xxx;
 
 try {
-    // The driver has static constants for the different solderable I2C addresses:
-    mAdc = new Adcv2x(Adcv2x.DEFAULT_BUS, Adcv2x.I2C_ADDRESS_48);
+    // Connect to an ADS1015 using the default I2C address
+    mAdcDriver = new Ads1xxx(i2cBusName, Ads1xxx.Configuration.ADS1015);
+    // Increase default range to fit +3.3V
+    mAdcDriver.setInputRange(Ads1xxx.RANGE_4_096V);
 } catch (IOException e) {
     // couldn't configure the device...
 }
 
 // Elsewhere in a loop
 try {
-    // Get the voltage for one of the 4 available channels, 0-3 
-    float voltage = mAdc.getResult(0)
+    // Get the voltage difference between IN0+ and IN1-
+    float voltage = mAdcDriver.readDifferentialVoltage(Ads1xxx.INPUT_DIFF_0P_1N);
 } catch (IOException e) {
     // error reading result
 }
 
 // Close the block when finished:
 try {
-    mAdc.close(0)
+    mAdc.close()
 } catch (IOException e) {
     // error closing
 }
@@ -72,4 +81,4 @@ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
 License for the specific language governing permissions and limitations under
 the License.
 
-[jcenter]: https://bintray.com/google/androidthings/contrib-driver-adcv2x/_latestVersion
+[jcenter]: https://bintray.com/google/androidthings/contrib-driver-adc/_latestVersion
