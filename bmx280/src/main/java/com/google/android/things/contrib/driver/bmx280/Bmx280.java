@@ -72,7 +72,7 @@ public class Bmx280 implements AutoCloseable {
      */
     public static final float MIN_HUM_RH = 0f;
     /**
-     * Maximum temperature in RH the sensor can measure.
+     * Maximum humidity in RH the sensor can measure.
      */
     public static final float MAX_HUM_RH = 100f;
     /**
