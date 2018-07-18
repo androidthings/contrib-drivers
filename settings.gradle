@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-include ':adcv2x'
+include ':adc'
 include ':apa102'
 include ':button'
 include ':bmx280'

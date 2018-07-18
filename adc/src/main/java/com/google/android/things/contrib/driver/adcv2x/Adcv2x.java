@@ -16,6 +16,7 @@
 
 package com.google.android.things.contrib.driver.adcv2x;
 
+import com.google.android.things.contrib.driver.adc.ads1xxx.Ads1xxx;
 import com.google.android.things.pio.I2cDevice;
 import com.google.android.things.pio.PeripheralManager;
 
@@ -26,8 +27,11 @@ import java.io.IOException;
  * https://github.com/sparkfun/SparkFun_ADC_Block_for_Edison_CPP_Library/blob/master/SparkFunADS1015.cpp
  *
  * With lots of byte to short to unsigned conversions.
+ *
+ * @deprecated Replaced by {@link Ads1xxx}
  */
 
+@Deprecated
 public class Adcv2x implements AutoCloseable {
 
     private static final String TAG = Adcv2x.class.getSimpleName();
