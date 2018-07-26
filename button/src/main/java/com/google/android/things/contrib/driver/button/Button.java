@@ -132,10 +132,9 @@ public class Button implements AutoCloseable {
     }
     
     /**
-     * Return the pin name given to instantiate the button.
-     * Can be used to identify a button through an array
+     * Returns the I/O name of the underlying GPIO.
      *
-     * @return name of the pin used to instantiate the button
+     * @return the I/O name.
      */
     public String getName() {
         return mButtonGpio.getName();
