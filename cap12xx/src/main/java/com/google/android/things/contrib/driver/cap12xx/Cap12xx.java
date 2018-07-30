@@ -657,6 +657,21 @@ public class Cap12xx implements AutoCloseable {
      */
     private byte readLedStatus() throws IOException {
         assertLedSupport();
+        return mDevice.readRegByte(REG_LED_CONTROL);
+    }
+
+    /**
+     * Read the transition status of all LEDs as a bitmask.
+     * Each bit is set to "0" if the LED is currently transitioning,
+     * or if the General Status INT bit is cleared,
+     * and "1" if it has finished transitioning.
+     *
+     * @return Bitmask containing the status of all LEDs.
+     *
+     * @throws IOException
+     */
+    private byte readLedTransitionStatus() throws IOException {
+        assertLedSupport();
         return mDevice.readRegByte(REG_LED_STATUS);
     }
 
