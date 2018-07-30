@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.1] - 2018-07-30
+### Updated
+- update to add rpi3 b+ support
+
 ## [1.0] - 2018-05-05
 ### Updated
 - update to Android Things 1.0

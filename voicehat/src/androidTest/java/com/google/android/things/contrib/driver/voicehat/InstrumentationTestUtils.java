@@ -20,6 +20,6 @@ public class InstrumentationTestUtils {
 
     /* package */ static void assertRaspberryPiOnly() {
         // This test requires a Raspberry Pi to run
-        Assert.assertEquals("rpi3", Build.DEVICE);
+        Assert.assertTrue(Build.DEVICE.equals("rpi3") || Build.DEVICE.equals("rpi3bp"));
     }
 }

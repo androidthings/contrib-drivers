@@ -43,7 +43,7 @@ public class VoiceHat {
     private static final String RPI_LED_GPIO = "BCM25";
 
     /* package */ static void assertRaspberryPi3() {
-        if (!Build.DEVICE.equals("rpi3")) {
+        if (!Build.DEVICE.equals("rpi3") && !Build.DEVICE.equals("rpi3bp")) {
             throw new RuntimeException("This device is not a Raspberry Pi 3, so it cannot use the d"
                 + "efault pin names");
         }
