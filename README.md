@@ -33,7 +33,7 @@ Current contrib drivers
 <!-- DRIVER_LIST_START -->
 Driver | Type | Usage (add to your gradle dependencies) | Note
 :---:|:---:| --- | ---
-[driver-adc](adc) | Analog to Digital Converters | `implementation 'com.google.android.things.contrib:driver-adc:2.0'` |  [changelog](adc/CHANGELOG.md)
+[driver-adc](adc) | Analog to Digital Converters | `implementation 'com.google.android.things.contrib:driver-adc:2.0'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/ads1015) [changelog](adc/CHANGELOG.md)
 [driver-apa102](apa102) | RGB LED strip | `implementation 'com.google.android.things.contrib:driver-apa102:1.0'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/apa102) [changelog](apa102/CHANGELOG.md)
 [driver-bmx280](bmx280) | temperature, pressure and humidity sensor | `implementation 'com.google.android.things.contrib:driver-bmx280:1.0'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/bmx280) [changelog](bmx280/CHANGELOG.md)
 [driver-button](button) | push button over GPIO | `implementation 'com.google.android.things.contrib:driver-button:1.0'` | [sample](https://github.com/androidthings/sample-button) [changelog](button/CHANGELOG.md)
