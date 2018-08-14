@@ -62,4 +62,16 @@ public class Ads1xxxTest {
         result = driver.readSingleEndedVoltage(0);
         assertEquals(3.3, result, 0.002);
     }
+
+    @Test(expected = IOException.class)
+    public void readTimeout_throwsException() throws IOException {
+        // 12-bit ADC device
+        Ads1015Device mockDevice = new Ads1015Device();
+        mockDevice.setChannelValue(3.3f);
+        mockDevice.setClearOnRead(false);
+        Ads1xxx driver = new Ads1xxx(mockDevice, Ads1xxx.Configuration.ADS1015);
+
+        // This line should throw an exception, Ads1015 will never return complete flag
+        driver.readDifferentialVoltage(0);
+    }
 }

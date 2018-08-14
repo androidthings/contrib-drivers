@@ -31,6 +31,8 @@ public class Ads1015Device implements I2cDevice {
     private static final byte REG_LO_THRESH =  0x02;
     private static final byte REG_HI_THRESH =  0x03;
 
+    private static final int MASK_STATUS_BIT = 0x8000;
+
     private enum Range {
         V6_144(0x00, 6.144f),
         V4_096(0x01, 4.096f),
@@ -65,6 +67,7 @@ public class Ads1015Device implements I2cDevice {
     private int mConfigValue = 0x8583;
     private Range mCurrentScale = Range.V2_048;
     private float mCurrentVoltage;
+    private boolean mClearOnRead = true;
 
     /**
      * Update the internal mock ADC value
@@ -72,6 +75,10 @@ public class Ads1015Device implements I2cDevice {
      */
     public void setChannelValue(float voltage) {
         mCurrentVoltage = voltage;
+    }
+
+    public void setClearOnRead(boolean clear) {
+        mClearOnRead = clear;
     }
 
     @Override
@@ -103,6 +110,9 @@ public class Ads1015Device implements I2cDevice {
         }
         switch (reg) {
             case REG_CONVERSION:
+                if ((mConfigValue & MASK_STATUS_BIT) != MASK_STATUS_BIT) {
+                    throw new IllegalStateException("Cannot read ADC sample while conversion in progress");
+                }
                 // Convert voltage to value at current scale
                 float scale = Math.max(-1f, Math.min(1f, mCurrentVoltage / mCurrentScale.voltage));
                 int rawValue = (int) (scale * 0x7FF) << 4; // shift to high 12-bits
@@ -110,6 +120,12 @@ public class Ads1015Device implements I2cDevice {
                 break;
             case REG_CONFIG:
                 intToBytes(mConfigValue, buffer);
+                // Test device simply marks conversion as done once checked
+                if (mClearOnRead &&
+                        (mConfigValue & MASK_STATUS_BIT) != MASK_STATUS_BIT) {
+                    // Set conversion bit for next read
+                    mConfigValue |= MASK_STATUS_BIT;
+                }
                 break;
             case REG_LO_THRESH:
                 intToBytes(mLoThreshold, buffer);
@@ -149,7 +165,14 @@ public class Ads1015Device implements I2cDevice {
             case REG_CONVERSION:
                 throw new UnsupportedOperationException("Conversion register is read-only");
             case REG_CONFIG:
-                mConfigValue = bytesToInt(buffer);
+                int newValue = bytesToInt(buffer);
+                // Trigger a new conversion if status bit is set
+                if ((newValue & MASK_STATUS_BIT) == MASK_STATUS_BIT) {
+                    mConfigValue &= ~MASK_STATUS_BIT;
+                }
+                mConfigValue &= MASK_STATUS_BIT;
+                mConfigValue |= (newValue & ~MASK_STATUS_BIT);
+
                 // Parse new scale value
                 int newRange = (mConfigValue & 0xE00) >> 9;
                 mCurrentScale = Range.forValue(newRange);

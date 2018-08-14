@@ -1,5 +1,9 @@
 # Change Log
 
+## [2.1] - 2018-08-14
+### Updated
+- Fix logic to enable successive channel reads.
+
 ## [2.0] - 2018-08-01
 ### Added
 - New driver for MCP300x chip family
