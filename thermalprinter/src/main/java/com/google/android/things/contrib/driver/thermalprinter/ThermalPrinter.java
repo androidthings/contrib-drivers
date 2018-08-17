@@ -719,7 +719,8 @@ public class ThermalPrinter implements AutoCloseable {
      * can be called for each job, so they are represented as static methods with a private
      * constructor.
      */
-    private static class PrinterJob extends Job {
+    public static class PrinterJob extends Job {
+        private PrinterJob() {}
         /**
          * Temporarily enables or disables the serial connection to the printer, preventing data
          * from being sent or received.
