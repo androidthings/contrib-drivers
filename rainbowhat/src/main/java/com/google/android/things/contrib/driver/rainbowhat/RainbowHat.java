@@ -73,8 +73,9 @@ public class RainbowHat {
         public String getLedG() { return "GPIO2_IO00";}
         public String getLedB() { return "GPIO2_IO05";}
     }
-
-    private static final BoardDefaults BOARD = Build.DEVICE.equals("rpi3") ?
+    private static final boolean IS_RPI3 =
+            Build.DEVICE.equals("rpi3") || Build.DEVICE.equals("rpi3bp");
+    private static final BoardDefaults BOARD = IS_RPI3 ?
             new Rpi3BoardDefaults() : new Imx7BoardDefaults();
     public static final Button.LogicState BUTTON_LOGIC_STATE = Button.LogicState.PRESSED_WHEN_LOW;
     public static final int LEDSTRIP_LENGTH = 7;
