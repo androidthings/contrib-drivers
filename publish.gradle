@@ -41,9 +41,31 @@ subprojects {
 
     apply plugin: 'com.android.library'
 
+    task genJavadocs(type: Javadoc) {
+        // For each project, generate Javadoc and include it as an artifact
+        source = android.sourceSets.main.java.sourceFiles
+        // Manually select the current version of Android
+        project.android.compileSdkVersion = 'android-' + DEFAULT_COMPILE_SDK_VERSION
+
+        // Make sure compiled dependencies can be handled for Javadoc
+	// e.g: for androidthings support library.
+        configurations.compileOnly.setCanBeResolved(true)
+        classpath += configurations.compileOnly
+
+        // Make sure implemented dependencies can be handled for Javadoc
+	// e.g: for annotation support library.
+        configurations.implementation.setCanBeResolved(true)
+        classpath += configurations.implementation
+    }
+
     task sourceJar(type: Jar) {
         classifier = 'sources'
         from android.sourceSets.main.java.sourceFiles
+    }
+
+    task javadocJar(type: Jar, dependsOn: genJavadocs) {
+        classifier = 'javadoc'
+        from genJavadocs.destinationDir
     }
 
     def artifactVersion = snapshot ? "LATEST" : ARTIFACT_VERSION
@@ -54,6 +76,7 @@ subprojects {
                 artifactId "driver-$project.name"
                 version artifactVersion
                 artifact sourceJar
+                artifact javadocJar
                 artifact("$buildDir/outputs/aar/$project.name-release.aar")
                 pom.withXml {
                     def dependenciesNode = asNode().appendNode('dependencies')
