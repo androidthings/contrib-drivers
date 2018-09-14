@@ -33,11 +33,11 @@ Current contrib drivers
 <!-- DRIVER_LIST_START -->
 Driver | Type | Usage (add to your gradle dependencies) | Note
 :---:|:---:| --- | ---
-[driver-adc](adc) | Analog to Digital Converters | `implementation 'com.google.android.things.contrib:driver-adc:2.0'` |  [changelog](adc/CHANGELOG.md)
+[driver-adc](adc) | Analog to Digital Converters | `implementation 'com.google.android.things.contrib:driver-adc:2.0'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/ads1015) [changelog](adc/CHANGELOG.md)
 [driver-apa102](apa102) | RGB LED strip | `implementation 'com.google.android.things.contrib:driver-apa102:1.0'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/apa102) [changelog](apa102/CHANGELOG.md)
 [driver-bmx280](bmx280) | temperature, pressure and humidity sensor | `implementation 'com.google.android.things.contrib:driver-bmx280:1.0'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/bmx280) [changelog](bmx280/CHANGELOG.md)
 [driver-button](button) | push button over GPIO | `implementation 'com.google.android.things.contrib:driver-button:1.0'` | [sample](https://github.com/androidthings/sample-button) [changelog](button/CHANGELOG.md)
-[driver-cap12xx](cap12xx) | capacitive touch buttons | `implementation 'com.google.android.things.contrib:driver-cap12xx:1.0'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/cap12xx) [changelog](cap12xx/CHANGELOG.md)
+[driver-cap1xxx](cap1xxx) | capacitive touch buttons | `implementation 'com.google.android.things.contrib:driver-cap1xxx:2.0'` |  [changelog](cap1xxx/CHANGELOG.md)
 [driver-gps](gps) | GPS | `implementation 'com.google.android.things.contrib:driver-gps:1.1'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/gps) [changelog](gps/CHANGELOG.md)
 [driver-ht16k33](ht16k33) | 7-digit alphanumeric segment display | `implementation 'com.google.android.things.contrib:driver-ht16k33:1.1'` | [sample](https://github.com/androidthings/drivers-samples/tree/master/ht16k33) [changelog](ht16k33/CHANGELOG.md)
 [driver-lowpan](lowpan) | LoWPAN support over UART | `implementation 'com.google.android.things.contrib:driver-lowpan:1.0'` | [sample](https://github.com/androidthings/sample-lowpan) [changelog](lowpan/CHANGELOG.md)
@@ -62,6 +62,7 @@ Deprecated drivers
 Driver | Type | Usage (add to your gradle dependencies) | Reason |
 :---:|:---:| --- | --- |
 driver-adcv2x | Sparkfun ADC Block for Intel Edison | `implementation 'com.google.android.things.contrib:driver-adcv2x:1.0'` | Superseded by [driver-adc](adc)
+driver-cap12xx | capacitive touch buttons | `implementation 'com.google.android.things.contrib:driver-cap12xx:1.0'` | Superseded by [driver-cap1xxx](cap1xxx)
 
 License
 -------

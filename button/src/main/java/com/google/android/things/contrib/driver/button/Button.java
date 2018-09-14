@@ -130,6 +130,15 @@ public class Button implements AutoCloseable {
             return true;
         }
     }
+    
+    /**
+     * Returns the I/O name of the underlying GPIO.
+     *
+     * @return the I/O name.
+     */
+    public String getName() {
+        return mButtonGpio.getName();
+    }
 
     /**
      * Set the listener to be called when a button event occurred.
