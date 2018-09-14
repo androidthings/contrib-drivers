@@ -223,7 +223,7 @@ public class Cap1xxx implements AutoCloseable {
      * @param handler optional {@link Handler} for software polling and callback events.
      * @throws IOException
      */
-    public Cap12xx(String i2cName, String alertName, Configuration chip, Handler handler) throws IOException {
+    public Cap1xxx(String i2cName, String alertName, Configuration chip, Handler handler) throws IOException {
         this(i2cName, I2C_ADDRESS, alertName, chip, handler);
     }
 
@@ -239,7 +239,7 @@ public class Cap1xxx implements AutoCloseable {
      * @throws IOException
      */
 
-    public Cap12xx(String i2cName, int i2cAddress, String alertName, Configuration chip, Handler handler)
+    public Cap1xxx(String i2cName, int i2cAddress, String alertName, Configuration chip, Handler handler)
             throws IOException {
         mChipConfiguration = chip;
         try {
