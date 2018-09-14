@@ -214,7 +214,7 @@ public class Cap1xxx implements AutoCloseable {
     }
 
     /**
-     * Create a new Cap12xx controller with the default I2C address.
+     * Create a new Cap1xxx controller with the default I2C address.
      *
      * @param i2cName I2C port name where the controller is attached. Cannot be null.
      * @param alertName optional GPIO pin name connected to the controller's
@@ -228,7 +228,7 @@ public class Cap1xxx implements AutoCloseable {
     }
 
     /**
-     * Create a new Cap12xx controller.
+     * Create a new Cap1xxx controller.
      *
      * @param i2cName I2C port name where the controller is attached. Cannot be null.
      * @param i2cAddress 7-bit I2C address for the attached controller. Cannot be null.
