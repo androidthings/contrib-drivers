@@ -83,8 +83,8 @@ public class Cap1xxxInputDriver implements AutoCloseable {
     }
 
     /**
-     * Create a new Cap1xxxInputDriver to forward capacitive touch events to the Android input
-     * framework.
+     * Create a new Cap1xxxInputDriver with the default I2C address to forward capacitive touch
+     * events to the Android input framework.
      *
      * @param i2cName I2C port name where the controller is attached. Cannot be null.
      * @param alertName Optional GPIO pin name connected to the controller's alert interrupt signal.
@@ -97,6 +97,25 @@ public class Cap1xxxInputDriver implements AutoCloseable {
     public Cap1xxxInputDriver(String i2cName, String alertName, Configuration chip, Handler handler,
             int[] keyCodes) throws IOException {
         Cap1xxx peripheral = new Cap1xxx(i2cName, alertName, chip, handler);
+        init(peripheral, keyCodes);
+    }
+
+    /**
+     * Create a new Cap1xxxInputDriver to forward capacitive touch events to the Android input
+     * framework.
+     *
+     * @param i2cName I2C port name where the controller is attached. Cannot be null.
+     * @param i2cAddress 7-bit I2C address for the attached controller.
+     * @param alertName Optional GPIO pin name connected to the controller's alert interrupt signal.
+     *                  Can be null.
+     * @param chip Identifier for the connected controller device chip.
+     * @param handler Optional {@link Handler} for software polling and callback events.
+     * @param keyCodes {@link KeyEvent} codes to be emitted for each input channel. Length must
+     *                 match the input channel count of the Configuration {@code chip}.
+     */
+    public Cap1xxxInputDriver(String i2cName, int i2cAddress, String alertName, Configuration chip, Handler handler,
+                              int[] keyCodes) throws IOException {
+        Cap1xxx peripheral = new Cap1xxx(i2cName, i2cAddress, alertName, chip, handler);
         init(peripheral, keyCodes);
     }
 

@@ -89,7 +89,7 @@ public class Cap1xxx implements AutoCloseable {
     /**
      * Default I2C slave address for the CAP1xxx family.
      */
-    public static final int I2C_ADDRESS = 0x28;
+    public static final int DEFAULT_I2C_ADDRESS = 0x28;
 
     @Retention(RetentionPolicy.SOURCE)
     @IntDef({REPEAT_DISABLE, REPEAT_FAST, REPEAT_NORMAL, REPEAT_SLOW})
@@ -192,7 +192,7 @@ public class Cap1xxx implements AutoCloseable {
     }
 
     /**
-     * Create a new Cap1xxx controller.
+     * Create a new Cap1xxx controller with the default I2C address.
      *
      * @param i2cName I2C port name where the controller is attached. Cannot be null.
      * @param alertName optional GPIO pin name connected to the controller's
@@ -214,7 +214,7 @@ public class Cap1xxx implements AutoCloseable {
     }
 
     /**
-     * Create a new Cap1xxx controller.
+     * Create a new Cap1xxx controller with the default I2C address.
      *
      * @param i2cName I2C port name where the controller is attached. Cannot be null.
      * @param alertName optional GPIO pin name connected to the controller's
@@ -223,12 +223,28 @@ public class Cap1xxx implements AutoCloseable {
      * @param handler optional {@link Handler} for software polling and callback events.
      * @throws IOException
      */
-    public Cap1xxx(String i2cName, String alertName, Configuration chip, Handler handler)
+    public Cap1xxx(String i2cName, String alertName, Configuration chip, Handler handler) throws IOException {
+        this(i2cName, DEFAULT_I2C_ADDRESS, alertName, chip, handler);
+    }
+
+    /**
+     * Create a new Cap1xxx controller.
+     *
+     * @param i2cName I2C port name where the controller is attached. Cannot be null.
+     * @param i2cAddress 7-bit I2C address for the attached controller.
+     * @param alertName optional GPIO pin name connected to the controller's
+     *                  alert interrupt signal. Can be null.
+     * @param chip identifier for the connected controller device chip.
+     * @param handler optional {@link Handler} for software polling and callback events.
+     * @throws IOException
+     */
+
+    public Cap1xxx(String i2cName, int i2cAddress, String alertName, Configuration chip, Handler handler)
             throws IOException {
         mChipConfiguration = chip;
         try {
             PeripheralManager manager = PeripheralManager.getInstance();
-            I2cDevice device = manager.openI2cDevice(i2cName, I2C_ADDRESS);
+            I2cDevice device = manager.openI2cDevice(i2cName, i2cAddress);
             Gpio alertPin = null;
             if (alertName != null) {
                 alertPin = manager.openGpio(alertName);
