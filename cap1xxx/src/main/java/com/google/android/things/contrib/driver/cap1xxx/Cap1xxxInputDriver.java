@@ -105,7 +105,7 @@ public class Cap1xxxInputDriver implements AutoCloseable {
      * framework.
      *
      * @param i2cName I2C port name where the controller is attached. Cannot be null.
-     * @param i2cAddress 7-bit I2C address for the attached controller. Cannot be null.
+     * @param i2cAddress 7-bit I2C address for the attached controller.
      * @param alertName Optional GPIO pin name connected to the controller's alert interrupt signal.
      *                  Can be null.
      * @param chip Identifier for the connected controller device chip.
