@@ -14,26 +14,21 @@
  * limitations under the License.
  */
 
-include ':adc', ':mcp23017'
-include ':apa102'
-include ':button'
-include ':bmx280'
-include ':cap1xxx'
-include ':gps'
-include ':ht16k33'
-include ':lowpan'
-include ':matrixkeypad'
-include ':mma7660fc'
-include ':motorhat'
-include ':pwmservo'
-include ':pwmspeaker'
-include ':tm1637'
-include ':ssd1306'
-include ':rainbowhat'
-include ':sensehat'
-include ':thermalprinter'
-include ':vcnl4200'
-include ':voicehat'
-include ':zxgesturesensor'
+apply plugin: 'com.android.library'
 
-include ':testingutils'
+android {
+    compileSdkVersion DEFAULT_COMPILE_SDK_VERSION
+
+    defaultConfig {
+        minSdkVersion DEFAULT_MIN_SDK_VERSION
+        targetSdkVersion DEFAULT_TARGET_SDK_VERSION
+    }
+}
+
+dependencies {
+    compileOnly 'com.google.android.things:androidthings:1.0'
+
+    testImplementation 'com.google.android.things:androidthings:1.0'
+    testImplementation 'org.powermock:powermock-module-junit4:1.6.6'
+    testImplementation 'org.powermock:powermock-api-mockito:1.6.6'
+}
