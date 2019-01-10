@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-include ':adc', ':mcp23017'
+include ':adc'
 include ':apa102'
 include ':button'
 include ':bmx280'
@@ -23,6 +23,7 @@ include ':gps'
 include ':ht16k33'
 include ':lowpan'
 include ':matrixkeypad'
+include ':mcp23017'
 include ':mma7660fc'
 include ':motorhat'
 include ':pwmservo'
