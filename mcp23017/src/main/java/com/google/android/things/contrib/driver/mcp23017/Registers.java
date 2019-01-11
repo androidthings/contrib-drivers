@@ -4,6 +4,8 @@ class Registers {
 
     static final int REGISTER_IODIR_A = 0x00;
     static final int REGISTER_IODIR_B = 0x01;
+    static final int REGISTER_IPOL_A = 0x02;
+    static final int REGISTER_IPOL_B = 0x03;
     static final int REGISTER_GPINTEN_A = 0x04;
     static final int REGISTER_GPINTEN_B = 0x05;
     static final int REGISTER_DEFVAL_A = 0x06;
