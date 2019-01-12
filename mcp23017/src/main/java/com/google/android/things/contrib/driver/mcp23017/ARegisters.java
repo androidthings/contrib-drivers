@@ -1,6 +1,6 @@
 package com.google.android.things.contrib.driver.mcp23017;
 
-public class ARegisters implements Registers {
+class ARegisters implements Registers {
 
     static final int IODIR_A = 0x00;
     static final int IPOL_A = 0x02;

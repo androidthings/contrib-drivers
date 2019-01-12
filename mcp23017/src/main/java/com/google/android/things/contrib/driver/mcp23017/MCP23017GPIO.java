@@ -38,7 +38,7 @@ public enum MCP23017GPIO {
         return name;
     }
 
-    public Registers getRegister() {
+    public Registers getRegisters() {
         return register;
     }
 }
