@@ -11,7 +11,25 @@ import java.io.IOException;
 public class MCP23017 {
 
     private static final String LOG_TAG = MCP23017.class.getSimpleName();
+    private static final byte DEFAULT_REGISTER_VALUE = 0;
     private static final int DEFAULT_ADDRESS = 0x20;
+
+    private static final int IODIR_A = 0x00;
+    private static final int IPOL_A = 0x02;
+    private static final int GPINTEN_A = 0x04;
+    private static final int DEFVAL_A = 0x06;
+    private static final int INTCON_A = 0x08;
+    private static final int GPPU_A = 0x0C;
+    private static final int INTF_A = 0x0E;
+    private static final int GPIO_A = 0x12;
+    private static final int IODIR_B = 0x01;
+    private static final int IPOL_B = 0x03;
+    private static final int GPINTEN_B = 0x05;
+    private static final int DEFVAL_B = 0x07;
+    private static final int INTCON_B = 0x09;
+    private static final int GPPU_B = 0x0D;
+    private static final int INTF_B = 0x0F;
+    private static final int GPIO_B = 0x13;
 
     private I2cDevice device;
     private int address;
@@ -44,12 +62,14 @@ public class MCP23017 {
     }
 
     private void defaultInitialization() throws IOException {
-        device.writeRegByte(Registers.REGISTER_IODIR_A, directionA);
-        device.writeRegByte(Registers.REGISTER_IODIR_B, directionB);
-        device.writeRegByte(Registers.REGISTER_IPOL_A, activationA);
-        device.writeRegByte(Registers.REGISTER_IPOL_B, activationB);
-        device.writeRegByte(Registers.REGISTER_GPIO_A, gpioA);
-        device.writeRegByte(Registers.REGISTER_GPIO_B, gpioB);
+        device.writeRegByte(IODIR_A, DEFAULT_REGISTER_VALUE);
+        device.writeRegByte(IODIR_B, DEFAULT_REGISTER_VALUE);
+        device.writeRegByte(IPOL_A, DEFAULT_REGISTER_VALUE);
+        device.writeRegByte(IPOL_B, DEFAULT_REGISTER_VALUE);
+        device.writeRegByte(GPPU_A, DEFAULT_REGISTER_VALUE);
+        device.writeRegByte(GPPU_B, DEFAULT_REGISTER_VALUE);
+        device.writeRegByte(GPIO_A, DEFAULT_REGISTER_VALUE);
+        device.writeRegByte(GPPU_B, DEFAULT_REGISTER_VALUE);
     }
 
     public Gpio openGpio(MCP23017GPIO gpio) {
@@ -57,17 +77,17 @@ public class MCP23017 {
     }
 
     void setValue(MCP23017Pin pin, boolean value) throws IOException {
-        byte state = device.readRegByte(pin.getRegister());
+        byte state = device.readRegByte(pin.getRegisters().getGPIO());
         if (value) {
             state |= pin.getAddress();
         } else {
             state &= ~pin.getAddress();
         }
-        device.writeRegByte(pin.getRegister(), state);
+        device.writeRegByte(pin.getRegisters().getGPIO(), state);
     }
 
     boolean getValue(MCP23017Pin pin) throws IOException {
-        byte state = device.readRegByte(pin.getRegister());
+        byte state = device.readRegByte(pin.getRegisters().getGPIO());
         return (state & pin.getAddress()) == pin.getAddress();
     }
 

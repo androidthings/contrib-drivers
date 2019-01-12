@@ -6,14 +6,14 @@ import com.google.android.things.pio.GpioCallback;
 
 import java.io.IOException;
 
-public class MCP23017PinImpl implements MCP23017Pin {
+class MCP23017PinImpl implements MCP23017Pin {
 
     private final String name;
     private final int address;
-    private final int register;
+    private final Registers register;
     private final MCP23017 provider;
 
-    public MCP23017PinImpl(String name, int address, int register, MCP23017 provider) {
+    public MCP23017PinImpl(String name, int address, Registers register, MCP23017 provider) {
         this.name = name;
         this.address = address;
         this.register = register;
@@ -31,7 +31,7 @@ public class MCP23017PinImpl implements MCP23017Pin {
     }
 
     @Override
-    public int getRegister() {
+    public Registers getRegisters() {
         return register;
     }
 
