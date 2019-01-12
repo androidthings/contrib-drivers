@@ -51,8 +51,8 @@ class MCP23017PinImpl implements MCP23017Pin {
     }
 
     @Override
-    public void setActiveType(int i) throws IOException {
-
+    public void setActiveType(int activeType) throws IOException {
+        provider.setActiveType(this, activeType);
     }
 
     @Override

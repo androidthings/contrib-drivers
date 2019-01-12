@@ -99,6 +99,18 @@ public class MCP23017 {
         device.writeRegByte(pin.getRegisters().getGPIO(), gpioState);
     }
 
+    void setActiveType(MCP23017Pin pin, int activeType) throws IOException {
+        byte activeTypeState = device.readRegByte(pin.getRegisters().getIPOL());
+        if (Gpio.ACTIVE_HIGH == activeType) {
+            activeTypeState &= ~pin.getAddress();
+        } else if (Gpio.ACTIVE_LOW == activeType) {
+            activeTypeState |= pin.getAddress();
+        } else {
+            throw new IllegalArgumentException("Unknown active state");
+        }
+        device.writeRegByte(pin.getRegisters().getIPOL(), activeTypeState);
+    }
+
     public int getAddress() {
         return address;
     }
