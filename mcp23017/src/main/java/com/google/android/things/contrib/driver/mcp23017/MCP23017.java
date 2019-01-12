@@ -94,6 +94,8 @@ public class MCP23017 {
         } else if (Gpio.DIRECTION_OUT_INITIALLY_LOW == direction) {
             directionState &= ~pin.getAddress();
             gpioState &= ~pin.getAddress();
+        } else {
+            throw new IllegalArgumentException("Unknown direction");
         }
         device.writeRegByte(pin.getRegisters().getIODIR(), directionState);
         device.writeRegByte(pin.getRegisters().getGPIO(), gpioState);
