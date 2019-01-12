@@ -8,28 +8,20 @@ import com.google.android.things.pio.PeripheralManager;
 
 import java.io.IOException;
 
+import static com.google.android.things.contrib.driver.mcp23017.ARegisters.GPIO_A;
+import static com.google.android.things.contrib.driver.mcp23017.ARegisters.GPPU_A;
+import static com.google.android.things.contrib.driver.mcp23017.ARegisters.IODIR_A;
+import static com.google.android.things.contrib.driver.mcp23017.ARegisters.IPOL_A;
+import static com.google.android.things.contrib.driver.mcp23017.BRegisters.GPIO_B;
+import static com.google.android.things.contrib.driver.mcp23017.BRegisters.GPPU_B;
+import static com.google.android.things.contrib.driver.mcp23017.BRegisters.IODIR_B;
+import static com.google.android.things.contrib.driver.mcp23017.BRegisters.IPOL_B;
+
 public class MCP23017 {
 
     private static final String LOG_TAG = MCP23017.class.getSimpleName();
     private static final byte DEFAULT_REGISTER_VALUE = 0;
     private static final int DEFAULT_ADDRESS = 0x20;
-
-    private static final int IODIR_A = 0x00;
-    private static final int IPOL_A = 0x02;
-    private static final int GPINTEN_A = 0x04;
-    private static final int DEFVAL_A = 0x06;
-    private static final int INTCON_A = 0x08;
-    private static final int GPPU_A = 0x0C;
-    private static final int INTF_A = 0x0E;
-    private static final int GPIO_A = 0x12;
-    private static final int IODIR_B = 0x01;
-    private static final int IPOL_B = 0x03;
-    private static final int GPINTEN_B = 0x05;
-    private static final int DEFVAL_B = 0x07;
-    private static final int INTCON_B = 0x09;
-    private static final int GPPU_B = 0x0D;
-    private static final int INTF_B = 0x0F;
-    private static final int GPIO_B = 0x13;
 
     private I2cDevice device;
     private int address;
@@ -69,7 +61,7 @@ public class MCP23017 {
         device.writeRegByte(GPPU_A, DEFAULT_REGISTER_VALUE);
         device.writeRegByte(GPPU_B, DEFAULT_REGISTER_VALUE);
         device.writeRegByte(GPIO_A, DEFAULT_REGISTER_VALUE);
-        device.writeRegByte(GPPU_B, DEFAULT_REGISTER_VALUE);
+        device.writeRegByte(GPIO_B, DEFAULT_REGISTER_VALUE);
     }
 
     public Gpio openGpio(MCP23017GPIO gpio) {
