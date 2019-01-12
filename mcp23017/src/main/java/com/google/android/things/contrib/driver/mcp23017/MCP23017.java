@@ -65,10 +65,6 @@ public class MCP23017 {
     }
 
     public Gpio openGpio(MCP23017GPIO gpio) {
-        return getMCP23017FeatureGpio(gpio);
-    }
-
-    public MCP23017Pin getMCP23017FeatureGpio(MCP23017GPIO gpio) {
         return new MCP23017PinImpl(gpio.getName(), gpio.getAddress(), gpio.getRegisters(), this);
     }
 
