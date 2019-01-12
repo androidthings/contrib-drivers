@@ -87,6 +87,22 @@ public class MCP23017 {
         return (state & pin.getAddress()) == pin.getAddress();
     }
 
+    void setDirection(MCP23017Pin pin, int direction) throws IOException {
+        byte directionState = device.readRegByte(pin.getRegisters().getIODIR());
+        byte gpioState = device.readRegByte(pin.getRegisters().getGPIO());
+        if (Gpio.DIRECTION_IN == direction) {
+            directionState |= pin.getAddress();
+        } else if (Gpio.DIRECTION_OUT_INITIALLY_HIGH == direction) {
+            directionState &= ~pin.getAddress();
+            gpioState |= pin.getAddress();
+        } else if (Gpio.DIRECTION_OUT_INITIALLY_LOW == direction) {
+            directionState &= ~pin.getAddress();
+            gpioState &= ~pin.getAddress();
+        }
+        device.writeRegByte(pin.getRegisters().getIODIR(), directionState);
+        device.writeRegByte(pin.getRegisters().getGPIO(), gpioState);
+    }
+
     public int getAddress() {
         return address;
     }

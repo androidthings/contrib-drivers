@@ -42,7 +42,7 @@ class MCP23017PinImpl implements MCP23017Pin {
 
     @Override
     public void setDirection(int direction) throws IOException {
-
+        provider.setDirection(this, direction);
     }
 
     @Override
