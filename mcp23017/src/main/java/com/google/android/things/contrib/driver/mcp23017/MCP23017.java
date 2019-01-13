@@ -138,4 +138,47 @@ public class MCP23017 {
         }
         device.writeRegByte(pin.getRegisters().getIPOL(), activeTypeState);
     }
+
+    void setEdgeTriggerType(MCP23017Pin pin, int triggerType) throws IOException {
+        byte interruptionState = device.readRegByte(pin.getRegisters().getGRIPTEN());
+        if (Gpio.EDGE_NONE == triggerType) {
+            interruptionState &= ~pin.getAddress();
+        } else if (Gpio.EDGE_FALLING == triggerType) {
+            interruptionState |= pin.getAddress();
+            configureFallingInterruption(pin);
+        } else if (Gpio.EDGE_RISING == triggerType) {
+            interruptionState |= pin.getAddress();
+            configureRisingInterruption(pin);
+        } else if (Gpio.EDGE_BOTH == triggerType) {
+            interruptionState |= pin.getAddress();
+            configureBothInterruption(pin);
+        } else {
+            throw new IllegalArgumentException("Unknown trigger type");
+        }
+        device.writeRegByte(pin.getRegisters().getGRIPTEN(), interruptionState);
+    }
+
+    private void configureBothInterruption(MCP23017Pin pin) throws IOException {
+        byte intconState = device.readRegByte(pin.getRegisters().getINTCON());
+        intconState &= ~pin.getAddress();
+        device.writeRegByte(pin.getRegisters().getINTCON(), intconState);
+    }
+
+    private void configureFallingInterruption(MCP23017Pin pin) throws IOException {
+        byte defvalState = device.readRegByte(pin.getRegisters().getDEFVAL());
+        defvalState |= pin.getAddress();
+        device.writeRegByte(pin.getRegisters().getDEFVAL(), defvalState);
+        byte intconState = device.readRegByte(pin.getRegisters().getINTCON());
+        intconState |= pin.getAddress();
+        device.writeRegByte(pin.getRegisters().getINTCON(), intconState);
+    }
+
+    private void configureRisingInterruption(MCP23017Pin pin) throws IOException {
+        byte defvalState = device.readRegByte(pin.getRegisters().getDEFVAL());
+        defvalState &= ~pin.getAddress();
+        device.writeRegByte(pin.getRegisters().getDEFVAL(), defvalState);
+        byte intconState = device.readRegByte(pin.getRegisters().getINTCON());
+        intconState |= pin.getAddress();
+        device.writeRegByte(pin.getRegisters().getINTCON(), intconState);
+    }
 }

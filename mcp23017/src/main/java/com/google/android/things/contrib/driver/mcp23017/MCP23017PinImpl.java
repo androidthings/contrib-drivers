@@ -62,8 +62,8 @@ class MCP23017PinImpl implements MCP23017Pin {
     }
 
     @Override
-    public void setEdgeTriggerType(int i) throws IOException {
-
+    public void setEdgeTriggerType(int triggerType) throws IOException {
+        provider.setEdgeTriggerType(this, triggerType);
     }
 
     @Override
