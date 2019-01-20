@@ -17,10 +17,14 @@
 package com.google.android.things.contrib.driver.mcp23017;
 
 import android.os.Handler;
+import android.os.Looper;
 
 import com.google.android.things.pio.GpioCallback;
 
 import java.io.IOException;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 class MCP23017PinImpl implements MCP23017Pin {
 
@@ -28,12 +32,16 @@ class MCP23017PinImpl implements MCP23017Pin {
     private final int address;
     private final Registers register;
     private final MCP23017 provider;
+    private final Map<GpioCallback, CallbackListener> listenerMap;
+    private final Handler handler;
 
-    public MCP23017PinImpl(String name, int address, Registers register, MCP23017 provider) {
+    MCP23017PinImpl(String name, int address, Registers register, MCP23017 provider) {
         this.name = name;
         this.address = address;
         this.register = register;
         this.provider = provider;
+        this.handler = new Handler(Looper.getMainLooper());
+        this.listenerMap = new ConcurrentHashMap<>();
     }
 
     @Override
@@ -53,7 +61,8 @@ class MCP23017PinImpl implements MCP23017Pin {
 
     @Override
     public void close() throws IOException {
-        //not implemented
+        listenerMap.values().forEach(CallbackListener::shutdown);
+        listenerMap.clear();
     }
 
     @Override
@@ -83,16 +92,74 @@ class MCP23017PinImpl implements MCP23017Pin {
 
     @Override
     public void registerGpioCallback(GpioCallback callback) throws IOException {
-
+        registerGpioCallback(null, callback);
     }
 
     @Override
-    public void registerGpioCallback(Handler handler, GpioCallback gpioCallback) throws IOException {
-
+    public void registerGpioCallback(Handler handler, GpioCallback callback) throws IOException {
+        if (handler == null) {
+            handler = this.handler;
+        }
+        CallbackListener listener = new CallbackListener(handler, this, callback);
+        listenerMap.put(callback, listener);
+        handler.post(listener);
     }
 
     @Override
-    public void unregisterGpioCallback(GpioCallback gpioCallback) {
+    public void unregisterGpioCallback(GpioCallback callback) {
+        CallbackListener listener = listenerMap.remove(callback);
+        listener.shutdown();
+    }
 
+    private class CallbackListener implements Runnable {
+
+        private Handler handler;
+        private MCP23017Pin pin;
+        private GpioCallback callback;
+        private boolean shutdown = false;
+
+        private CallbackListener(Handler handler, MCP23017Pin pin, GpioCallback callback) {
+            this.handler = handler;
+            this.pin = pin;
+            this.callback = callback;
+        }
+
+        @Override
+        public void run() {
+            if (!shutdown) {
+                try {
+                    handleInterruption();
+                } catch (IOException e) {
+                    callback.onGpioError(pin, 0);
+                }
+            }
+        }
+
+        private void handleInterruption() throws IOException {
+            if (provider.isInterrupted(pin)) {
+                if (callback.onGpioEdge(pin)) {
+                    handler.postDelayed(this, provider.getPollingTimeout());
+                }
+            } else {
+                handler.postDelayed(this, provider.getPollingTimeout());
+            }
+        }
+
+        void shutdown() {
+            shutdown = true;
+        }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        MCP23017PinImpl that = (MCP23017PinImpl) o;
+        return Objects.equals(name, that.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name);
     }
 }

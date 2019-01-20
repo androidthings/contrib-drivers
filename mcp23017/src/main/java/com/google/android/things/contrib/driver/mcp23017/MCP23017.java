@@ -16,7 +16,6 @@
 
 package com.google.android.things.contrib.driver.mcp23017;
 
-import android.os.Looper;
 import android.util.Log;
 
 import com.google.android.things.pio.Gpio;
@@ -24,6 +23,8 @@ import com.google.android.things.pio.I2cDevice;
 import com.google.android.things.pio.PeripheralManager;
 
 import java.io.IOException;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 import static com.google.android.things.contrib.driver.mcp23017.ARegisters.DEFVAL_A;
 import static com.google.android.things.contrib.driver.mcp23017.ARegisters.GPINTEN_A;
@@ -45,16 +46,16 @@ public class MCP23017 {
     private static final String LOG_TAG = MCP23017.class.getSimpleName();
     private static final byte DEFAULT_REGISTER_VALUE = 0;
     private static final int DEFAULT_ADDRESS = 0x20;
+    private static final String A_CHANNEL = "A";
+    private static final int DEFAULT_POLLING_TIMEOUT = 10;
 
     private I2cDevice device;
     private int address;
+    private int pollingTimeout;
+    private Set<MCP23017Pin> pins;
 
-    private byte directionA = 0;
-    private byte directionB = 0;
     private byte gpioA = 0;
     private byte gpioB = 0;
-    private byte activationA = 0;
-    private byte activationB = 0;
 
     public MCP23017(String bus) throws IOException {
         this(bus, DEFAULT_ADDRESS);
@@ -63,7 +64,9 @@ public class MCP23017 {
     public MCP23017(String bus, int address) throws IOException {
         try {
             this.address = address;
+            this.pollingTimeout = DEFAULT_POLLING_TIMEOUT;
             this.device = PeripheralManager.getInstance().openI2cDevice(bus, address);
+            this.pins = new CopyOnWriteArraySet<>();
             defaultInitialization();
         } catch (IOException e) {
             Log.e(LOG_TAG, "MCP23017 cannot be created.", e);
@@ -71,25 +74,18 @@ public class MCP23017 {
         }
     }
 
-    private void defaultInitialization() throws IOException {
-        device.writeRegByte(IODIR_A, DEFAULT_REGISTER_VALUE);
-        device.writeRegByte(IODIR_B, DEFAULT_REGISTER_VALUE);
-        device.writeRegByte(IPOL_A, DEFAULT_REGISTER_VALUE);
-        device.writeRegByte(IPOL_B, DEFAULT_REGISTER_VALUE);
-        device.writeRegByte(GPPU_A, DEFAULT_REGISTER_VALUE);
-        device.writeRegByte(GPPU_B, DEFAULT_REGISTER_VALUE);
-        device.writeRegByte(GPIO_A, DEFAULT_REGISTER_VALUE);
-        device.writeRegByte(GPIO_B, DEFAULT_REGISTER_VALUE);
-        device.writeRegByte(GPINTEN_A, DEFAULT_REGISTER_VALUE);
-        device.writeRegByte(GPINTEN_B, DEFAULT_REGISTER_VALUE);
-        device.writeRegByte(INTCON_A, DEFAULT_REGISTER_VALUE);
-        device.writeRegByte(INTCON_B, DEFAULT_REGISTER_VALUE);
-        device.writeRegByte(DEFVAL_A, DEFAULT_REGISTER_VALUE);
-        device.writeRegByte(DEFVAL_B, DEFAULT_REGISTER_VALUE);
+    public void setPollingTimeout(int pollingTimeout) {
+        this.pollingTimeout = pollingTimeout;
     }
 
-    public Gpio openGpio(MCP23017GPIO gpio) {
-        return new MCP23017PinImpl(gpio.getName(), gpio.getAddress(), gpio.getRegisters(), this);
+    public Gpio openGpio(MCP23017GPIO gpio) throws IOException {
+        MCP23017PinImpl pin = new MCP23017PinImpl(gpio.getName(), gpio.getAddress(),
+                gpio.getRegisters(), this);
+        if (pins.contains(pin)) {
+            throw new IOException(gpio.getName() + " is already in use");
+        }
+        pins.add(pin);
+        return pin;
     }
 
     public int getAddress() {
@@ -97,9 +93,20 @@ public class MCP23017 {
     }
 
     public void close() throws IOException {
+        for (MCP23017Pin pin : pins) {
+            try {
+                pin.close();
+            } catch (IOException e) {
+                Log.e(LOG_TAG, e.getMessage(), e);
+            }
+        }
         if (device != null) {
             device.close();
         }
+    }
+
+    int getPollingTimeout() {
+        return pollingTimeout;
     }
 
     void setValue(MCP23017Pin pin, boolean value) throws IOException {
@@ -188,5 +195,51 @@ public class MCP23017 {
         byte intconState = device.readRegByte(pin.getRegisters().getINTCON());
         intconState |= pin.getAddress();
         device.writeRegByte(pin.getRegisters().getINTCON(), intconState);
+    }
+
+    boolean isInterrupted(MCP23017Pin pin) throws IOException {
+        byte interruptionFlag = device.readRegByte(pin.getRegisters().getINTF());
+        if (interruptionFlag > 0) {
+            byte state = device.readRegByte(pin.getRegisters().getGPIO());
+            return getInterruptionState(pin, state);
+        }
+        return false;
+    }
+
+    private synchronized boolean getInterruptionState(MCP23017Pin pin, byte state) {
+        boolean result;
+        if (pin.getName().contains(A_CHANNEL)) {
+            result = (state & pin.getAddress()) != (gpioA & pin.getAddress());
+            if ((state & pin.getAddress()) == pin.getAddress()) {
+                gpioA |= pin.getAddress();
+            } else {
+                gpioA &= ~pin.getAddress();
+            }
+        } else {
+            result = (state & pin.getAddress()) != (gpioB & pin.getAddress());
+            if ((state & pin.getAddress()) == pin.getAddress()) {
+                gpioB |= pin.getAddress();
+            } else {
+                gpioB &= ~pin.getAddress();
+            }
+        }
+        return result;
+    }
+
+    private void defaultInitialization() throws IOException {
+        device.writeRegByte(IODIR_A, DEFAULT_REGISTER_VALUE);
+        device.writeRegByte(IODIR_B, DEFAULT_REGISTER_VALUE);
+        device.writeRegByte(IPOL_A, DEFAULT_REGISTER_VALUE);
+        device.writeRegByte(IPOL_B, DEFAULT_REGISTER_VALUE);
+        device.writeRegByte(GPPU_A, DEFAULT_REGISTER_VALUE);
+        device.writeRegByte(GPPU_B, DEFAULT_REGISTER_VALUE);
+        device.writeRegByte(GPIO_A, DEFAULT_REGISTER_VALUE);
+        device.writeRegByte(GPIO_B, DEFAULT_REGISTER_VALUE);
+        device.writeRegByte(GPINTEN_A, DEFAULT_REGISTER_VALUE);
+        device.writeRegByte(GPINTEN_B, DEFAULT_REGISTER_VALUE);
+        device.writeRegByte(INTCON_A, DEFAULT_REGISTER_VALUE);
+        device.writeRegByte(INTCON_B, DEFAULT_REGISTER_VALUE);
+        device.writeRegByte(DEFVAL_A, DEFAULT_REGISTER_VALUE);
+        device.writeRegByte(DEFVAL_B, DEFAULT_REGISTER_VALUE);
     }
 }
