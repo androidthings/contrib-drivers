@@ -112,10 +112,6 @@ public class MCP23017 {
         }
     }
 
-    int getPollingTimeout() {
-        return pollingTimeout;
-    }
-
     void setValue(MCP23017Pin pin, boolean value) throws IOException {
         byte state = device.readRegByte(pin.getRegisters().getGPIO());
         if (value) {
@@ -183,6 +179,15 @@ public class MCP23017 {
         device.writeRegByte(pin.getRegisters().getGRIPTEN(), interruptionState);
     }
 
+    boolean isInterrupted(MCP23017Pin pin) throws IOException {
+        byte interruptionFlag = device.readRegByte(pin.getRegisters().getINTF());
+        if (interruptionFlag > 0) {
+            byte state = device.readRegByte(pin.getRegisters().getGPIO());
+            return getInterruptionState(pin, state);
+        }
+        return false;
+    }
+
     private void configureBothInterruption(MCP23017Pin pin) throws IOException {
         byte intconState = device.readRegByte(pin.getRegisters().getINTCON());
         intconState &= ~pin.getAddress();
@@ -205,15 +210,6 @@ public class MCP23017 {
         byte intconState = device.readRegByte(pin.getRegisters().getINTCON());
         intconState |= pin.getAddress();
         device.writeRegByte(pin.getRegisters().getINTCON(), intconState);
-    }
-
-    boolean isInterrupted(MCP23017Pin pin) throws IOException {
-        byte interruptionFlag = device.readRegByte(pin.getRegisters().getINTF());
-        if (interruptionFlag > 0) {
-            byte state = device.readRegByte(pin.getRegisters().getGPIO());
-            return getInterruptionState(pin, state);
-        }
-        return false;
     }
 
     private synchronized boolean getInterruptionState(MCP23017Pin pin, byte state) {
