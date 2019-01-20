@@ -25,6 +25,9 @@ import com.google.android.things.pio.PeripheralManager;
 import java.io.IOException;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static com.google.android.things.contrib.driver.mcp23017.ARegisters.DEFVAL_A;
 import static com.google.android.things.contrib.driver.mcp23017.ARegisters.GPINTEN_A;
@@ -53,6 +56,9 @@ public class MCP23017 {
     private int address;
     private int pollingTimeout;
     private Set<MCP23017Pin> pins;
+    private Set<MCP23017Pin> inputPins;
+    private InterruptionListener interruptionListener;
+    private ExecutorService executorService;
 
     private byte gpioA = 0;
     private byte gpioB = 0;
@@ -68,6 +74,10 @@ public class MCP23017 {
             this.device = PeripheralManager.getInstance().openI2cDevice(bus, address);
             this.pins = new CopyOnWriteArraySet<>();
             defaultInitialization();
+
+            interruptionListener = new InterruptionListener();
+            executorService = Executors.newSingleThreadExecutor();
+            executorService.submit(interruptionListener);
         } catch (IOException e) {
             Log.e(LOG_TAG, "MCP23017 cannot be created.", e);
             throw e;
@@ -93,13 +103,10 @@ public class MCP23017 {
     }
 
     public void close() throws IOException {
-        for (MCP23017Pin pin : pins) {
-            try {
-                pin.close();
-            } catch (IOException e) {
-                Log.e(LOG_TAG, e.getMessage(), e);
-            }
-        }
+        interruptionListener.shutdown();
+        executorService.shutdown();
+        pins.forEach(this::closePin);
+        pins.clear();
         if (device != null) {
             device.close();
         }
@@ -129,12 +136,15 @@ public class MCP23017 {
         byte gpioState = device.readRegByte(pin.getRegisters().getGPIO());
         if (Gpio.DIRECTION_IN == direction) {
             directionState |= pin.getAddress();
+            inputPins.add(pin);
         } else if (Gpio.DIRECTION_OUT_INITIALLY_HIGH == direction) {
             directionState &= ~pin.getAddress();
             gpioState |= pin.getAddress();
+            inputPins.remove(pin);
         } else if (Gpio.DIRECTION_OUT_INITIALLY_LOW == direction) {
             directionState &= ~pin.getAddress();
             gpioState &= ~pin.getAddress();
+            inputPins.remove(pin);
         } else {
             throw new IllegalArgumentException("Unknown direction");
         }
@@ -241,5 +251,45 @@ public class MCP23017 {
         device.writeRegByte(INTCON_B, DEFAULT_REGISTER_VALUE);
         device.writeRegByte(DEFVAL_A, DEFAULT_REGISTER_VALUE);
         device.writeRegByte(DEFVAL_B, DEFAULT_REGISTER_VALUE);
+    }
+
+    private void closePin(MCP23017Pin pin) {
+        try {
+            pin.close();
+        } catch (IOException e) {
+            Log.e(LOG_TAG, e.getMessage(), e);
+        }
+    }
+
+    private class InterruptionListener implements Runnable {
+
+        private final String LOG_TAG = InterruptionListener.class.getSimpleName();
+        private boolean shutdown = false;
+
+        @Override
+        public void run() {
+            while (!shutdown) {
+                inputPins.stream()
+                        .filter(this::isInterrupted)
+                        .forEach(MCP23017Pin::executeCallbacks);
+                try {
+                    TimeUnit.MILLISECONDS.sleep(pollingTimeout);
+                } catch (InterruptedException e) {
+                    Log.e(this.LOG_TAG, e.getMessage(), e);
+                }
+            }
+        }
+
+        private boolean isInterrupted(MCP23017Pin pin) {
+            try {
+                return MCP23017.this.isInterrupted(pin);
+            } catch (IOException e) {
+                return false;
+            }
+        }
+
+        void shutdown() {
+            this.shutdown = true;
+        }
     }
 }

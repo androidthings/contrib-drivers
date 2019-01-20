@@ -23,11 +23,14 @@ android {
         minSdkVersion DEFAULT_MIN_SDK_VERSION
         targetSdkVersion DEFAULT_TARGET_SDK_VERSION
     }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 }
 
 dependencies {
     compileOnly 'com.google.android.things:androidthings:1.0'
-
     testImplementation 'com.google.android.things:androidthings:1.0'
     testImplementation 'org.powermock:powermock-module-junit4:1.6.6'
     testImplementation 'org.powermock:powermock-api-mockito:1.6.6'

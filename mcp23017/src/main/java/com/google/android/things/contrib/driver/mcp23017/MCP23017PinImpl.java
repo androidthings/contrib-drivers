@@ -18,21 +18,25 @@ package com.google.android.things.contrib.driver.mcp23017;
 
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 
 import com.google.android.things.pio.GpioCallback;
 
 import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 class MCP23017PinImpl implements MCP23017Pin {
+
+    private static final String LOG_TAG = MCP23017PinImpl.class.getSimpleName();
 
     private final String name;
     private final int address;
     private final Registers register;
     private final MCP23017 provider;
-    private final Map<GpioCallback, CallbackListener> listenerMap;
+    private final Map<GpioCallback, Handler> callbackToHandler;
     private final Handler handler;
 
     MCP23017PinImpl(String name, int address, Registers register, MCP23017 provider) {
@@ -41,7 +45,7 @@ class MCP23017PinImpl implements MCP23017Pin {
         this.register = register;
         this.provider = provider;
         this.handler = new Handler(Looper.getMainLooper());
-        this.listenerMap = new ConcurrentHashMap<>();
+        this.callbackToHandler = new ConcurrentHashMap<>();
     }
 
     @Override
@@ -61,8 +65,7 @@ class MCP23017PinImpl implements MCP23017Pin {
 
     @Override
     public void close() throws IOException {
-        listenerMap.values().forEach(CallbackListener::shutdown);
-        listenerMap.clear();
+        callbackToHandler.clear();
     }
 
     @Override
@@ -97,57 +100,24 @@ class MCP23017PinImpl implements MCP23017Pin {
 
     @Override
     public void registerGpioCallback(Handler handler, GpioCallback callback) throws IOException {
+        if (callbackToHandler.containsKey(callback)) {
+            Log.w(LOG_TAG, "Ignoring callback re-registration on " + name);
+            return;
+        }
         if (handler == null) {
             handler = this.handler;
         }
-        CallbackListener listener = new CallbackListener(handler, this, callback);
-        listenerMap.put(callback, listener);
-        handler.post(listener);
+        callbackToHandler.put(callback, handler);
     }
 
     @Override
     public void unregisterGpioCallback(GpioCallback callback) {
-        CallbackListener listener = listenerMap.remove(callback);
-        listener.shutdown();
+        callbackToHandler.remove(callback);
     }
 
-    private class CallbackListener implements Runnable {
-
-        private Handler handler;
-        private MCP23017Pin pin;
-        private GpioCallback callback;
-        private boolean shutdown = false;
-
-        private CallbackListener(Handler handler, MCP23017Pin pin, GpioCallback callback) {
-            this.handler = handler;
-            this.pin = pin;
-            this.callback = callback;
-        }
-
-        @Override
-        public void run() {
-            if (!shutdown) {
-                try {
-                    handleInterruption();
-                } catch (IOException e) {
-                    callback.onGpioError(pin, 0);
-                }
-            }
-        }
-
-        private void handleInterruption() throws IOException {
-            if (provider.isInterrupted(pin)) {
-                if (callback.onGpioEdge(pin)) {
-                    handler.postDelayed(this, provider.getPollingTimeout());
-                }
-            } else {
-                handler.postDelayed(this, provider.getPollingTimeout());
-            }
-        }
-
-        void shutdown() {
-            shutdown = true;
-        }
+    @Override
+    public void executeCallbacks() {
+        callbackToHandler.keySet().forEach(this::executeCallback);
     }
 
     @Override
@@ -161,5 +131,18 @@ class MCP23017PinImpl implements MCP23017Pin {
     @Override
     public int hashCode() {
         return Objects.hash(name);
+    }
+
+    private void executeCallback(GpioCallback callback) {
+        Optional.ofNullable(callbackToHandler.get(callback))
+                .ifPresent(handler -> sendCallbackToHandler(handler, callback));
+    }
+
+    private void sendCallbackToHandler(Handler handler, GpioCallback callback) {
+        handler.post(() -> {
+            if (!callback.onGpioEdge(this)) {
+                callbackToHandler.remove(callback);
+            }
+        });
     }
 }

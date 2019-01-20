@@ -23,4 +23,6 @@ public interface MCP23017Pin extends Gpio {
     int getAddress();
 
     Registers getRegisters();
+
+    void executeCallbacks();
 }
