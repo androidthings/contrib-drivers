@@ -1,6 +1,5 @@
 package com.google.android.things.contrib.driver.mcp23017;
 
-import android.os.Handler;
 import android.os.Looper;
 
 import com.google.android.things.pio.Gpio;
@@ -11,17 +10,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import static com.google.android.things.contrib.driver.mcp23017.ARegisters.DEFVAL_A;
 import static com.google.android.things.contrib.driver.mcp23017.ARegisters.GPINTEN_A;
@@ -37,12 +30,10 @@ import static com.google.android.things.contrib.driver.mcp23017.BRegisters.GPPU_
 import static com.google.android.things.contrib.driver.mcp23017.BRegisters.INTCON_B;
 import static com.google.android.things.contrib.driver.mcp23017.BRegisters.IODIR_B;
 import static com.google.android.things.contrib.driver.mcp23017.BRegisters.IPOL_B;
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyByte;
 import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyLong;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;

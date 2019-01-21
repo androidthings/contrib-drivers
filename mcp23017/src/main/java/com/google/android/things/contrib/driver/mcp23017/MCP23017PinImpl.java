@@ -18,6 +18,7 @@ package com.google.android.things.contrib.driver.mcp23017;
 
 import android.os.Handler;
 import android.os.Looper;
+import android.support.annotation.VisibleForTesting;
 import android.util.Log;
 
 import com.google.android.things.pio.GpioCallback;
@@ -40,12 +41,20 @@ import java.util.concurrent.ConcurrentHashMap;
     private final Handler handler;
 
     /* package */ MCP23017PinImpl(String name, int address, Registers register, MCP23017 provider) {
+        this(name, address, register, provider,
+                new ConcurrentHashMap<>(), new Handler(Looper.getMainLooper()));
+    }
+
+    @VisibleForTesting
+    /* package */  MCP23017PinImpl(String name, int address, Registers register, MCP23017 provider,
+                                   Map<GpioCallback, Handler> callbackToHandler, Handler handler) {
+
         this.name = name;
         this.address = address;
         this.register = register;
         this.provider = provider;
-        this.handler = new Handler(Looper.getMainLooper());
-        this.callbackToHandler = new ConcurrentHashMap<>();
+        this.callbackToHandler = callbackToHandler;
+        this.handler = handler;
     }
 
     @Override
