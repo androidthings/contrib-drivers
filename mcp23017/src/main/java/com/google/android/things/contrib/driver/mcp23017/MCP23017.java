@@ -116,8 +116,10 @@ public class MCP23017 {
         byte state = device.readRegByte(pin.getRegisters().getGPIO());
         if (value) {
             state |= pin.getAddress();
+            enableLocalGpio(pin);
         } else {
             state &= ~pin.getAddress();
+            disableLocalGpio(pin);
         }
         device.writeRegByte(pin.getRegisters().getGPIO(), state);
     }
@@ -210,6 +212,22 @@ public class MCP23017 {
         byte intconState = device.readRegByte(pin.getRegisters().getINTCON());
         intconState |= pin.getAddress();
         device.writeRegByte(pin.getRegisters().getINTCON(), intconState);
+    }
+
+    private synchronized void enableLocalGpio(MCP23017Pin pin) {
+        if (pin.getName().contains(A_CHANNEL)) {
+            gpioA |= pin.getAddress();
+        } else {
+            gpioB |= pin.getAddress();
+        }
+    }
+
+    private synchronized void disableLocalGpio(MCP23017Pin pin) {
+        if (pin.getName().contains(A_CHANNEL)) {
+            gpioA &= ~pin.getAddress();
+        } else {
+            gpioB &= ~pin.getAddress();
+        }
     }
 
     private synchronized boolean getInterruptionState(MCP23017Pin pin, byte state) {
