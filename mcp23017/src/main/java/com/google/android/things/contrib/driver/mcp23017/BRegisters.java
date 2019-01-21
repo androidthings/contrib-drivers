@@ -16,7 +16,7 @@
 
 package com.google.android.things.contrib.driver.mcp23017;
 
-class BRegisters implements Registers {
+/* package */ class BRegisters implements Registers {
 
     static final int IODIR_B = 0x01;
     static final int IPOL_B = 0x03;

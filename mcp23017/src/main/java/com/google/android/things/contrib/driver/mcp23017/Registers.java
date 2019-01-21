@@ -16,7 +16,7 @@
 
 package com.google.android.things.contrib.driver.mcp23017;
 
-interface Registers {
+/* package */ interface Registers {
 
     int getIODIR();
 

@@ -28,7 +28,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
-class MCP23017PinImpl implements MCP23017Pin {
+/* package */ class MCP23017PinImpl implements MCP23017Pin {
 
     private static final String LOG_TAG = MCP23017PinImpl.class.getSimpleName();
 
@@ -39,7 +39,7 @@ class MCP23017PinImpl implements MCP23017Pin {
     private final Map<GpioCallback, Handler> callbackToHandler;
     private final Handler handler;
 
-    MCP23017PinImpl(String name, int address, Registers register, MCP23017 provider) {
+    /* package */ MCP23017PinImpl(String name, int address, Registers register, MCP23017 provider) {
         this.name = name;
         this.address = address;
         this.register = register;

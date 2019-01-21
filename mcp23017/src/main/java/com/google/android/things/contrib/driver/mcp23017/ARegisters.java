@@ -16,16 +16,16 @@
 
 package com.google.android.things.contrib.driver.mcp23017;
 
-class ARegisters implements Registers {
+/* package */ class ARegisters implements Registers {
 
-    static final int IODIR_A = 0x00;
-    static final int IPOL_A = 0x02;
-    static final int GPINTEN_A = 0x04;
-    static final int DEFVAL_A = 0x06;
-    static final int INTCON_A = 0x08;
-    static final int GPPU_A = 0x0C;
-    static final int INTF_A = 0x0E;
-    static final int GPIO_A = 0x12;
+    /* package */ static final int IODIR_A = 0x00;
+    /* package */ static final int IPOL_A = 0x02;
+    /* package */ static final int GPINTEN_A = 0x04;
+    /* package */ static final int DEFVAL_A = 0x06;
+    /* package */ static final int INTCON_A = 0x08;
+    /* package */ static final int GPPU_A = 0x0C;
+    /* package */ static final int INTF_A = 0x0E;
+    /* package */ static final int GPIO_A = 0x12;
 
     @Override
     public int getIODIR() {

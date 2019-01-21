@@ -16,6 +16,7 @@
 
 package com.google.android.things.contrib.driver.mcp23017;
 
+import android.support.annotation.VisibleForTesting;
 import android.util.Log;
 
 import com.google.android.things.pio.Gpio;
@@ -44,7 +45,7 @@ import static com.google.android.things.contrib.driver.mcp23017.BRegisters.INTCO
 import static com.google.android.things.contrib.driver.mcp23017.BRegisters.IODIR_B;
 import static com.google.android.things.contrib.driver.mcp23017.BRegisters.IPOL_B;
 
-public class MCP23017 {
+public class MCP23017 implements AutoCloseable {
 
     private static final String LOG_TAG = MCP23017.class.getSimpleName();
     private static final byte DEFAULT_REGISTER_VALUE = 0;
@@ -68,20 +69,21 @@ public class MCP23017 {
     }
 
     public MCP23017(String bus, int address) throws IOException {
-        try {
-            this.address = address;
-            this.pollingTimeout = DEFAULT_POLLING_TIMEOUT;
-            this.device = PeripheralManager.getInstance().openI2cDevice(bus, address);
-            this.pins = new CopyOnWriteArraySet<>();
-            defaultInitialization();
+        this(PeripheralManager.getInstance().openI2cDevice(bus, address));
+        this.address = address;
+    }
 
-            interruptionListener = new InterruptionListener();
-            executorService = Executors.newSingleThreadExecutor();
-            executorService.submit(interruptionListener);
-        } catch (IOException e) {
-            Log.e(LOG_TAG, "MCP23017 cannot be created.", e);
-            throw e;
-        }
+    @VisibleForTesting
+    /* package */ MCP23017(I2cDevice device) throws IOException {
+        this.device = device;
+        this.pollingTimeout = DEFAULT_POLLING_TIMEOUT;
+        this.pins = new CopyOnWriteArraySet<>();
+        this.inputPins = new CopyOnWriteArraySet<>();
+        defaultInitialization();
+
+        interruptionListener = new InterruptionListener();
+        executorService = Executors.newSingleThreadExecutor();
+        executorService.submit(interruptionListener);
     }
 
     public void setPollingTimeout(int pollingTimeout) {
@@ -102,17 +104,19 @@ public class MCP23017 {
         return address;
     }
 
+    @Override
     public void close() throws IOException {
-        interruptionListener.shutdown();
-        executorService.shutdown();
-        pins.forEach(this::closePin);
-        pins.clear();
         if (device != null) {
             device.close();
         }
+        interruptionListener.shutdown();
+        executorService.shutdown();
+        inputPins.clear();
+        pins.forEach(this::closePin);
+        pins.clear();
     }
 
-    void setValue(MCP23017Pin pin, boolean value) throws IOException {
+    /* package */ void setValue(MCP23017Pin pin, boolean value) throws IOException {
         byte state = device.readRegByte(pin.getRegisters().getGPIO());
         if (value) {
             state |= pin.getAddress();
@@ -124,12 +128,12 @@ public class MCP23017 {
         device.writeRegByte(pin.getRegisters().getGPIO(), state);
     }
 
-    boolean getValue(MCP23017Pin pin) throws IOException {
+    /* package */ boolean getValue(MCP23017Pin pin) throws IOException {
         byte state = device.readRegByte(pin.getRegisters().getGPIO());
         return (state & pin.getAddress()) == pin.getAddress();
     }
 
-    void setDirection(MCP23017Pin pin, int direction) throws IOException {
+    /* package */ void setDirection(MCP23017Pin pin, int direction) throws IOException {
         byte directionState = device.readRegByte(pin.getRegisters().getIODIR());
         byte gpioState = device.readRegByte(pin.getRegisters().getGPIO());
         if (Gpio.DIRECTION_IN == direction) {
@@ -150,7 +154,7 @@ public class MCP23017 {
         device.writeRegByte(pin.getRegisters().getGPIO(), gpioState);
     }
 
-    void setActiveType(MCP23017Pin pin, int activeType) throws IOException {
+    /* package */ void setActiveType(MCP23017Pin pin, int activeType) throws IOException {
         byte activeTypeState = device.readRegByte(pin.getRegisters().getIPOL());
         if (Gpio.ACTIVE_HIGH == activeType) {
             activeTypeState &= ~pin.getAddress();
@@ -162,7 +166,7 @@ public class MCP23017 {
         device.writeRegByte(pin.getRegisters().getIPOL(), activeTypeState);
     }
 
-    void setEdgeTriggerType(MCP23017Pin pin, int triggerType) throws IOException {
+    /* package */ void setEdgeTriggerType(MCP23017Pin pin, int triggerType) throws IOException {
         byte interruptionState = device.readRegByte(pin.getRegisters().getGRIPTEN());
         if (Gpio.EDGE_NONE == triggerType) {
             interruptionState &= ~pin.getAddress();
@@ -181,7 +185,7 @@ public class MCP23017 {
         device.writeRegByte(pin.getRegisters().getGRIPTEN(), interruptionState);
     }
 
-    boolean isInterrupted(MCP23017Pin pin) throws IOException {
+    /* package*/ boolean isInterrupted(MCP23017Pin pin) throws IOException {
         byte interruptionFlag = device.readRegByte(pin.getRegisters().getINTF());
         if (interruptionFlag > 0) {
             byte state = device.readRegByte(pin.getRegisters().getGPIO());
