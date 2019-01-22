@@ -42,9 +42,16 @@ try {
     // couldn't configure the IO expander
 }
 
+// Open GPIO
+
+Gpio gpio;
+
 try {
-    Gpio gpio = mcp23017.openGpio(MCP23017GPIO.A0);
-} catch (
+    gpio = mcp23017.openGpio(MCP23017GPIO.A0);
+} catch (IOException e) {
+    // couldn't open GPIO
+}
+
 // Close the IO expander when finished:
 
 try {
@@ -54,56 +61,37 @@ try {
 }
 ```
 
-Instead of listening to touches directly, you can register the capacitive touch control
-with the system and receive `KeyEvent`s using the standard Android APIs:
+For configuration GPIO and adding callback, you can use standard Andorid APIs. 
+For more information see [GPIO API](https://developer.android.com/things/sdk/pio/gpio)
+!!! Important: method `onGpioError()` of `GpioCallback` is not supported in current version of the driver. 
 
 ```java
-int[] keyCodes = new int[] {
-        KevEvent.KEYCODE_1, KevEvent.KEYCODE_2, ... KevEvent.KEYCODE_8
-};
-Cap1xxxInputDriver mInputDriver;
+Gpio gpio;
 
 try {
-    mInputDriver = new Cap1xxxInputDriver(
-            this,                           // context
-            i2cBusName,
-            null,
-            Cap1xxx.Configuration.CAP1208,  // 8 input channels
-            keyCodes                        // keycodes mapped to input channels
-    );
-
-    // Disable repeated events
-    mInputDriver.setRepeatRate(Cap1xxx.REPEAT_DISABLE);
-    // Block touches above 4 unique inputs
-    mInputDriver.setMultitouchInputMax(4);
-
-    mInputDriver.register();
+    gpio = mcp23017.openGpio(MCP23017GPIO.A0);
+    gpio.setDirection(Gpio.DIRECTION_IN);
+    gpio.setActiveType(Gpio.ACTIVE_HIGH);       
+    gpio.setEdgeTriggerType(Gpio.EDGE_BOTH);
+    gpio.registerGpioCallback(mGpioCallback);
 } catch (IOException e) {
-    // couldn't configure the input driver...
-}
+    // couldn't configure GPIO
+} 
 
-// Override key event callbacks in your Activity:
-
-@Override
-public boolean onKeyDown(int keyCode, KeyEvent event) {
-    switch (keyCode) {
-        case KeyEvent.KEYCODE_1:
-            doSomethingAwesome();
-            return true; // handle keypress
-        // other cases...
+private GpioCallback mGpioCallback = new GpioCallback() {
+    @Override
+    public boolean onGpioEdge(Gpio gpio) {
+        // Read the active low pin state
+        if (gpio.getValue()) {
+            // Pin is HIGH
+        } else {
+            // Pin is LOW
+        }
+        return true;
     }
-    return super.onKeyDown(keyCode, event);
-}
-
-// Unregister and close the input driver when finished:
-
-mInputDriver.unregister();
-try {
-    mInputDriver.close();
-} catch (IOException e) {
-    // error closing input driver
-}
+};
 ```
+
 
 License
 -------
