@@ -114,4 +114,4 @@ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
 License for the specific language governing permissions and limitations under
 the License.
 
-[jcenter]: https://bintray.com/google/androidthings/contrib-driver-cap1xxx/_latestVersion
+[jcenter]: https://bintray.com/google/androidthings/contrib-driver-mcp23017/_latestVersion
