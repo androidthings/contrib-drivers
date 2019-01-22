@@ -62,7 +62,8 @@ try {
 ```
 
 For configuration GPIO and adding callback, you can use standard Andorid APIs. 
-For more information see [GPIO API](https://developer.android.com/things/sdk/pio/gpio)
+For more information see [GPIO API](https://developer.android.com/things/sdk/pio/gpio).
+
 !!! Important: method `onGpioError()` of `GpioCallback` is not supported in current version of the driver. 
 
 ```java
