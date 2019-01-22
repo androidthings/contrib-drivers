@@ -1,4 +1,4 @@
-CAP1XXX driver for Android Things
+MCP23017 driver for Android Things
 =================================
 
 This driver supports 16 input/output port expander MCP23017
