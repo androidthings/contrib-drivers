@@ -144,6 +144,8 @@ public boolean onKeyUp(int keyCode, KeyEvent event) {
 
 ```java
 // Continuously report temperature.
+Bmx280SensorDriver  temperatureSensorDriver = new Bmx280SensorDriver("I2C1");
+temperatureSensorDriver.registerTemperatureSensor();
 final SensorManager sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
 sensorManager.registerDynamicSensorCallback(new SensorManager.DynamicSensorCallback() {
     @Override
