@@ -144,8 +144,12 @@ public boolean onKeyUp(int keyCode, KeyEvent event) {
 
 ```java
 // Continuously report temperature.
+
+// Register the sensor somewhere in your Activity initialization code
 Bmx280SensorDriver  temperatureSensorDriver = new Bmx280SensorDriver("I2C1");
 temperatureSensorDriver.registerTemperatureSensor();
+
+// Now you can register the sensor callback for continously report temperature
 final SensorManager sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
 sensorManager.registerDynamicSensorCallback(new SensorManager.DynamicSensorCallback() {
     @Override
