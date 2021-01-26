@@ -35,7 +35,7 @@ public class Vcnl4200 implements AutoCloseable {
     private static final String TAG = Vcnl4200.class.getSimpleName();
 
     /**
-     * I2C Slave Address of the VCNL4200
+     * I2C peripheral address of the VCNL4200
      */
     private static final int I2C_ADDRESS = 0x51;
 

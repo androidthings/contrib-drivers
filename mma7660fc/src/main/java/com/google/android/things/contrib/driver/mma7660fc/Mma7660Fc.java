@@ -31,7 +31,7 @@ import java.lang.annotation.RetentionPolicy;
 public class Mma7660Fc implements AutoCloseable {
     private static final String TAG = Mma7660Fc.class.getSimpleName();
     /**
-     * I2C slave address of the MMA7660FC.
+     * I2C peripheral address of the MMA7660FC.
      */
     public static final int I2C_ADDRESS = 0x4c;
     static final float MAX_RANGE_G = 1.5f;

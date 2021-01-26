@@ -38,7 +38,7 @@ and XOR operations throughout the code.
 Use the hex literal form for all constant values that represent addresses (bus addresses, register addresses, etc.):
 
 ```java
-public static final int SLAVE_ADDRESS = 0x3C;
+public static final int PERIPHERAL_ADDRESS = 0x3C;
 ...
 public static final int REGISTER_CONFIG = 0x0A;
 ...
