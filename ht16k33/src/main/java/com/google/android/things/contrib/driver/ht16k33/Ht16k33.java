@@ -40,7 +40,7 @@ public class Ht16k33 implements AutoCloseable {
     private static final String TAG = Ht16k33.class.getSimpleName();
 
     /**
-     * Default I2C slave address.
+     * Default I2C peripheral address.
      */
     public static final int I2C_ADDRESS = 0x70;
 

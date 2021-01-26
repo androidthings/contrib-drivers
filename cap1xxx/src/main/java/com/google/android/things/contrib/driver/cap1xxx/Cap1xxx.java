@@ -87,7 +87,7 @@ public class Cap1xxx implements AutoCloseable {
     }
 
     /**
-     * Default I2C slave address for the CAP1xxx family.
+     * Default I2C peripheral address for the CAP1xxx family.
      */
     public static final int DEFAULT_I2C_ADDRESS = 0x28;
 

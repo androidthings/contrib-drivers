@@ -153,7 +153,7 @@ public class Ads1xxx implements AutoCloseable {
 
 
     /**
-     * Default I2C slave address
+     * Default I2C peripheral address
      */
     public static final int DEFAULT_ADDRESS = 0x48;
 
@@ -177,7 +177,7 @@ public class Ads1xxx implements AutoCloseable {
     private I2cDevice mDevice;
 
     /**
-     * Create a new Ads1xxx interface, with a slave address of {@link #DEFAULT_ADDRESS}.
+     * Create a new Ads1xxx interface, with a peripheral address of {@link #DEFAULT_ADDRESS}.
      *
      * @param i2cName I2C port name where the device is attached. Cannot be null.
      * @param chip identifier for the connected device chip.
@@ -191,7 +191,7 @@ public class Ads1xxx implements AutoCloseable {
      * Create a new Ads1xxx interface.
      *
      * @param i2cName I2C port name where the device is attached. Cannot be null.
-     * @param i2cAddress I2C slave address for the connected device.
+     * @param i2cAddress I2C peripheral address for the connected device.
      * @param chip identifier for the connected device.
      * @throws IOException If the I2cDevice fails to open.
      */
