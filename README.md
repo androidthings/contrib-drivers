@@ -3,11 +3,9 @@ Android Things user-space drivers [![Build Status](https://travis-ci.org/android
 
 Sample peripheral drivers for Android Things.
 
-NOTE: these drivers are not production-ready. They are offered as sample
-implementations of Android Things user space drivers for common peripherals
-as part of the Developer Preview release. There is no guarantee
-of correctness, completeness or robustness.
-
+> **Note:** The Android Things Console will be turned down for non-commercial
+> use on January 5, 2022. For more details, see the
+> [FAQ page](https://developer.android.com/things/faq).
 
 How to use a driver
 ===================
