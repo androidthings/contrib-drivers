@@ -89,6 +89,20 @@ public class Apa102Test {
     }
 
     @Test
+    public void setBrightnessArray_throwsIfTooSmall() throws IOException {
+        Apa102 leds = new Apa102(mSpiDevice, Apa102.Mode.BGR, Apa102.Direction.NORMAL);
+        mExpectedException.expect(IllegalArgumentException.class);
+        leds.setIndividualBrightness(new int[] {-1});
+    }
+
+    @Test
+    public void setBrightnessArray_throwsIfTooLarge() throws IOException {
+        Apa102 leds = new Apa102(mSpiDevice, Apa102.Mode.BGR, Apa102.Direction.NORMAL);
+        mExpectedException.expect(IllegalArgumentException.class);
+        leds.setIndividualBrightness(new int[] {Apa102.MAX_BRIGHTNESS + 1});
+    }
+
+    @Test
     public void setDirection() throws IOException {
         Apa102 leds = new Apa102(mSpiDevice, Apa102.Mode.BGR, Apa102.Direction.NORMAL);
         leds.setDirection(Apa102.Direction.REVERSED);
