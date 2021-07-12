@@ -14,27 +14,24 @@
  * limitations under the License.
  */
 
-include ':adc'
-include ':apa102'
-include ':button'
-include ':bmx280'
-include ':cap1xxx'
-include ':gps'
-include ':ht16k33'
-include ':inkyphat'
-include ':lowpan'
-include ':matrixkeypad'
-include ':mma7660fc'
-include ':motorhat'
-include ':pwmservo'
-include ':pwmspeaker'
-include ':tm1637'
-include ':ssd1306'
-include ':rainbowhat'
-include ':sensehat'
-include ':thermalprinter'
-include ':vcnl4200'
-include ':voicehat'
-include ':zxgesturesensor'
+apply plugin: 'com.android.library'
 
-include ':testingutils'
+android {
+    compileSdkVersion 24
+    buildToolsVersion '24.0.3'
+
+    defaultConfig {
+        minSdkVersion 24
+        targetSdkVersion 24
+        versionCode 1
+        versionName '1.0'
+    }
+}
+
+dependencies {
+    provided 'com.google.android.things:androidthings:0.4-devpreview'
+    compile 'com.android.support:support-annotations:24.2.0'
+
+    testCompile 'junit:junit:4.12'
+    testCompile 'org.mockito:mockito-core:1.10.19'
+}
