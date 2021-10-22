@@ -17,6 +17,7 @@
 package com.google.android.things.contrib.driver.apa102;
 
 import android.graphics.Color;
+import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
 
 import com.google.android.things.pio.PeripheralManager;
@@ -67,7 +68,8 @@ public class Apa102 implements AutoCloseable {
     private Mode mLedMode;
 
     // RGB LED strip settings that have sensible defaults.
-    private int mLedBrightness = MAX_BRIGHTNESS >> 1; // default to half
+    private int mLedBrightnessGlobal = MAX_BRIGHTNESS >> 1; // Default to half
+    private int[] mLedBrightness;
 
     // Direction of the led strip;
     private Direction mDirection;
@@ -175,13 +177,33 @@ public class Apa102 implements AutoCloseable {
             throw new IllegalArgumentException("Brightness needs to be between 0 and "
                     + MAX_BRIGHTNESS);
         }
-        mLedBrightness = ledBrightness;
+        mLedBrightnessGlobal = ledBrightness;
+        mLedBrightness = null;
     }
 
     /**
-     * Get the current brightness level
+     * Sets the brightness for all LEDs in the strip.
+     * @param ledBrightness The brightness of the LED strip, between 0 and {@link #MAX_BRIGHTNESS}.
+     */
+    public void setIndividualBrightness(int[] ledBrightness) {
+        mLedBrightness = new int[ledBrightness.length];
+        for (int i=0; i<ledBrightness.length; i++) {
+            if (ledBrightness[i] < 0 || ledBrightness[i] > MAX_BRIGHTNESS) {
+                throw new IllegalArgumentException("Brightness needs to be between 0 and "
+                        + MAX_BRIGHTNESS);
+            }
+            mLedBrightness[i] = ledBrightness[i];
+        }
+    }
+
+    /**
+     * Get the current brightness
      */
     public int getBrightness() {
+        return mLedBrightnessGlobal;
+    }
+
+    public @Nullable int[] getIndividualBrightness() {
         return mLedBrightness;
     }
 
@@ -209,6 +231,9 @@ public class Apa102 implements AutoCloseable {
         if (mDevice == null) {
             throw new IllegalStateException("SPI device not open");
         }
+        if (mLedBrightness != null && colors.length != mLedBrightness.length) {
+            throw new IllegalStateException("colors and brightness arrays must be of the same length");
+        }
 
         final int size = APA_START_FRAME_PACKET_LENGTH
                 + APA_COLOR_PACKET_LENGTH * colors.length
@@ -225,9 +250,12 @@ public class Apa102 implements AutoCloseable {
         pos += APA_START_FRAME_PACKET_LENGTH;
 
         // Compute the packets to send.
-        byte brightness = (byte) (0xE0 | mLedBrightness); // Less brightness possible
         final Direction currentDirection = mDirection; // Avoids reading changes of mDirection during loop
+        byte brightness = (byte) (0xE0 | mLedBrightnessGlobal); // Default initialization
         for (int i = 0; i < colors.length; i++) {
+            if (mLedBrightness != null) {
+                brightness = (byte) (0xE0 | mLedBrightness[i]); // Less brightness possible
+            }
             int di = currentDirection == Direction.NORMAL ? i : colors.length - i - 1;
             copyApaColorData(brightness, colors[di], mLedMode, mLedData, pos);
             pos += APA_COLOR_PACKET_LENGTH;
